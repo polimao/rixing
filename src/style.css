@@ -1,0 +1,1330 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: transparent;
+  user-select: none;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 10px 30px 40px 30px;
+  /* 给四周留出足够的空间显示阴影，避免阴影被截断 */
+}
+
+/* 隐藏全局 Webkit 滚动条，保持界面极简（依然支持触控板/鼠标滚轮正常滚动） */
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.arrow-up {
+  width: 14px;
+  height: 14px;
+  background-color: #fdfdfd;
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  margin-left: -7px;
+  transform: rotate(45deg);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  border-top-left-radius: 2px;
+  z-index: 10;
+}
+
+.todo-container {
+  background-color: #fdfdfd;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  /* 柔和的环境光阴影 + 更集中的底部阴影 */
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 15px;
+  /* 将外边距/留白调整为 15px */
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  -webkit-app-region: drag;
+  /* 允许拖拽整个窗口背景 */
+}
+
+.todo-list,
+.dashboard-row,
+.bottom-area,
+.modal,
+.right-hover-btn,
+.delete-hover-btn,
+.custom-select {
+  -webkit-app-region: no-drag;
+  /* 取消内部元素的拖拽，保证点击/滚动不受影响 */
+}
+
+/* 全局 Loading 样式 */
+.loading-overlay {
+  position: absolute;
+  top: 10px;
+  /* 避开箭头区域 */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #fdfdfd;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.loading-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #409eff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.bottom-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #606266;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+  user-select: none;
+  outline: none;
+}
+
+.nav-btn:focus {
+  outline: none;
+}
+
+.nav-btn:hover {
+  background-color: #e4e6eb;
+  /* 微信风格的浅灰色 hover */
+}
+
+.nav-btn.icon-only {
+  padding: 6px;
+}
+
+.nav-btn.active {
+  color: #409eff;
+  background-color: #ecf5ff;
+}
+
+/* 微信风格 Tooltip */
+.custom-tooltip {
+  position: relative;
+}
+
+.custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background-color: #fff;
+  color: #333;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ebeef5;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.custom-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(8px);
+}
+
+.custom-tooltip.tooltip-right::after {
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%) translateX(4px);
+}
+
+.custom-tooltip.tooltip-right:hover::after {
+  transform: translateY(-50%) translateX(8px);
+}
+
+.custom-tooltip.tooltip-left::after {
+  top: 50%;
+  left: auto;
+  right: 100%;
+  transform: translateY(-50%) translateX(-4px);
+}
+
+.custom-tooltip.tooltip-left:hover::after {
+  transform: translateY(-50%) translateX(-8px);
+}
+
+/* Dashboard Styles */
+.dashboard {
+  margin-bottom: 16px;
+}
+
+.dashboard-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.metric-card {
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.metric-card.clickable {
+  cursor: pointer;
+}
+
+.metric-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-color: #dcdfe6;
+}
+
+.metric-card.completed {
+  flex: unset;
+  background: #f4f5f7;
+  border: 1px solid #e4e7ed;
+  border-bottom: 3px solid #e4e7ed;
+  color: #909399;
+}
+
+.metric-card.completed .metric-value {
+  color: #a8abb2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+/* 自定义删除线，确保在数字正中间 */
+.metric-card.completed .metric-value span {
+  position: relative;
+  display: inline-block;
+}
+
+.metric-card.completed .metric-value span::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -2px;
+  right: -2px;
+  height: 3px;
+  background-color: #a8abb2;
+  transform: translateY(-50%);
+  border-radius: 2px;
+}
+
+.metric-card.completed .metric-label {
+  color: #a8abb2;
+}
+
+.metric-card.pending {
+  flex: unset;
+  background: #fdfdfd;
+  border: 1px solid #e1ecf8;
+  border-bottom: 3px solid #cccccc;
+  color: #000;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.08);
+}
+
+.metric-card.pending .metric-value {
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-card.pending .metric-label {
+  color: #606266;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.metric-label {
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.chart-wrapper {
+  flex: 5;
+  height: 180px;
+  position: relative;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 8px;
+  border: 1px solid #ebeef5;
+  box-sizing: border-box;
+}
+
+.divider {
+  border-bottom: 1px solid #ebeef5;
+  margin-bottom: 12px;
+}
+
+.list-header {
+  margin-bottom: 8px;
+}
+
+.todo-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* 防止横向滚动条 */
+  font-size: 14px;
+  padding-right: 0;
+  /* 移除以前为了滚动条预留的边距，现在滚动条已隐藏 */
+  padding-bottom: 0px;
+}
+
+.todo-list::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.todo-list::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb {
+  background: #dcdfe6;
+  border-radius: 4px;
+}
+
+/* 空状态样式 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 120px;
+  color: #909399;
+  opacity: 0.8;
+  user-select: none;
+}
+
+.empty-state .empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.empty-state .empty-text {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* 任务分组外层包裹容器 */
+.todo-group {
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background-color: #fafafa;
+  padding: 0;
+  /* 移除 overflow: hidden 允许输入框高度自适应展开时不受限制 */
+  overflow: visible;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+}
+
+/* 列表分组区域 Header */
+.group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #f0f2f5;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.group-title {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.group-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.group-badge.category-badge[data-val="工作"] {
+  color: #409eff;
+  background: #ecf5ff;
+}
+
+.group-badge.category-badge[data-val="生活"] {
+  color: #67c23a;
+  background: #f0f9eb;
+}
+
+.group-badge.priority-badge[data-val="高"] {
+  color: #ffffff;
+  background: #db3e35;
+}
+
+.group-badge.priority-badge[data-val="中"] {
+  color: #ffffff;
+  background: #f1b714;
+}
+
+.group-badge.priority-badge[data-val="低"] {
+  color: #ffffff;
+  background: #67c23a;
+}
+
+/* 列表分组区域添加按钮 */
+.group-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+  border-radius: 6px;
+  color: #a8abb2;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.group-add-btn:hover {
+  color: #409eff;
+  background-color: #f5f7fa;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  /* 移除上下 padding，让内部元素去撑开高度 */
+  margin: 0;
+  border-bottom: 1px solid #f0f2f5;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  opacity: 1;
+  position: relative;
+  border-radius: 0;
+  /* 为内部的绝对定位元素提供参考系（position:relative 即可；
+     不要在这里加 transform——transform 会让本行成为 position:fixed 的包含块，
+     导致“更多操作”下拉菜单的 fixed 定位错位） */
+}
+
+/* 组内最后一个元素不需要底部虚线，让它紧贴底部 */
+.todo-item:last-child {
+  border-bottom: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.todo-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+  /* 轻微的透明度背景，形成“呼吸的条带” */
+}
+
+.todo-item.completing {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.todo-item .index {
+  width: 12px;
+  color: #bdc3c7;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.text-wrapper {
+  flex: 1;
+  position: relative;
+  min-height: 44px;
+  /* 与 .todo-item 的大致实际高度对齐 (20px line-height + 24px padding = 44px) */
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  /* 允许 flex 子元素收缩至内容宽度以下，防止撑开容器 */
+}
+
+.todo-item textarea.text {
+  display: block;
+  width: calc(100% + 15px - 4px);
+  height: 44px;
+  /* 撑满整个任务条高度 */
+  min-height: 44px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #303133;
+  outline: none;
+  padding: 10px 86px 10px 14px;
+  /* 让文字在 44px 高度中垂直居中，并移除左右内边距 */
+  box-sizing: border-box;
+  resize: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 20px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  z-index: 1;
+  border-radius: 6px;
+  margin-left: -13px;
+}
+
+.todo-item textarea.text:disabled {
+  color: #a8abb2;
+  text-decoration: line-through;
+  background: transparent;
+}
+
+.todo-item textarea.text:hover:not(:focus) {
+  background: transparent;
+  /* 移除边框属性 */
+}
+
+.todo-item:focus-within {
+  z-index: 10;
+}
+
+/* 当输入框或内部标签处于焦点时，隐藏右侧的状态选择和更多按钮 */
+.text-wrapper:focus-within~.select-status,
+.text-wrapper:focus-within~.more-actions-wrap {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.todo-item textarea.text:focus {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: normal;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  z-index: 999;
+  border: 1px solid #409eff;
+  padding: 10px 86px 10px 14px;
+  /* 聚焦时左侧给 14px 间距，右侧留出 86px 空间防止遮挡悬浮标签 */
+  margin-left: -13px;
+  /* 向左偏移补偿左侧 padding (14px) 和 border (1px)，保持文字视觉原位 */
+  width: calc(100% + 15px + 74px);
+  /* 补偿左侧外扩宽度，并占用隐藏的右侧按钮原本的空间（包含边距） */
+  overflow-y: hidden;
+  /* 隐藏滚动条，高度由JS动态计算 */
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.time-label {
+  font-size: 10px;
+  color: #95a5a6;
+  margin-left: 4px;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+/* Custom Selects as Badges */
+.custom-select {
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin: 0 4px;
+  outline: none;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.custom-select:hover {
+  filter: brightness(0.95);
+}
+
+/* 输入框内部标签容器 */
+.inner-tags {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  z-index: 1000;
+  /* 确保悬浮标签的层级高于 focus 状态下的 textarea */
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.text-wrapper:focus-within .inner-tags {
+  opacity: 1;
+  pointer-events: auto;
+  right: -72px;
+  /* 输入框放大后，将标签向右移动，放置在输入框的新右边缘内 */
+}
+
+/* Dropdown Menu Styles */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 120px;
+  padding: 6px 0;
+  z-index: 200;
+  border: 1px solid #ebeef5;
+}
+
+.dropdown-menu.hidden {
+  display: none;
+}
+
+.dropdown-item {
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #606266;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f7fa;
+  color: #409eff;
+}
+
+/* 顶部标题栏：水平布局，左侧标题+排序，右侧成就按钮 */
+.app-header {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.title-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.app-title {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 5px;
+  margin: 0;
+  padding: 2px 2px 2px 0;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.4px;
+  color: #2c3e50;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition: color 0.2s;
+}
+
+.app-title:hover {
+  color: #409eff;
+}
+
+/* 标题右下角的向下三角，表示这是个下拉按钮 */
+.title-caret {
+  width: 0;
+  height: 0;
+  margin-bottom: 3px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #c0c4cc;
+  transition: transform 0.2s, border-top-color 0.2s;
+}
+
+.app-title:hover .title-caret {
+  border-top-color: #409eff;
+}
+
+/* 标题中的待办总数徽标 */
+.title-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0px;
+  font-size: 18px;
+  font-weight: 700;
+  /* color: #fff;
+  background: #409eff; */
+  border-radius: 10px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 右上角成就按钮 */
+.achievement-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #f4f5f7;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  color: #909399;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  outline: none;
+  -webkit-app-region: no-drag;
+}
+
+.achievement-btn:hover {
+  background: #ecf5ff;
+  border-color: #409eff;
+  color: #409eff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
+}
+
+.achievement-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* 菜单展开时三角翻转 */
+.app-title.open .title-caret {
+  transform: rotate(180deg);
+}
+
+/* 标题下的排序菜单从标题左下角展开 */
+.app-header .dropdown-menu {
+  left: 0;
+  right: auto;
+}
+
+/* 分类 */
+.custom-select[data-val="工作"] {
+  color: #409eff;
+  background: #ecf5ff;
+  border-color: transparent;
+}
+
+.custom-select[data-val="生活"] {
+  color: #67c23a;
+  background: #f0f9eb;
+  border-color: transparent;
+}
+
+/* 优先级与状态 */
+.custom-select.select-priority,
+.custom-select.select-status {
+  padding: 3px 5px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.custom-select[data-val="高"] {
+  color: #ffffff;
+  background: #db3e35;
+  border-color: transparent;
+}
+
+.custom-select[data-val="中"] {
+  color: #ffffff;
+  background: #f1b714;
+  border-color: transparent;
+}
+
+.custom-select[data-val="低"] {
+  color: #ffffff;
+  background: #67c23a;
+  border-color: transparent;
+}
+
+/* 状态 */
+.custom-select[data-val="待办"] {
+  color: #606266;
+  background: #ffffff;
+  border-color: #dcdfe6;
+}
+
+.custom-select[data-val="完成"] {
+  color: #333333;
+  background: #e2e4e8;
+  border-color: transparent;
+  filter: none;
+}
+
+.right-hover-btn {
+  background: transparent;
+  border: none;
+  padding: 3px;
+  margin-left: 4px;
+  cursor: pointer;
+  color: #409eff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s;
+}
+
+.right-hover-btn:hover {
+  background-color: #ecf5ff;
+}
+
+.todo-item:hover .right-hover-btn {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 更多操作自定义下拉菜单 */
+.more-actions-wrap {
+  position: relative;
+  display: inline-flex;
+  margin-left: 2px;
+}
+
+.more-actions-btn {
+  width: 20px;
+  height: 24px;
+  padding: 0;
+  text-align: center;
+  font-size: 14px;
+  color: #909399;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  outline: none;
+  user-select: none;
+}
+
+.more-actions-btn:hover {
+  background-color: #f4f4f5;
+  color: #606266;
+}
+
+.more-actions-dropdown {
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  min-width: 72px;
+  padding: 4px 0;
+  z-index: 10000;
+  border: 1px solid #ebeef5;
+  background: white;
+}
+
+.more-actions-dropdown.hidden {
+  display: none;
+}
+
+.more-actions-item {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #606266;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s;
+}
+
+.more-actions-item:hover {
+  background-color: #f5f7fa;
+  color: #409eff;
+}
+
+.sort-select {
+  /* 类似其它状态选择框，颜色可以默认使用灰色或随分类变 */
+  color: #606266;
+  background: #ffffff;
+  border-color: #dcdfe6;
+}
+
+.modal {
+  position: absolute;
+  top: 10px;
+  /* 从容器顶部开始，避开箭头区域 */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  /* 和主容器保持一致，避免遮罩四个角溢出 */
+  overflow: hidden;
+  /* 防止内容溢出 */
+}
+
+/* 番茄钟模态框专属样式 */
+#pomodoro-modal {
+  background: transparent;
+  top: 0;
+}
+
+#pomodoro-modal .modal-content {
+  width: 100%;
+  height: 100%;
+  box-shadow: none;
+  border-radius: 12px;
+  padding: 16px;
+  background: white;
+}
+
+#pomodoro-toggle-btn {
+  position: relative;
+}
+
+#pomodoro-play-icon,
+#pomodoro-pause-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#pomodoro-play-icon.hidden,
+#pomodoro-pause-icon.hidden {
+  display: none !important;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: white;
+  width: 90%;
+  height: 85%;
+  /* 稍微降低高度，避免太满 */
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  /* 确保 padding 不会导致溢出 */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #2c3e50;
+}
+
+.close-btn {
+  background: #f0f2f5;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #909399;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f56c6c;
+  color: white;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.shake-animation {
+  animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+  background-color: #f0f9eb !important;
+  border-radius: 6px;
+}
+
+/* Toast Styles */
+.toast-container {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background-color: #303133;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 2000;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  opacity: 1;
+}
+
+.toast-container.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.toast-undo-btn {
+  background: transparent;
+  border: none;
+  color: #409eff;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.toast-undo-btn:hover {
+  color: #66b1ff;
+}
+
+/* =========================================
+   Dark Mode Support
+   ========================================= */
+@media (prefers-color-scheme: dark) {
+
+  /* Base Container & Arrow */
+  .arrow-up {
+    background-color: #2b2d30;
+    border-top-color: rgba(255, 255, 255, 0.1);
+    border-left-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .todo-container,
+  .loading-overlay {
+    background-color: #2b2d30;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.5),
+      0 4px 12px rgba(0, 0, 0, 0.3);
+    color: #e5eaf3;
+  }
+
+  /* Metric Cards */
+  .metric-card.pending {
+    background: #36393f;
+    border-color: #4c4d4f;
+    border-bottom-color: #4c4d4f;
+    color: #e5eaf3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .metric-card.pending .metric-value {
+    color: #e5eaf3;
+  }
+
+  .metric-card.pending .metric-label {
+    color: #a3a6ad;
+  }
+
+  .metric-card.completed {
+    background: #2b2d30;
+    border-color: #3e4042;
+    border-bottom-color: #3e4042;
+    color: #a3a6ad;
+  }
+
+  /* 标题（兼作排序按钮）暗色适配 */
+  .app-title {
+    color: #e5eaf3;
+  }
+
+  .title-count {
+    /* background: #409eff;
+    color: #fff; */
+  }
+
+  .achievement-btn {
+    background: #36393f;
+    border-color: #4c4d4f;
+    color: #a3a6ad;
+  }
+
+  .achievement-btn:hover {
+    background: #2b2d30;
+    border-color: #409eff;
+    color: #409eff;
+  }
+
+  .title-caret {
+    border-top-color: #8a8f99;
+  }
+
+  /* Groups */
+  .todo-group {
+    background-color: #36393f;
+    border-color: #4c4d4f;
+  }
+
+  .group-header {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .group-add-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Todo List & Items */
+  .todo-item {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .todo-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .todo-item textarea.text {
+    color: #e5eaf3;
+  }
+
+  .todo-item textarea.text::placeholder {
+    color: #8d9095;
+  }
+
+  .todo-item textarea.text:disabled {
+    color: #6a6e73;
+  }
+
+  .todo-item textarea.text:focus {
+    background: #2b2d30;
+    border-color: #409eff;
+    box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.5);
+    color: #e5eaf3;
+  }
+
+  /* Selects & Badges */
+  .custom-select {
+    background: #2b2d30;
+    border-color: #4c4d4f;
+    color: #e5eaf3;
+  }
+
+  .custom-select:hover {
+    filter: brightness(1.2);
+  }
+
+  /* Dropdown Menus */
+  .dropdown-menu {
+    background: #2b2d30;
+    border-color: #4c4d4f;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .dropdown-item {
+    color: #e5eaf3;
+  }
+
+  .dropdown-item:hover {
+    background-color: #36393f;
+  }
+
+  /* Action Buttons */
+  .right-hover-btn {
+    color: #409eff;
+  }
+
+  .right-hover-btn:hover {
+    background-color: #36393f;
+  }
+
+  .more-actions-btn {
+    color: #a3a6ad;
+  }
+
+  .more-actions-btn:hover {
+    background-color: #36393f;
+    color: #e5eaf3;
+  }
+
+  .more-actions-dropdown {
+    background: #2b2d30;
+    border-color: #4c4d4f;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .more-actions-item {
+    color: #e5eaf3;
+  }
+
+  .more-actions-item:hover {
+    background-color: #36393f;
+  }
+
+  /* Modals */
+  .modal-content {
+    background: #2b2d30 !important;
+    color: #e5eaf3;
+    border: 1px solid #4c4d4f;
+  }
+
+  .modal-header h3 {
+    color: #e5eaf3;
+  }
+
+  /* Pomodoro Modal Inline Overrides */
+  #pomodoro-task-title {
+    color: #e5eaf3 !important;
+  }
+
+  #pomodoro-toggle-btn {
+    background: #3e3322 !important;
+    color: #e6a23c !important;
+  }
+
+  #pomodoro-exit-btn {
+    background: #4c4d4f !important;
+    color: #a3a6ad !important;
+  }
+
+  /* Misc */
+  .empty-state {
+    color: #8d9095;
+  }
+
+  .time-label {
+    color: #6a6e73;
+  }
+
+  .close-btn {
+    color: #a3a6ad;
+  }
+
+  .close-btn:hover {
+    color: #fff;
+  }
+}

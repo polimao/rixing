@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 作为菜单栏代理应用运行：不在 Dock 显示、无主菜单栏 -->
+	<key>LSUIElement</key>
+	<true/>
+</dict>
+</plist>

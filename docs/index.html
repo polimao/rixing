@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>日行 · 常驻菜单栏的待办 / 日历 / 窗口管理</title>
+  <meta name="description" content="日行 —— 一款常驻 macOS 菜单栏的极简待办、日历与窗口分屏工具。轻快、私密、开源免费。" />
+  <!-- 社交分享预览（GitHub Pages 上 og:image 用绝对地址更稳，发布后可改成 https://你的域名/images/hero.png） -->
+  <meta property="og:title" content="日行 · macOS 菜单栏效率工具" />
+  <meta property="og:description" content="极简待办 / 农历日历 / 窗口分屏，常驻菜单栏，开源免费。" />
+  <meta property="og:image" content="images/hero.png" />
+  <link rel="icon" href="icon-source.png" />
+  <style>
+    :root {
+      --ink: #1f2430;
+      --sub: #6b7280;
+      --line: #ececf1;
+      --card: #ffffff;
+      --bg: #fbfbfd;
+      --o1: #ffc24a;
+      --o2: #ff8a33;
+      --o3: #f23a28;
+      --grad: linear-gradient(135deg, #ffc24a 0%, #ff8a33 50%, #f23a28 100%);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, "PingFang SC", "Helvetica Neue", Segoe UI, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* nav */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: saturate(180%) blur(14px);
+      background: rgba(251, 251, 253, 0.8);
+      border-bottom: 1px solid var(--line);
+    }
+
+    nav .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .brand img {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      font-size: 14px;
+      color: var(--sub);
+    }
+
+    .nav-links a:hover {
+      color: var(--ink);
+    }
+
+    .lang-select {
+      font: inherit;
+      font-size: 13px;
+      color: var(--sub);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: border-color .12s ease, color .12s ease;
+    }
+
+    .lang-select:hover {
+      color: var(--ink);
+      border-color: #d7d7de;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--grad);
+      color: #fff;
+      font-weight: 600;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      box-shadow: 0 6px 18px rgba(242, 90, 40, 0.28);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(242, 90, 40, 0.35);
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .btn.ghost:hover {
+      border-color: #d7d7de;
+    }
+
+    .btn.lg {
+      padding: 14px 28px;
+      font-size: 16px;
+    }
+
+    /* hero */
+    .hero {
+      text-align: center;
+      padding: 70px 0 50px;
+    }
+
+    .hero .icon {
+      width: 132px;
+      height: 132px;
+      border-radius: 30px;
+      box-shadow: 0 20px 50px rgba(242, 90, 40, .25);
+    }
+
+    .hero h1 {
+      font-size: 52px;
+      letter-spacing: -1px;
+      margin: 22px 0 6px;
+    }
+
+    .hero .tag {
+      font-size: 21px;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .hero .sub {
+      font-size: 16px;
+      color: var(--sub);
+      margin: 12px auto 26px;
+      max-width: 560px;
+    }
+
+    .cta {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .meta {
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--sub);
+    }
+
+    .hero-shot {
+      margin: 46px auto 0;
+      max-width: 940px;
+    }
+
+    .hero-shot img {
+      width: 100%;
+      border-radius: var(--radius);
+    }
+
+    /* sections */
+    section {
+      padding: 56px 0;
+    }
+
+    .sec-title {
+      text-align: center;
+      font-size: 30px;
+      letter-spacing: -.5px;
+      margin-bottom: 8px;
+    }
+
+    .sec-sub {
+      text-align: center;
+      color: var(--sub);
+      margin-bottom: 40px;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .feature {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+
+    .feature:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .06);
+    }
+
+    .feature .emo {
+      font-size: 26px;
+    }
+
+    .feature h3 {
+      font-size: 17px;
+      margin: 10px 0 6px;
+    }
+
+    .feature p {
+      font-size: 14px;
+      color: var(--sub);
+    }
+
+    .shots {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .shots img {
+      width: 100%;
+      border-radius: 14px;
+      filter: drop-shadow(0 12px 28px rgba(0, 0, 0, .12));
+    }
+
+    /* download */
+    .download {
+      text-align: center;
+      background: var(--grad);
+      color: #fff;
+      border-radius: 28px;
+      padding: 54px 24px;
+    }
+
+    .download h2 {
+      font-size: 30px;
+      margin-bottom: 10px;
+    }
+
+    .download p {
+      opacity: .92;
+      margin-bottom: 24px;
+    }
+
+    .download .btn {
+      background: #fff;
+      color: var(--o3);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .18);
+    }
+
+    .req {
+      margin-top: 18px;
+      font-size: 13px;
+      opacity: .9;
+    }
+
+    .note {
+      max-width: 620px;
+      margin: 28px auto 0;
+      font-size: 13.5px;
+      color: var(--sub);
+      background: #fff7ef;
+      border: 1px solid #ffe2c9;
+      border-radius: 12px;
+      padding: 14px 18px;
+      text-align: left;
+    }
+
+    .note b {
+      color: var(--ink);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--sub);
+      font-size: 13px;
+      padding: 40px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    footer a {
+      color: var(--o3);
+    }
+
+    @media (max-width: 720px) {
+
+      .features,
+      .shots {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        font-size: 40px;
+      }
+
+      .nav-links a:not(.btn) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div class="wrap">
+      <a class="brand" href="#top"><img src="icon-source.png" data-brand-alt alt="日行" /> <span data-brand>日行</span></a>
+      <div class="nav-links">
+        <a href="#features" data-i18n="nav_features">功能</a>
+        <a href="#shots" data-i18n="nav_shots">截图</a>
+        <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn" href="#download" data-i18n="nav_download">下载</a>
+        <select id="lang-select" class="lang-select" aria-label="Language"></select>
+      </div>
+    </div>
+  </nav>
+
+  <header id="top" class="hero">
+    <div class="wrap">
+      <img class="icon" src="icon-source.png" data-brand-alt alt="日行 图标" />
+      <h1 data-brand>日行</h1>
+      <div class="tag" data-i18n="hero_tag">常驻菜单栏的极简待办 · 日历 · 窗口分屏</div>
+      <p class="sub" data-i18n="hero_sub">轻快、私密、开源免费。需要时一键唤出，用完即隐，安静地待在你的 macOS 菜单栏里。</p>
+      <div class="cta">
+        <a class="btn lg" href="#download" data-i18n="hero_cta_download">↓ 免费下载（.dmg）</a>
+        <a class="btn lg ghost" href="https://github.com/your-username/rixing" target="_blank" rel="noopener" data-i18n="hero_cta_github">在 GitHub
+          查看</a>
+      </div>
+      <div class="meta" data-i18n="hero_meta">macOS 11+ · Apple Silicon · 安装包仅 ~4 MB · MIT 开源</div>
+      <div class="hero-shot"><img src="images/hero.png" data-brand-alt alt="日行 预览" /></div>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="wrap">
+      <h2 class="sec-title" data-i18n="feat_title">为什么选日行</h2>
+      <p class="sec-sub" data-i18n="feat_sub">把高频效率工具收进菜单栏，少占地方，多干正事。</p>
+      <div class="features">
+        <div class="feature">
+          <div class="emo">🧷</div>
+          <h3 data-i18n="f1_h">菜单栏原生</h3>
+          <p data-i18n="f1_p">两个托盘图标：待办与日历。左键即在图标下方弹窗，右键打开设置；不占 Dock。</p>
+        </div>
+        <div class="feature">
+          <div class="emo">✅</div>
+          <h3 data-i18n="f2_h">顺手的待办</h3>
+          <p data-i18n="f2_p">按分类 / 优先级 / 时间分组，行内编辑，一键切换状态，还有完成趋势「成就」视图。</p>
+        </div>
+        <div class="feature">
+          <div class="emo">🍅</div>
+          <h3 data-i18n="f3_h">内置番茄钟</h3>
+          <p data-i18n="f3_p">把任意任务变成专注计时，胶囊计时器可悬浮在全屏 App 之上。</p>
+        </div>
+        <div class="feature">
+          <div class="emo">📅</div>
+          <h3 data-i18n="f4_h">农历日历</h3>
+          <p data-i18n="f4_p">公历 + 农历、法定节假日与「休 / 班」角标，今天高亮。</p>
+        </div>
+        <div class="feature">
+          <div class="emo">🪟</div>
+          <h3 data-i18n="f5_h">窗口分屏</h3>
+          <p data-i18n="f5_p">一键把任意窗口分到左 / 右半屏、铺满或复原，快捷键可自定义。</p>
+        </div>
+        <div class="feature">
+          <div class="emo">🔒</div>
+          <h3 data-i18n="f6_h">隐私优先</h3>
+          <p data-i18n="f6_p">数据是你 iCloud Drive 里的纯 JSON，无账号、无遥测、无服务器。8 语言、明暗主题。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="shots">
+    <div class="wrap">
+      <h2 class="sec-title" data-i18n="shots_title">界面预览</h2>
+      <p class="sec-sub" data-i18n="shots_sub">干净、克制、贴合 macOS。</p>
+      <div class="shots">
+        <img src="images/todos-light.png" alt="待办" />
+        <img src="images/calendar-light.png" alt="日历" />
+        <img src="images/settings-dark.png" alt="设置" />
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div id="download" class="download">
+        <h2 data-i18n="dl_h">立即开始</h2>
+        <p data-i18n="dl_p">下载后拖入「应用程序」即可。免费、开源。</p>
+        <a class="btn lg" data-download data-i18n="dl_btn"
+          href="https://github.com/your-username/rixing/releases/latest/download/Rixing_macOS_arm64.dmg">
+          ↓ 下载 日行 for macOS（Apple Silicon）
+        </a>
+        <div class="req" data-i18n="dl_req">macOS 11 Big Sur 或更高 · Apple Silicon (M 系列)</div>
+        <div class="note" data-i18n-html="dl_note">
+          <b>首次打开提示：</b>应用暂未做苹果公证，第一次打开请<b>右键点击 App →「打开」</b>，
+          或到「系统设置 → 隐私与安全性」里点「仍要打开」。之后即可正常使用。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer data-i18n-html="footer">
+    日行 · <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a> ·
+    MIT © 李貌
+  </footer>
+  <script src="i18n.js" defer></script>
+</body>
+
+</html>

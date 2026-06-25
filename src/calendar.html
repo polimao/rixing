@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Calendar</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      height: 100vh;
+      box-sizing: border-box;
+      padding: 10px 30px 40px 30px;
+    }
+
+    .arrow-up {
+      width: 14px;
+      height: 14px;
+      background-color: #fdfdfd;
+      position: absolute;
+      top: 3px;
+      left: 50%;
+      margin-left: -7px;
+      transform: rotate(45deg);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      border-left: 1px solid rgba(0, 0, 0, 0.08);
+      border-top-left-radius: 2px;
+      z-index: 10;
+    }
+
+    .calendar-container {
+      background-color: #fdfdfd;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.12),
+        0 4px 12px rgba(0, 0, 0, 0.08);
+      padding: 20px 24px;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: 600;
+      margin-top: 4px;
+      margin-bottom: 16px;
+      color: #333;
+      height: 30px;
+    }
+
+    #month-year {
+      flex-grow: 0;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    #month-year:hover {
+      color: #cc252c;
+    }
+
+    .nav-btn {
+      position: absolute;
+      top: -10px;
+      bottom: -10px;
+      width: 80px;
+      background: transparent;
+      border: none;
+      color: #c0c0c0;
+      font-size: 16px;
+      cursor: pointer;
+      outline: none;
+      z-index: 10;
+      transition: color 0.2s;
+    }
+
+    .nav-btn:hover {
+      color: #333;
+    }
+
+    #prev-month {
+      left: -10px;
+      text-align: left;
+      padding-left: 10px;
+    }
+
+    #next-month {
+      right: -10px;
+      text-align: right;
+      padding-right: 10px;
+    }
+
+    .divider {
+      margin-bottom: 16px;
+      width: 95%;
+      margin-left: auto;
+      margin-right: auto;
+      border-bottom: #ebebeb solid 1px;
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      color: #a0a0a0;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px 0;
+      text-align: center;
+      flex-grow: 1;
+      will-change: transform, opacity;
+    }
+
+    .day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 44px;
+      border-radius: 10px;
+      cursor: default;
+      position: relative;
+      transition: background-color 0.2s;
+    }
+
+    .day-num {
+      font-size: 18px;
+      color: #333;
+      line-height: 1;
+      font-weight: 500;
+    }
+
+    .day-lunar {
+      font-size: 10px;
+      color: #999;
+      margin-top: 4px;
+      line-height: 1;
+      text-align: center;
+      max-width: 100%;
+      word-break: break-all;
+    }
+
+    /* Other month days */
+    .day.other-month .day-num,
+    .day.other-month .day-lunar {
+      color: #dcdcdc;
+    }
+
+    /* Holidays / Red days */
+    .day.holiday .day-num,
+    .day.holiday .day-lunar {
+      color: #d32f2f;
+    }
+
+    /* Weekends: only day-num is red */
+    .day.weekend .day-num {
+      color: #d32f2f;
+    }
+
+    /* Badges (休 / 班) */
+    .badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    .badge-rest {
+      color: #d32f2f;
+    }
+
+    .badge-work {
+      color: #777;
+    }
+
+    /* Today or selected day */
+    .day.today {
+      background-color: #cc252c;
+      box-shadow: 0 4px 10px 2px rgba(204, 37, 44, 0.4);
+    }
+
+    .day.today .day-num,
+    .day.today .badge {
+      color: #ffffff;
+    }
+
+    .day.today .day-lunar {
+      color: #ffb5b8;
+    }
+
+    /* Slightly tweak other month red days to look inactive */
+    .day.holiday.other-month .day-num,
+    .day.holiday.other-month .day-lunar,
+    .day.weekend.other-month .day-num,
+    .day.other-month .badge-rest {
+      color: #f5b0b0;
+    }
+
+    .day.other-month .badge-work {
+      color: #dcdcdc;
+    }
+
+    .expand-btn-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .expand-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: #c0c0c0;
+      cursor: pointer;
+      width: 40px;
+      height: 24px;
+      border-radius: 12px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .expand-btn:hover {
+      background-color: #f0f2f5;
+      color: #333;
+    }
+
+    /* =========================================
+       Dark Mode（跟随 App 的主题设置：ui-common 会在 <html> 上写 data-theme，
+       "随系统" 也会被解析成具体的 light/dark，因此用属性选择器而非 @media）
+       ========================================= */
+    [data-theme="dark"] #month-year:hover { color: #ff6b6b; }
+
+    [data-theme="dark"] .arrow-up {
+      background-color: #2b2d30;
+      border-top-color: rgba(255, 255, 255, 0.1);
+      border-left-color: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .calendar-container {
+      background-color: #2b2d30;
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        0 4px 12px rgba(0, 0, 0, 0.3);
+      color: #e5eaf3;
+    }
+
+    [data-theme="dark"] .header { color: #e5eaf3; }
+    [data-theme="dark"] .nav-btn { color: #666; }
+    [data-theme="dark"] .nav-btn:hover { color: #e5eaf3; }
+    [data-theme="dark"] .divider { border-bottom-color: rgba(255, 255, 255, 0.05); }
+    [data-theme="dark"] .day-num { color: #e5eaf3; }
+    [data-theme="dark"] .day-lunar { color: #a3a6ad; }
+
+    [data-theme="dark"] .day.other-month .day-num,
+    [data-theme="dark"] .day.other-month .day-lunar { color: #555; }
+
+    [data-theme="dark"] .day.holiday .day-num,
+    [data-theme="dark"] .day.holiday .day-lunar { color: #ff6b6b; }
+
+    [data-theme="dark"] .day.weekend .day-num { color: #ff6b6b; }
+    [data-theme="dark"] .badge-rest { color: #ff6b6b; }
+    [data-theme="dark"] .badge-work { color: #a3a6ad; }
+
+    [data-theme="dark"] .day.today {
+      background-color: #d32f2f;
+      box-shadow: 0 4px 10px 2px rgba(211, 47, 47, 0.4);
+    }
+
+    [data-theme="dark"] .day.today .day-num,
+    [data-theme="dark"] .day.today .badge { color: #ffffff; }
+    [data-theme="dark"] .day.today .day-lunar { color: #ffb5b8; }
+
+    [data-theme="dark"] .day.holiday.other-month .day-num,
+    [data-theme="dark"] .day.holiday.other-month .day-lunar,
+    [data-theme="dark"] .day.weekend.other-month .day-num,
+    [data-theme="dark"] .day.other-month .badge-rest { color: #8c3a3a; }
+
+    [data-theme="dark"] .day.other-month .badge-work { color: #444; }
+    [data-theme="dark"] .expand-btn { color: #666; }
+
+    [data-theme="dark"] .expand-btn:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #e5eaf3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="arrow-up"></div>
+  <div class="calendar-container">
+    <div class="header">
+      <button id="prev-month" class="nav-btn">&#10094;</button>
+      <div id="month-year"></div>
+      <button id="next-month" class="nav-btn">&#10095;</button>
+    </div>
+    <div class="divider"></div>
+    <div class="weekdays">
+      <div>一</div>
+      <div>二</div>
+      <div>三</div>
+      <div>四</div>
+      <div>五</div>
+      <div>六</div>
+      <div>日</div>
+    </div>
+    <div class="days" id="days-grid"></div>
+    <div class="expand-btn-wrapper">
+      <button id="expand-btn" class="expand-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline id="expand-icon" points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="vendor/lunar.js"></script>
+  <script src="i18n.js"></script>
+  <script src="ui-common.js"></script>
+  <script src="calendar.js"></script>
+</body>
+
+</html>

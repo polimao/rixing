@@ -1,0 +1,29 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b2b2e"/>
+      <stop offset="0.55" stop-color="#141416"/>
+      <stop offset="1" stop-color="#000000"/>
+    </linearGradient>
+  </defs>
+
+  <!-- macOS squircle background (824 content within 1024, transparent margins) -->
+  <rect x="100" y="100" width="824" height="824" rx="184" fill="url(#bg)"/>
+
+  <!-- glyph: stacked cards with a checkmark, centered -->
+  <g transform="translate(512 512)" fill="none" stroke="#ffffff"
+     stroke-linecap="round" stroke-linejoin="round">
+    <!-- stacked cards peeking out below the front card -->
+    <g stroke-width="34" opacity="0.55">
+      <path d="M-150 120 q0 46 46 46 h208 q46 0 46 -46"/>
+    </g>
+    <g stroke-width="34" opacity="0.30">
+      <path d="M-104 196 h208"/>
+    </g>
+
+    <!-- front card -->
+    <rect x="-176" y="-228" width="352" height="352" rx="86" stroke-width="38"/>
+    <!-- checkmark -->
+    <path d="M-92 -54 L-26 14 L104 -128" stroke-width="46"/>
+  </g>
+</svg>

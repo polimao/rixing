@@ -1,0 +1,38 @@
+# ===== Dependencies =====
+node_modules/
+
+# ===== Build output =====
+/dist/
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# ===== OS / editor junk =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.log
+
+# ===== Env / secrets =====
+.env
+.env.*
+.claude/settings.local.json
+
+# ===== 旧的 Electron 原型 & 未发布子项目（保留本地，不推送）=====
+/capacitor_project/
+/ios_project/
+/TodosIOS/
+/import/
+/参考/
+/main.js
+/renderer.js
+/index.html
+/style.css
+
+# ===== 空的占位文件 =====
+/todos
+/todos.md
+
+# ===== 旧历史备份（移走的旧 .git，不推送）=====
+/.git.bak.*

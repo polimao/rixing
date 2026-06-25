@@ -1,0 +1,112 @@
+/* 主题变量 + 暗色覆盖。所有窗口都引入本文件（在各自样式表之前）。
+   亮色为默认；[data-theme="dark"] 时切换为暗色。设置窗口直接用这些变量；
+   待办/日历窗口的既有样式用下方的暗色覆盖块重新着色。 */
+:root {
+  --bg: #fdfdfd;
+  --surface: #ffffff;
+  --surface-2: #f5f7fa;
+  --surface-3: #eef1f6;
+  --text: #2c3e50;
+  --text-sub: #909399;
+  --border: #ebeef5;
+  --border-strong: #dcdfe6;
+  --accent: #409eff;
+  --shadow: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] {
+  --bg: #1e1f22;
+  --surface: #2a2c30;
+  --surface-2: #34363b;
+  --surface-3: #3a3d42;
+  --text: #e7e8ea;
+  --text-sub: #9aa0a6;
+  --border: #3a3d42;
+  --border-strong: #4a4d52;
+  --accent: #4aa3ff;
+  --shadow: rgba(0, 0, 0, 0.45);
+}
+
+/* ===================== 待办 / 日历窗口的暗色覆盖 ===================== */
+[data-theme="dark"] body { color: var(--text); }
+
+[data-theme="dark"] .todo-container,
+[data-theme="dark"] .arrow-up,
+[data-theme="dark"] .loading-overlay {
+  background-color: var(--bg) !important;
+  color: var(--text);
+}
+[data-theme="dark"] .todo-container {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .app-title,
+[data-theme="dark"] .metric-value,
+[data-theme="dark"] .group-title,
+[data-theme="dark"] .modal-header h3 {
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] .metric-card,
+[data-theme="dark"] .chart-wrapper,
+[data-theme="dark"] .todo-group,
+[data-theme="dark"] .custom-select,
+[data-theme="dark"] .dropdown-menu,
+[data-theme="dark"] .modal-content {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+
+[data-theme="dark"] .metric-card.pending { background: var(--surface-2) !important; }
+[data-theme="dark"] .metric-card.completed { background: var(--surface-2) !important; }
+
+[data-theme="dark"] .dropdown-item { color: var(--text); }
+[data-theme="dark"] .dropdown-item:hover { background: var(--surface-2); }
+
+[data-theme="dark"] .todo-item {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+[data-theme="dark"] .todo-item:hover { background: var(--surface-2) !important; }
+
+[data-theme="dark"] .todo-item textarea.text,
+[data-theme="dark"] textarea,
+[data-theme="dark"] input[type="text"] {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+[data-theme="dark"] .todo-item textarea.text:hover:not(:focus) {
+  background: var(--surface-2) !important;
+}
+
+[data-theme="dark"] .time-label,
+[data-theme="dark"] .metric-label,
+[data-theme="dark"] .empty-state .empty-text,
+[data-theme="dark"] .index {
+  color: var(--text-sub) !important;
+}
+
+[data-theme="dark"] .modal { background: rgba(0, 0, 0, 0.45) !important; }
+[data-theme="dark"] .modal-header { border-bottom-color: var(--border) !important; }
+
+[data-theme="dark"] .nav-btn { color: var(--text); }
+[data-theme="dark"] .nav-btn:hover { background-color: var(--surface-2); }
+
+[data-theme="dark"] .toast-container {
+  background: #34363b !important;
+  color: var(--text) !important;
+}
+
+/* 日历窗口 */
+[data-theme="dark"] .calendar,
+[data-theme="dark"] .cal-container,
+[data-theme="dark"] .cal-header,
+[data-theme="dark"] .cal-grid,
+[data-theme="dark"] .cal-cell {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+[data-theme="dark"] .cal-weekday { color: var(--text-sub) !important; }
+[data-theme="dark"] .cal-cell.other-month { color: #5a5d63 !important; }

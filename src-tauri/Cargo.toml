@@ -1,0 +1,31 @@
+[package]
+name = "todos"
+version = "1.0.0"
+description = "极简便签 TODO 桌面应用"
+authors = ["limao"]
+edition = "2021"
+rust-version = "1.77"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "macos-private-api"] }
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-autostart = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "5"
+chrono = "0.4"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc = "0.2"
+core-foundation = "0.10"
+core-graphics = "0.24"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

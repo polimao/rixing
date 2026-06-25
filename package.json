@@ -1,0 +1,20 @@
+{
+  "name": "todos",
+  "version": "1.0.0",
+  "packageManager": "pnpm@10.18.1",
+  "scripts": {
+    "dev": "cargo tauri dev",
+    "build": "cargo tauri build",
+    "icon": "cargo tauri icon"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "极简便签 TODO 桌面应用（Tauri）",
+  "devDependencies": {
+    "chart.js": "^4.5.1"
+  },
+  "dependencies": {
+    "lunar-javascript": "^1.7.7"
+  }
+}
