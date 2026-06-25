@@ -1,7 +1,7 @@
 // 官网国际化：8 种语言 + 自动选择 + 手动切换。
 // 选择规则（与 App 一致）：在中国（按时区判断）→ 简体中文 + 品牌「日行」+ 中文包；
-// 否则按浏览器语言显示，品牌「Rixing」+ 国际包。访客可用右上角下拉手动切换并记忆。
-// 字符串里的 {brand} 占位符会按当前语言替换为 日行 / Rixing。
+// 否则按浏览器语言显示，品牌「RiXing」+ 国际包。访客可用右上角下拉手动切换并记忆。
+// 字符串里的 {brand} 占位符会按当前语言替换为 日行 / RiXing。
 (function () {
   const DICT = {
     'zh-CN': {
@@ -39,7 +39,7 @@
       dl_btn: '↓ 下载 {brand} for macOS（Apple Silicon）',
       dl_req: 'macOS 11 Big Sur 或更高 · Apple Silicon (M 系列)',
       dl_note: '<b>首次打开提示：</b>应用暂未做苹果公证，第一次打开请<b>右键点击 App →「打开」</b>，或到「系统设置 → 隐私与安全性」里点「仍要打开」。之后即可正常使用。',
-      footer: '{brand} · <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
+      footer: '{brand} · <a href="https://github.com/polimao/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
     },
     en: {
       lang_name: 'English',
@@ -76,7 +76,7 @@
       dl_btn: '↓ Download {brand} for macOS (Apple Silicon)',
       dl_req: 'macOS 11 Big Sur or later · Apple Silicon (M-series)',
       dl_note: '<b>First launch:</b> the app isn’t notarized yet, so the first time, <b>right-click the app → “Open”</b>, or go to “System Settings → Privacy & Security” and click “Open Anyway”. After that it opens normally.',
-      footer: '{brand} · <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
+      footer: '{brand} · <a href="https://github.com/polimao/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
     },
     ja: {
       lang_name: '日本語',
@@ -113,7 +113,7 @@
       dl_btn: '↓ {brand} for macOS をダウンロード（Apple Silicon）',
       dl_req: 'macOS 11 Big Sur 以降 · Apple Silicon（M シリーズ）',
       dl_note: '<b>初回起動について：</b>このアプリはまだ公証されていません。初回は <b>アプリを右クリック →「開く」</b>、または「システム設定 → プライバシーとセキュリティ」で「このまま開く」を選んでください。以降は通常どおり起動します。',
-      footer: '{brand} · <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
+      footer: '{brand} · <a href="https://github.com/polimao/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
     },
     ko: {
       lang_name: '한국어',
@@ -150,7 +150,7 @@
       dl_btn: '↓ macOS용 {brand} 다운로드 (Apple Silicon)',
       dl_req: 'macOS 11 Big Sur 이상 · Apple Silicon (M 시리즈)',
       dl_note: '<b>첫 실행 안내:</b> 아직 공증되지 않은 앱입니다. 처음에는 <b>앱을 우클릭 → ‘열기’</b> 하거나 ‘시스템 설정 → 개인정보 보호 및 보안’에서 ‘그래도 열기’를 누르세요. 이후에는 정상적으로 열립니다.',
-      footer: '{brand} · <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
+      footer: '{brand} · <a href="https://github.com/polimao/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
     },
     es: {
       lang_name: 'Español',
@@ -187,7 +187,7 @@
       dl_btn: '↓ Descargar {brand} para macOS (Apple Silicon)',
       dl_req: 'macOS 11 Big Sur o posterior · Apple Silicon (serie M)',
       dl_note: '<b>Primera apertura:</b> la app aún no está notarizada; la primera vez, <b>haz clic derecho en la app → «Abrir»</b>, o ve a «Ajustes del Sistema → Privacidad y seguridad» y pulsa «Abrir de todos modos». Después se abrirá con normalidad.',
-      footer: '{brand} · <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
+      footer: '{brand} · <a href="https://github.com/polimao/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
     },
     fr: {
       lang_name: 'Français',
@@ -224,7 +224,7 @@
       dl_btn: '↓ Télécharger {brand} pour macOS (Apple Silicon)',
       dl_req: 'macOS 11 Big Sur ou ultérieur · Apple Silicon (série M)',
       dl_note: '<b>Première ouverture :</b> l’app n’est pas encore notariée ; la première fois, <b>faites un clic droit sur l’app → « Ouvrir »</b>, ou allez dans « Réglages Système → Confidentialité et sécurité » et cliquez sur « Ouvrir quand même ». Ensuite, elle s’ouvrira normalement.',
-      footer: '{brand} · <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
+      footer: '{brand} · <a href="https://github.com/polimao/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
     },
     de: {
       lang_name: 'Deutsch',
@@ -261,7 +261,7 @@
       dl_btn: '↓ {brand} für macOS laden (Apple Silicon)',
       dl_req: 'macOS 11 Big Sur oder neuer · Apple Silicon (M-Serie)',
       dl_note: '<b>Erster Start:</b> Die App ist noch nicht notarisiert. Beim ersten Mal <b>Rechtsklick auf die App → „Öffnen“</b>, oder unter „Systemeinstellungen → Datenschutz & Sicherheit“ auf „Trotzdem öffnen“ klicken. Danach startet sie normal.',
-      footer: '{brand} · <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
+      footer: '{brand} · <a href="https://github.com/polimao/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
     },
     ru: {
       lang_name: 'Русский',
@@ -298,19 +298,19 @@
       dl_btn: '↓ Скачать {brand} для macOS (Apple Silicon)',
       dl_req: 'macOS 11 Big Sur или новее · Apple Silicon (серия M)',
       dl_note: '<b>Первый запуск:</b> приложение пока не нотаризовано. В первый раз <b>щёлкните по приложению правой кнопкой → «Открыть»</b>, или зайдите в «Системные настройки → Конфиденциальность и безопасность» и нажмите «Всё равно открыть». Дальше оно будет открываться как обычно.',
-      footer: '{brand} · <a href="https://github.com/your-username/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
+      footer: '{brand} · <a href="https://github.com/polimao/rixing" target="_blank" rel="noopener">GitHub</a> · MIT © 李貌',
     },
   };
 
   const SUPPORTED = Object.keys(DICT);
 
-  // 品牌名：中文版「日行」，其余语言（国际版）「Rixing」
-  function brandFor(lang) { return lang === 'zh-CN' ? '日行' : 'Rixing'; }
+  // 品牌名：中文版「日行」，其余语言（国际版）「RiXing」
+  function brandFor(lang) { return lang === 'zh-CN' ? '日行' : 'RiXing'; }
 
   // 下载包：中文版 vs 国际版。占位地址，发布后替换为真实 Release 链接。
   const DOWNLOAD = {
-    'zh-CN': 'https://github.com/your-username/rixing/releases/latest/download/Rixing_zh-CN_macOS_arm64.dmg',
-    intl: 'https://github.com/your-username/rixing/releases/latest/download/Rixing_macOS_arm64.dmg',
+    'zh-CN': 'https://github.com/polimao/rixing/releases/latest/download/RiXing_zh-CN_macOS_arm64.dmg',
+    intl: 'https://github.com/polimao/rixing/releases/latest/download/RiXing_macOS_arm64.dmg',
   };
   function downloadFor(lang) { return lang === 'zh-CN' ? DOWNLOAD['zh-CN'] : DOWNLOAD.intl; }
 

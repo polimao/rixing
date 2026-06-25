@@ -59,19 +59,19 @@
 # 前置：Rust (https://rustup.rs) 与 Tauri CLI
 cargo install tauri-cli --version "^2.0"
 
-git clone https://github.com/<your-username>/todos.git
+git clone https://github.com/<polimao>/todos.git
 cd todos
 cargo tauri build      # 中文版 → 软件名「日行」
 
-# 国际版 → 软件名 "Rixing"
+# 国际版 → 软件名 "RiXing"
 cargo tauri build --config src-tauri/tauri.international.conf.json
 
 # 两者产物都在 src-tauri/target/release/bundle/{dmg,macos}/
 ```
 
 > 两个版本都内置全部 8 种界面语言并按系统自动切换，区别仅在软件名（`日行` vs
-> `Rixing`）。官网（[`docs/`](docs/)）会在中国（按时区）默认显示中文 + `日行` 安装包，
-> 其它地区按访客语言显示 + `Rixing` 安装包，导航栏另有手动切换语言的下拉框。
+> `RiXing`）。官网（[`docs/`](docs/)）会在中国（按时区）默认显示中文 + `日行` 安装包，
+> 其它地区按访客语言显示 + `RiXing` 安装包，导航栏另有手动切换语言的下拉框。
 
 ## 🚀 使用
 

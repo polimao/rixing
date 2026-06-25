@@ -59,20 +59,20 @@ Grab the latest `.dmg` from the [Releases](../../releases) page, open it, and dr
 # Prerequisites: Rust (https://rustup.rs) and the Tauri CLI
 cargo install tauri-cli --version "^2.0"
 
-git clone https://github.com/<your-username>/todos.git
+git clone https://github.com/<polimao>/todos.git
 cd todos
 cargo tauri build      # Chinese edition → product name 「日行」
 
-# International edition → product name "Rixing"
+# International edition → product name "RiXing"
 cargo tauri build --config src-tauri/tauri.international.conf.json
 
 # both → src-tauri/target/release/bundle/{dmg,macos}/
 ```
 
 > Both editions ship all 8 UI languages and auto-detect the language from the
-> system; they differ only in the bundle/product name (`日行` vs `Rixing`). The
+> system; they differ only in the bundle/product name (`日行` vs `RiXing`). The
 > marketing site ([`docs/`](docs/)) auto-selects Chinese + the `日行` package in
-> China (by timezone) and the visitor's language + the `Rixing` package
+> China (by timezone) and the visitor's language + the `RiXing` package
 > elsewhere, with a manual language switcher in the nav.
 
 ## 🚀 Usage
