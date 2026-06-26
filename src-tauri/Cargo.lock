@@ -2577,6 +2577,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "rixing"
+version = "1.0.0"
+dependencies = [
+ "chrono",
+ "core-foundation",
+ "core-graphics 0.24.0",
+ "dirs 5.0.1",
+ "objc",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-autostart",
+ "tauri-plugin-global-shortcut",
+]
+
+[[package]]
 name = "rustc-hash"
 version = "2.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3483,23 +3500,6 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
-
-[[package]]
-name = "todos"
-version = "1.0.0"
-dependencies = [
- "chrono",
- "core-foundation",
- "core-graphics 0.24.0",
- "dirs 5.0.1",
- "objc",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-autostart",
- "tauri-plugin-global-shortcut",
-]
 
 [[package]]
 name = "tokio"

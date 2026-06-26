@@ -296,7 +296,22 @@ window.addEventListener('keydown', async (e) => {
 // 失焦/关闭设置窗口时若仍在录制，务必恢复码放快捷键，避免一直处于挂起状态
 window.addEventListener('blur', () => { if (recordingBtn) endRecording(); });
 
-// 每次窗口被显示/聚焦（从托盘“设置”打开）时重新贴合高度
+// 每次窗口被显示/聚焦（从托盘”设置”打开）时重新贴合高度
 window.addEventListener('focus', () => resizeToContent());
 
+// ---------------------------------------------------------------------------
+// 关于
+// ---------------------------------------------------------------------------
+async function initAbout() {
+  try {
+    const ver = await window.__TAURI__.app.getVersion();
+    document.getElementById('about-version').textContent = 'v' + ver;
+  } catch (e) { /* 保持默认值 */ }
+
+  document.getElementById('about-github').addEventListener('click', () => {
+    window.__TAURI__.shell.open('https://github.com/polimao/rixing').catch(() => { });
+  });
+}
+
 init();
+initAbout();

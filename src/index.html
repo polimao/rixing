@@ -33,6 +33,12 @@
         </div>
       </div>
       <div class="header-right">
+        <button id="countdown-btn" class="achievement-btn custom-tooltip" data-i18n-title="countdown" data-tooltip="倒计时">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </button>
         <button id="view-completed-btn" class="achievement-btn custom-tooltip" data-i18n-title="tip_achievement" data-tooltip="成就">
           <span class="achievement-icon"><svg width="14" height="14" viewBox="0 0 1024 1024" fill="currentColor">
               <path
@@ -60,6 +66,45 @@
     <!-- <div class="divider" style="margin-top: 12px; margin-bottom: 12px;"></div> -->
 
     <!-- 底部区域已被移除，排序按钮移动到了顶部 -->
+  </div>
+
+  <!-- 倒计时模态框（与番茄钟共用胶囊窗口模式） -->
+  <div id="countdown-modal" class="modal hidden">
+    <div class="modal-content" data-tauri-drag-region
+      style="padding: 10px 16px; display: flex; flex-direction: row; align-items: center; gap: 10px; height: 100%;">
+      <span data-tauri-drag-region data-i18n="countdown"
+        style="font-size: 12px; font-weight: 600; color: #909399; white-space: nowrap; flex-shrink: 0;">倒计时</span>
+
+      <div id="countdown-display" data-tauri-drag-region
+        style="flex: 1; font-size: 16px; font-weight: 800; color: #409eff; font-variant-numeric: tabular-nums; text-align: center; cursor: pointer; user-select: none;">
+        25:00</div>
+      <input id="countdown-input" type="text"
+        style="display: none; flex: 1; font-size: 16px; font-weight: 800; color: #409eff; border: none; background: transparent; text-align: center; font-variant-numeric: tabular-nums; outline: none; border-bottom: 1.5px solid #409eff; min-width: 60px; max-width: 80px;" />
+
+      <div style="display: flex; gap: 6px; flex-shrink: 0;">
+        <button id="countdown-toggle-btn" class="nav-btn icon-only"
+          style="background: #fdf6ec; color: #e6a23c; border-radius: 50%; border: none; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;">
+          <svg id="countdown-play-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <svg id="countdown-pause-icon" class="hidden" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        </button>
+        <button id="countdown-reset-btn"
+          style="background: #f4f4f5; color: #909399; border-radius: 50%; border: none; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 .49-4.95"></path>
+          </svg>
+        </button>
+        <button id="countdown-exit-btn" class="close-btn"
+          style="width: 26px; height: 26px; font-size: 14px; background: #f4f4f5; color: #909399; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          ×
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- 番茄钟 / 专注模式容器 (作为 Modal 弹窗在原窗口内覆盖) -->

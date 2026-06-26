@@ -1,5 +1,5 @@
 [package]
-name = "todos"
+name = "rixing"
 version = "1.0.0"
 description = "极简便签 TODO 桌面应用"
 authors = ["limao"]

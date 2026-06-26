@@ -43,9 +43,9 @@ fn base_dir() -> PathBuf {
         let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("/tmp"));
         let icloud = home.join("Library/Mobile Documents/com~apple~CloudDocs");
         if icloud.is_dir() {
-            icloud.join("Todos") // iCloud Drive 已开启
+            icloud.join("Rixing") // iCloud Drive 已开启
         } else {
-            home.join("Library/Application Support/com.limao.todos") // 本地兜底
+            home.join("Library/Application Support/com.limao.rixing") // 本地兜底
         }
     })
     .clone()

@@ -203,6 +203,32 @@
   };
   for (const k in DICT) Object.assign(DICT[k], DATA[k] || {});
 
+  // 倒计时
+  const COUNTDOWN = {
+    'zh-CN': { countdown: '倒计时', countdown_done: '倒计时结束！' },
+    en: { countdown: 'Countdown', countdown_done: 'Countdown finished!' },
+    ja: { countdown: 'カウントダウン', countdown_done: 'カウントダウン終了！' },
+    ko: { countdown: '카운트다운', countdown_done: '카운트다운 종료!' },
+    es: { countdown: 'Cuenta atrás', countdown_done: '¡Cuenta atrás terminada!' },
+    fr: { countdown: 'Minuterie', countdown_done: 'Minuterie terminée !' },
+    de: { countdown: 'Countdown', countdown_done: 'Countdown abgelaufen!' },
+    ru: { countdown: 'Таймер', countdown_done: 'Таймер завершён!' },
+  };
+  for (const k in DICT) Object.assign(DICT[k], COUNTDOWN[k] || {});
+
+  // 关于
+  const ABOUT = {
+    'zh-CN': { about: '关于', about_github: 'GitHub 主页' },
+    en: { about: 'About', about_github: 'GitHub' },
+    ja: { about: 'このアプリについて', about_github: 'GitHub' },
+    ko: { about: '정보', about_github: 'GitHub' },
+    es: { about: 'Acerca de', about_github: 'GitHub' },
+    fr: { about: 'À propos', about_github: 'GitHub' },
+    de: { about: 'Über', about_github: 'GitHub' },
+    ru: { about: 'О программе', about_github: 'GitHub' },
+  };
+  for (const k in DICT) Object.assign(DICT[k], ABOUT[k] || {});
+
   // 把存储用的中文值映射到 i18n key（用于显示翻译）
   const VALUE_KEY = {
     '工作': 'cat_work', '生活': 'cat_life',

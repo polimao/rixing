@@ -851,6 +851,151 @@ if (pomodoroToggleBtn) pomodoroToggleBtn.addEventListener('click', togglePomodor
 if (pomodoroExitBtn) pomodoroExitBtn.addEventListener('click', exitPomodoro);
 
 // ---------------------------------------------------------------------------
+// 倒计时
+// ---------------------------------------------------------------------------
+let countdownInterval = null;
+let countdownTotalSeconds = 25 * 60;
+let countdownTimeLeft = 25 * 60;
+let isCountdownRunning = false;
+
+const countdownModal = document.getElementById('countdown-modal');
+const countdownDisplay = document.getElementById('countdown-display');
+const countdownInput = document.getElementById('countdown-input');
+const countdownToggleBtn = document.getElementById('countdown-toggle-btn');
+const countdownResetBtn = document.getElementById('countdown-reset-btn');
+const countdownExitBtn = document.getElementById('countdown-exit-btn');
+const countdownBtn = document.getElementById('countdown-btn');
+const countdownPlayIcon = document.getElementById('countdown-play-icon');
+const countdownPauseIcon = document.getElementById('countdown-pause-icon');
+
+function updateCountdownDisplay() {
+  countdownDisplay.textContent = formatTime(countdownTimeLeft);
+}
+
+function updateCountdownToggleBtn() {
+  if (isCountdownRunning) {
+    countdownPlayIcon.classList.add('hidden');
+    countdownPauseIcon.classList.remove('hidden');
+    countdownToggleBtn.style.background = '#ecf5ff';
+    countdownToggleBtn.style.color = '#409eff';
+  } else {
+    countdownPlayIcon.classList.remove('hidden');
+    countdownPauseIcon.classList.add('hidden');
+    countdownToggleBtn.style.background = '#fdf6ec';
+    countdownToggleBtn.style.color = '#e6a23c';
+  }
+}
+
+function parseCountdownInput(raw) {
+  const v = raw.trim();
+  if (!v) return null;
+  if (v.includes(':')) {
+    const [mStr, sStr] = v.split(':');
+    const m = parseInt(mStr, 10) || 0;
+    const s = parseInt(sStr, 10) || 0;
+    return Math.max(1, m * 60 + s);
+  }
+  const m = parseInt(v, 10);
+  return isNaN(m) || m <= 0 ? null : m * 60;
+}
+
+function commitCountdownInput() {
+  const secs = parseCountdownInput(countdownInput.value);
+  if (secs) { countdownTotalSeconds = secs; countdownTimeLeft = secs; }
+  countdownInput.style.display = 'none';
+  countdownDisplay.style.display = '';
+  updateCountdownDisplay();
+}
+
+function openCountdownEdit() {
+  if (isCountdownRunning) return;
+  countdownDisplay.style.display = 'none';
+  countdownInput.value = formatTime(countdownTimeLeft);
+  countdownInput.style.display = '';
+  requestAnimationFrame(() => { countdownInput.select(); countdownInput.focus(); });
+}
+
+function openCountdown() {
+  if (countdownModal && !countdownModal.classList.contains('hidden')) return;
+  if (pomodoroModal && !pomodoroModal.classList.contains('hidden')) return;
+  countdownTimeLeft = countdownTotalSeconds;
+  isCountdownRunning = false;
+  if (countdownInterval) clearInterval(countdownInterval);
+  updateCountdownDisplay();
+  updateCountdownToggleBtn();
+  countdownModal.classList.remove('hidden');
+  invoke('enter_pomodoro').catch((e) => console.error(e));
+}
+
+function closeCountdown() {
+  if (countdownInterval) clearInterval(countdownInterval);
+  isCountdownRunning = false;
+  countdownModal.classList.add('hidden');
+  mainContainer.style.height = 'auto';
+  const targetHeight = mainContainer.offsetHeight + 10;
+  mainContainer.style.height = '';
+  invoke('exit_pomodoro', { height: Math.round(Math.max(targetHeight, 200)) }).catch((e) => console.error(e));
+}
+
+function toggleCountdown() {
+  isCountdownRunning = !isCountdownRunning;
+  updateCountdownToggleBtn();
+  if (isCountdownRunning) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+      if (!isCountdownRunning) return;
+      if (countdownTimeLeft > 0) {
+        countdownTimeLeft--;
+        updateCountdownDisplay();
+      } else {
+        clearInterval(countdownInterval);
+        isCountdownRunning = false;
+        updateCountdownToggleBtn();
+        showToast(tr('countdown_done'));
+      }
+    }, 1000);
+  } else {
+    if (countdownInterval) clearInterval(countdownInterval);
+  }
+}
+
+function resetCountdown() {
+  if (countdownInterval) clearInterval(countdownInterval);
+  isCountdownRunning = false;
+  countdownTimeLeft = countdownTotalSeconds;
+  updateCountdownDisplay();
+  updateCountdownToggleBtn();
+}
+
+if (countdownDisplay) {
+  countdownDisplay.addEventListener('click', openCountdownEdit);
+  countdownDisplay.addEventListener('wheel', (e) => {
+    if (isCountdownRunning) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 60 : -60;
+    countdownTimeLeft = Math.max(60, Math.min(countdownTimeLeft + delta, 99 * 60 + 59));
+    countdownTotalSeconds = countdownTimeLeft;
+    updateCountdownDisplay();
+  }, { passive: false });
+}
+
+if (countdownInput) {
+  countdownInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { commitCountdownInput(); e.preventDefault(); }
+    if (e.key === 'Escape') {
+      countdownInput.style.display = 'none';
+      countdownDisplay.style.display = '';
+    }
+  });
+  countdownInput.addEventListener('blur', commitCountdownInput);
+}
+
+if (countdownToggleBtn) countdownToggleBtn.addEventListener('click', toggleCountdown);
+if (countdownResetBtn) countdownResetBtn.addEventListener('click', resetCountdown);
+if (countdownExitBtn) countdownExitBtn.addEventListener('click', closeCountdown);
+if (countdownBtn) countdownBtn.addEventListener('click', openCountdown);
+
+// ---------------------------------------------------------------------------
 // 启动：异步从后端加载数据与设置，必要时写入示例数据，然后首次渲染。
 // ---------------------------------------------------------------------------
 async function boot() {
