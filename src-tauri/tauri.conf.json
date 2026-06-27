@@ -41,7 +41,7 @@
       },
       {
         "label": "settings",
-        "title": "设置",
+        "title": "日行设置",
         "width": 600,
         "height": 600,
         "resizable": false,

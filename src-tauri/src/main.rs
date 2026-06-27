@@ -13,7 +13,7 @@ use serde_json::Value;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{
-    AppHandle, LogicalSize, Manager, PhysicalPosition, State, WebviewWindow, WindowEvent,
+    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, State, WebviewWindow, WindowEvent,
 };
 use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
@@ -186,16 +186,25 @@ fn load_lang() -> String {
 }
 
 /// 托盘三处文案：(待办标题, “设置”菜单项, “退出”菜单项)。
-fn tray_strings(lang: &str) -> (&'static str, &'static str, &'static str) {
+/// 托盘右键菜单文案：分别跳转到设置面板对应标签页（念日 / 窗口分屏 / 通用设置 / 关于）+ 退出。
+struct TrayLabels {
+    ann: &'static str,
+    tidy: &'static str,
+    general: &'static str,
+    about: &'static str,
+    quit: &'static str,
+}
+
+fn tray_strings(lang: &str) -> TrayLabels {
     match lang {
-        "en" => ("Todos", "Settings", "Quit"),
-        "ja" => ("やること", "設定", "終了"),
-        "ko" => ("할 일", "설정", "종료"),
-        "es" => ("Tareas", "Ajustes", "Salir"),
-        "fr" => ("Tâches", "Réglages", "Quitter"),
-        "de" => ("Aufgaben", "Einstellungen", "Beenden"),
-        "ru" => ("Задачи", "Настройки", "Выход"),
-        _ => ("待办", "设置", "退出"), // zh-CN 及默认
+        "en" => TrayLabels { ann: "Anniversaries", tidy: "Split screen", general: "General settings", about: "About", quit: "Quit" },
+        "ja" => TrayLabels { ann: "記念日", tidy: "画面分割", general: "一般設定", about: "このアプリについて", quit: "終了" },
+        "ko" => TrayLabels { ann: "기념일", tidy: "화면 분할", general: "일반 설정", about: "정보", quit: "종료" },
+        "es" => TrayLabels { ann: "Aniversarios", tidy: "Dividir pantalla", general: "Ajustes generales", about: "Acerca de", quit: "Salir" },
+        "fr" => TrayLabels { ann: "Anniversaires", tidy: "Partage d’écran", general: "Réglages généraux", about: "À propos", quit: "Quitter" },
+        "de" => TrayLabels { ann: "Jahrestage", tidy: "Bildschirm teilen", general: "Allgemeine Einstellungen", about: "Über", quit: "Beenden" },
+        "ru" => TrayLabels { ann: "Годовщины", tidy: "Разделение экрана", general: "Общие настройки", about: "О программе", quit: "Выход" },
+        _ => TrayLabels { ann: "念日", tidy: "窗口分屏", general: "通用设置", about: "关于", quit: "退出" }, // zh-CN 及默认
     }
 }
 
@@ -516,25 +525,51 @@ fn get_today_date_str() -> String {
 // 托盘右键菜单：设置 + 退出（开关都搬进设置窗口，菜单只留两项）
 // ===========================================================================
 fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
-    let (_, settings_label, quit_label) = tray_strings(&load_lang());
-    let settings_item = MenuItem::with_id(app, "settings", settings_label, true, None::<&str>)?;
+    let s = tray_strings(&load_lang());
+    let ann_item = MenuItem::with_id(app, "open-ann", s.ann, true, None::<&str>)?;
+    let tidy_item = MenuItem::with_id(app, "open-tidy", s.tidy, true, None::<&str>)?;
+    let general_item = MenuItem::with_id(app, "open-general", s.general, true, None::<&str>)?;
+    let about_item = MenuItem::with_id(app, "open-about", s.about, true, None::<&str>)?;
     let sep = PredefinedMenuItem::separator(app)?;
-    let quit_item = MenuItem::with_id(app, "quit", quit_label, true, None::<&str>)?;
-    Menu::with_items(app, &[&settings_item, &sep, &quit_item])
+    let quit_item = MenuItem::with_id(app, "quit", s.quit, true, None::<&str>)?;
+    Menu::with_items(
+        app,
+        &[&ann_item, &tidy_item, &general_item, &about_item, &sep, &quit_item],
+    )
+}
+
+/// 显示设置窗口并切到指定标签页（tab 与 settings.html 的 data-tab 一致）。
+/// 设置窗口在启动时已创建（隐藏），其 JS 监听器常驻，故直接发事件即可切换标签页。
+fn show_settings_tab(app: &AppHandle, tab: &str) {
+    if let Some(w) = app.get_webview_window("settings") {
+        let _ = w.show();
+        let _ = w.center();
+        let _ = w.set_focus();
+        let _ = w.emit("settings-open-tab", tab);
+    }
 }
 
 fn handle_tray_menu_event(app: &AppHandle, id: &str) {
     match id {
-        "settings" => {
-            if let Some(w) = app.get_webview_window("settings") {
-                let _ = w.show();
-                let _ = w.center();
-                let _ = w.set_focus();
-            }
+        "open-ann" | "open-tidy" | "open-general" | "open-about" => {
+            // 菜单项 id 映射到设置面板的标签页名
+            let tab = match id {
+                "open-ann" => "ann",
+                "open-tidy" => "tidy",
+                "open-about" => "about",
+                _ => "general",
+            };
+            show_settings_tab(app, tab);
         }
         "quit" => app.exit(0),
         _ => {}
     }
+}
+
+/// 供窗内「设置」入口（待办窗/日历窗的齿轮按钮）调用：打开设置面板，可选地切到某标签页。
+#[tauri::command]
+fn open_settings(app: AppHandle, tab: Option<String>) {
+    show_settings_tab(&app, tab.as_deref().unwrap_or("general"));
 }
 
 // ===========================================================================
@@ -658,7 +693,8 @@ fn main() {
             request_accessibility,
             apply_tiling_shortcuts,
             suspend_tiling_shortcuts,
-            resize_settings
+            resize_settings,
+            open_settings
         ])
         .setup(move |app| {
             // 隐藏 Dock 图标（等效 Electron 的 app.dock.hide()）
@@ -722,6 +758,15 @@ fn main() {
                         let _ = sw.hide();
                     }
                 });
+            }
+
+            // 无 Dock 图标 + 窗口默认隐藏，用户易找不到应用。按产品偏好：
+            // 每次启动都打开设置面板并停在「使用教程」标签（settings.html 默认即该标签），讲清
+            // 「应用在菜单栏 / 左键打开 / 右键看更多」。用户点「开始使用」即收起设置、弹出主窗。
+            if let Some(settings_win) = app.get_webview_window("settings") {
+                let _ = settings_win.center();
+                let _ = settings_win.show();
+                let _ = settings_win.set_focus();
             }
 
             // 全局快捷键 Cmd/Ctrl+Shift+U 切换显隐

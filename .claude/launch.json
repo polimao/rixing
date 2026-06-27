@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "4599", "--directory", "docs"],
       "port": 4599
+    },
+    {
+      "name": "static-src",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4600", "--directory", "src"],
+      "port": 4600
     }
   ]
 }

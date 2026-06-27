@@ -721,6 +721,14 @@ document.getElementById('close-modal-btn').addEventListener('click', () => {
   modal.classList.add('hidden');
 });
 
+// 窗内「设置」入口：不再依赖右键托盘菜单也能进设置
+const openSettingsBtn = document.getElementById('open-settings-btn');
+if (openSettingsBtn) {
+  openSettingsBtn.addEventListener('click', () => {
+    invoke('open_settings', { tab: 'general' }).catch((e) => console.error('open_settings failed:', e));
+  });
+}
+
 // 标题（兼作排序下拉按钮）
 if (titleSortBtn && sortDropdown) {
   // 点击标题切换菜单

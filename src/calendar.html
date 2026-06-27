@@ -35,6 +35,7 @@
     }
 
     .calendar-container {
+      position: relative;
       background-color: #fdfdfd;
       border-radius: 10px;
       border: 1px solid rgba(0, 0, 0, 0.08);
@@ -47,6 +48,36 @@
       height: 100%;
       display: flex;
       flex-direction: column;
+    }
+
+    /* 窗内「设置」入口：右上角齿轮，不依赖右键托盘菜单 */
+    .cal-settings-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 14px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: #c0c0c0;
+      border-radius: 7px;
+      cursor: pointer;
+      z-index: 11;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .cal-settings-btn:hover {
+      background-color: #f0f2f5;
+      color: #333;
+    }
+
+    [data-theme="dark"] .cal-settings-btn { color: #666; }
+    [data-theme="dark"] .cal-settings-btn:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #e5eaf3;
     }
 
     .header {
@@ -303,12 +334,61 @@
       background-color: rgba(255, 255, 255, 0.05);
       color: #e5eaf3;
     }
+
+    /* 念日标记：左上角爱心 + 整格红色描边，让纪念日一目了然 */
+    .ann-mark {
+      position: absolute;
+      top: 3px;
+      left: 5px;
+      font-size: 9px;
+      line-height: 1;
+      color: #cc252c;
+      pointer-events: none;
+    }
+
+    .day.has-ann:not(.today) {
+      box-shadow: inset 0 0 0 1.5px rgba(204, 37, 44, .35);
+    }
+
+    .day.other-month .ann-mark { color: #f0b6b6; }
+    .day.has-ann.other-month:not(.today) {
+      box-shadow: inset 0 0 0 1.5px rgba(204, 37, 44, .15);
+    }
+    .day.today .ann-mark { color: #ffffff; }
+
+    [data-theme="dark"] .ann-mark { background: none; color: #ff6b6b; }
+    [data-theme="dark"] .day.other-month .ann-mark { color: #8c3a3a; }
+    [data-theme="dark"] .day.today .ann-mark { color: #ffffff; }
+    [data-theme="dark"] .day.has-ann:not(.today) {
+      box-shadow: inset 0 0 0 1.5px rgba(255, 107, 107, .4);
+    }
+
+    /* 念日面板 */
+    #ann-panel {
+      padding: 0 2px;
+    }
+
+    #ann-panel .ann-panel-title {
+      font-size: 10px;
+      color: #bbb;
+      letter-spacing: .5px;
+      margin-bottom: 4px;
+    }
+
+    [data-theme="dark"] #ann-panel .ann-panel-title { color: #555; }
+    [data-theme="dark"] #ann-panel { border-top-color: rgba(255,255,255,0.06) !important; }
   </style>
 </head>
 
 <body>
   <div class="arrow-up"></div>
   <div class="calendar-container">
+    <button id="open-settings-btn" class="cal-settings-btn" title="日行设置">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
     <div class="header">
       <button id="prev-month" class="nav-btn">&#10094;</button>
       <div id="month-year"></div>
@@ -325,6 +405,11 @@
       <div>日</div>
     </div>
     <div class="days" id="days-grid"></div>
+    <div id="ann-panel" style="display:none;margin-top:8px;border-top:1px solid #f0f0f0;padding-top:6px">
+      <div class="ann-panel-title" data-i18n="ann_section">念日</div>
+      <div id="ann-panel-list"></div>
+    </div>
+
     <div class="expand-btn-wrapper">
       <button id="expand-btn" class="expand-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

@@ -46,6 +46,38 @@ function syncControls() {
   elThemeSeg.querySelectorAll('.seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.theme === theme));
 }
 
+// 顶部标签分页：一次只显示一页，切换后重新贴合窗口高度
+function switchTab(name) {
+  const tabs = document.getElementById('tabs');
+  if (!tabs) return;
+  let matched = false;
+  tabs.querySelectorAll('.tab').forEach((t) => {
+    const on = t.dataset.tab === name;
+    t.classList.toggle('active', on);
+    if (on) matched = true;
+  });
+  if (!matched) return; // 未知标签名：保持当前不变
+  document.querySelectorAll('.tab-panel').forEach((p) => {
+    p.classList.toggle('active', p.dataset.panel === name);
+  });
+  resizeToContent();
+}
+
+function setupTabs() {
+  const tabs = document.getElementById('tabs');
+  if (!tabs) return;
+  tabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab');
+    if (btn) switchTab(btn.dataset.tab);
+  });
+  // 托盘右键菜单项点击后由后端发来目标标签页（念日/窗口分屏/通用设置/关于）
+  if (appEvent) {
+    appEvent.listen('settings-open-tab', (e) => {
+      if (typeof e.payload === 'string') switchTab(e.payload);
+    });
+  }
+}
+
 // 让设置窗口高度自适应内容，从而不出现滚动条（宽度保持不变）
 function resizeToContent() {
   requestAnimationFrame(() => {
@@ -59,12 +91,13 @@ function resizeToContent() {
 // 设置窗口有原生标题栏：让标题随界面语言本地化（中文版「设置」/ 国际版 Settings…）
 async function applyWindowTitle() {
   try {
-    await window.__TAURI__.window.getCurrentWindow().setTitle(window.I18N.t('settings'));
+    await window.__TAURI__.window.getCurrentWindow().setTitle(window.I18N.t('settings_title'));
   } catch (e) { /* ignore */ }
 }
 
 async function init() {
   await loadSettings();
+  setupTabs();
   buildFlags();
   applyWindowTitle();
   try {
@@ -74,6 +107,7 @@ async function init() {
   syncing = true; elShowCount.checked = !!settings.showCount; syncing = false;
   syncControls();
   await initTiling();
+  renderAnnList();
   resizeToContent();
   // 字体/emoji 布局稳定后再校准一次
   setTimeout(resizeToContent, 120);
@@ -113,8 +147,9 @@ async function selectLanguage(value) {
   window.I18N.setLang(settings.lang);
   window.I18N.applyI18n(document);
   applyWindowTitle(); // 标题栏跟随新语言
-  buildFlags();       // 用新语言重写“跟随系统”等 title
+  buildFlags();       // 用新语言重写”跟随系统”等 title
   syncControls();
+  renderAnnList();
   resizeToContent();  // 译文长度变化可能改变高度
   // 通知其它窗口刷新 + 让后端按新语言重建托盘文案
   if (appEvent) appEvent.emit('settings-updated');
@@ -298,6 +333,87 @@ window.addEventListener('blur', () => { if (recordingBtn) endRecording(); });
 
 // 每次窗口被显示/聚焦（从托盘”设置”打开）时重新贴合高度
 window.addEventListener('focus', () => resizeToContent());
+
+// ---------------------------------------------------------------------------
+// 念日（重要日期倒计时）
+// ---------------------------------------------------------------------------
+
+function getAnns() {
+  return Array.isArray(settings.anniversaries) ? settings.anniversaries : [];
+}
+
+function renderAnnList() {
+  const list = document.getElementById('ann-list');
+  if (!list) return;
+  list.innerHTML = '';
+  getAnns().forEach((ann) => {
+    const typeLabel = ann.repeat
+      ? window.I18N.t('ann_repeat_yearly_short')
+      : window.I18N.t('ann_once');
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.style.marginBottom = '8px';
+    row.innerHTML = `
+      <div style="flex:1;min-width:0">
+        <div class="label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ann.name}</div>
+        <div style="font-size:11px;color:var(--text-sub);margin-top:2px">${typeLabel} · ${ann.date}</div>
+      </div>
+      <button class="ann-del-btn" style="background:#fff0f0;border:1px solid #fde0e0;color:#f56c6c;
+        border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;flex-shrink:0"
+        data-i18n="ann_delete">${window.I18N.t('ann_delete')}</button>
+    `;
+    row.querySelector('.ann-del-btn').addEventListener('click', () => deleteAnn(ann.id));
+    list.appendChild(row);
+  });
+  resizeToContent();
+}
+
+async function deleteAnn(id) {
+  settings.anniversaries = getAnns().filter((a) => a.id !== id);
+  await saveSettings();
+  if (appEvent) appEvent.emit('settings-updated');
+  renderAnnList();
+}
+
+function annId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function shakeEl(el) {
+  el.classList.remove('ann-shake');
+  void el.offsetWidth;
+  el.classList.add('ann-shake');
+  el.addEventListener('animationend', () => el.classList.remove('ann-shake'), { once: true });
+}
+
+async function addAnn() {
+  const nameEl = document.getElementById('ann-name');
+  const dateEl = document.getElementById('ann-date');
+  const repeatEl = document.getElementById('ann-repeat');
+
+  const name = nameEl.value.trim();
+  const repeat = repeatEl.checked;
+  const dateStr = dateEl.value; // 原生日期选择器保证合法（不会出现 2 月 31 日）；格式为 YYYY-MM-DD 或空
+
+  if (!name) { shakeEl(nameEl); nameEl.focus(); return; }
+  if (!dateStr) { shakeEl(dateEl); dateEl.focus(); return; }
+
+  // 每年重复只存月日（MM-DD）；一次性保留完整年月日（YYYY-MM-DD）
+  const dateVal = repeat ? dateStr.slice(5) : dateStr;
+
+  if (!Array.isArray(settings.anniversaries)) settings.anniversaries = [];
+  settings.anniversaries.push({ id: annId(), name, date: dateVal, repeat });
+  await saveSettings();
+  if (appEvent) appEvent.emit('settings-updated');
+
+  nameEl.value = '';
+  dateEl.value = '';
+  repeatEl.checked = true;
+  renderAnnList();
+}
+
+document.getElementById('ann-add-btn').addEventListener('click', addAnn);
+document.getElementById('ann-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') addAnn(); });
 
 // ---------------------------------------------------------------------------
 // 关于

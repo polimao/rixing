@@ -6,6 +6,82 @@ const { invoke } = window.__TAURI__.core;
 
 let isExpanded = false;
 
+// ---------------------------------------------------------------------------
+// 念日
+// ---------------------------------------------------------------------------
+let currentAnns = [];
+
+async function loadAnns() {
+  try {
+    const s = await invoke('load_settings');
+    currentAnns = (s && Array.isArray(s.anniversaries)) ? s.anniversaries : [];
+  } catch (e) { currentAnns = []; }
+}
+
+function nextOccurrence(ann) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  if (!ann.repeat) {
+    // 以本地时区构造，避免 new Date('YYYY-MM-DD') 按 UTC 解析导致倒计时差一天
+    const [yy, mo, dy] = ann.date.split('-').map(Number);
+    return new Date(yy, mo - 1, dy);
+  }
+  const [mm, dd] = ann.date.split('-').map(Number);
+  let d = new Date(today.getFullYear(), mm - 1, dd);
+  if (d < today) d = new Date(today.getFullYear() + 1, mm - 1, dd);
+  return d;
+}
+
+function countdownLabel(targetDate) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const t = new Date(targetDate); t.setHours(0, 0, 0, 0);
+  const days = Math.round((t - today) / 86400000);
+  const tl = (key, n) => (window.I18N ? window.I18N.t(key) : key).replace('{n}', n);
+  const ti = (key) => window.I18N ? window.I18N.t(key) : key;
+  if (days === 0) return ti('ann_today');
+  if (days === 1) return ti('ann_tomorrow');
+  if (days < 7)  return tl('ann_days_later', days);
+  if (days === 7) return ti('ann_next_week');
+  if (days < 30) return tl('ann_weeks_later', Math.floor(days / 7));
+  if (days < 60) return ti('ann_next_month');
+  if (days < 365) return tl('ann_months_later', Math.round(days / 30));
+  if (days < 730) return ti('ann_next_year');
+  return tl('ann_years_later', Math.floor(days / 365));
+}
+
+function renderAnniversaryPanel() {
+  const panel = document.getElementById('ann-panel');
+  const listEl = document.getElementById('ann-panel-list');
+  if (!panel || !listEl) return;
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+
+  // 显示最近的若干个念日倒计时；一次性且已过期的不再显示
+  const upcoming = currentAnns
+    .map((ann) => ({ ann, next: nextOccurrence(ann) }))
+    .filter(({ ann, next }) => ann.repeat || next >= today)
+    .sort((a, b) => a.next - b.next)
+    .slice(0, 5);
+
+  if (upcoming.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = '';
+  listEl.innerHTML = '';
+  upcoming.forEach(({ ann, next }) => {
+    const days = Math.round((next - today) / 86400000);
+    const isNear = days <= 14;
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;font-size:12px';
+    row.innerHTML = `
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--cal-text,#444)">${ann.name}</span>
+      <span style="white-space:nowrap;margin-left:8px;color:${isNear ? '#cc252c' : '#999'}">· ${countdownLabel(next)}</span>
+    `;
+    listEl.appendChild(row);
+  });
+}
+
 // 当前界面语言对应的 BCP-47 locale（用于 Intl 日期格式化），缺省简体中文
 function currentLocale() {
   return (window.I18N && window.I18N.getLang && window.I18N.getLang()) || 'zh-CN';
@@ -88,19 +164,20 @@ function renderCalendar(date) {
     daysGrid.appendChild(createDayElement(endYear, endMonth + 1, i, true));
   }
 
-  // Calculate new height: 
-  // Container paddings: top 20, bottom 20 = 40
-  // Header: 30 + 4(mt) + 16(mb) = 50
-  // Divider: 1 + 16(mb) = 17
-  // Weekdays: 15(approx 20) + 12(mb) = 32
-  // Arrow: 10
-  // Window padding (new): 50 (top 10, bottom 40)
-  // Expand button: approx 32
-  // Row: 44 + 4 gap = 48
-  // Total base height approx 231
+  // 渲染念日面板（在高度计算前）
+  renderAnniversaryPanel();
+
+  // Calculate new height:
+  // Base (header + divider + weekdays + padding + expand btn) ≈ 231
+  // Row: 44px day + 4px gap = 48px
+  // Ann panel: measured from DOM if visible
   const baseHeight = 231;
   const rowHeight = 48;
-  const targetHeight = baseHeight + rows * rowHeight;
+  const annPanel = document.getElementById('ann-panel');
+  const annPanelH = (annPanel && annPanel.style.display !== 'none')
+    ? Math.ceil(annPanel.getBoundingClientRect().height) + 8
+    : 0;
+  const targetHeight = baseHeight + rows * rowHeight + annPanelH;
 
   // Update window size using backend smooth resize command
   invoke('resize_window', { height: targetHeight }).catch(e => console.error(e));
@@ -194,8 +271,21 @@ function createDayElement(year, month, day, isOtherMonth, isToday = false) {
     dayNumStyle = 'font-size: 14px;';
   }
 
+  // 检测当日是否有念日
+  const mStr = String(m).padStart(2, '0');
+  const dStr = String(d).padStart(2, '0');
+  const hasAnn = currentAnns.some((ann) => {
+    if (ann.repeat) {
+      const [am, ad] = ann.date.split('-');
+      return am === mStr && ad === dStr;
+    }
+    return ann.date === `${y}-${mStr}-${dStr}`;
+  });
+  if (hasAnn) el.classList.add('has-ann');
+
   el.innerHTML = `
     ${badgeHtml}
+    ${hasAnn ? '<div class="ann-mark">♥</div>' : ''}
     <div class="day-num" style="${dayNumStyle}">${dayNumText}</div>
     <div class="day-lunar">${lunarText}</div>
   `;
@@ -245,6 +335,11 @@ async function changeMonth(offset) {
 
 document.getElementById('prev-month').addEventListener('click', () => changeMonth(-1));
 document.getElementById('next-month').addEventListener('click', () => changeMonth(1));
+
+// 窗内「设置」入口：不再依赖右键托盘菜单也能进设置
+document.getElementById('open-settings-btn').addEventListener('click', () => {
+  invoke('open_settings', { tab: 'general' }).catch((e) => console.error('open_settings failed:', e));
+});
 
 // Return to today when clicking the month-year header
 document.getElementById('month-year').addEventListener('click', async () => {
@@ -304,12 +399,13 @@ document.getElementById('expand-btn').addEventListener('click', () => {
   renderCalendar(currentViewDate);
 });
 
-// Initial render
+// Initial render（先加载念日再渲染，确保圆点和面板首次就正确显示）
 renderWeekdays();
-renderCalendar(currentViewDate);
+loadAnns().then(() => renderCalendar(currentViewDate));
 
-// 语言/主题变更（ui-common 在套用后派发）：重建星期表头并按新语言重渲染
-document.addEventListener('app-settings-updated', () => {
+// 语言/主题变更，或设置（含念日）更新：重新加载念日并重渲染
+document.addEventListener('app-settings-updated', async () => {
+  await loadAnns();
   renderWeekdays();
   renderCalendar(currentViewDate);
 });
