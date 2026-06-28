@@ -472,7 +472,93 @@
       cursor: default;
     }
 
-    /* 操作按钮：编辑 / 删除 / 取消（图标小按钮） */
+    .ann-row {
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .ann-row:hover {
+      border-color: var(--border-strong);
+    }
+
+    /* 日期色块：月/日，按临近程度变色（今天=节日 / ≤7天=暖 / 普通=主色 / 已过=灰） */
+    .ann-badge {
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #7bbcff);
+      box-shadow: 0 2px 6px rgba(64, 158, 255, .28);
+    }
+
+    .ann-badge .mon {
+      font-size: 9px;
+      font-weight: 600;
+      opacity: .95;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+
+    .ann-badge .day {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    .ann-badge.soon {
+      background: linear-gradient(135deg, #ff8a5b, #ff5277);
+      box-shadow: 0 2px 6px rgba(255, 82, 119, .3);
+    }
+
+    .ann-badge.today {
+      background: linear-gradient(135deg, #ffc24b, #ff7a59);
+      box-shadow: 0 2px 6px rgba(255, 122, 89, .32);
+    }
+
+    .ann-badge.past {
+      background: linear-gradient(135deg, #c2c7cf, #a8aeb8);
+      box-shadow: none;
+    }
+
+    .ann-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .ann-title {
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ann-meta {
+      font-size: 11px;
+      color: var(--text-sub);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ann-meta .cd.soon {
+      color: #ff5277;
+      font-weight: 600;
+    }
+
+    .ann-meta .cd.today {
+      color: #ff7a59;
+      font-weight: 600;
+    }
+
+    /* 操作图标：无边框幽灵风，静止淡出、悬停整行时显现 */
     .ann-iconbtn {
       flex-shrink: 0;
       display: flex;
@@ -481,22 +567,27 @@
       width: 28px;
       height: 28px;
       padding: 0;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--surface-2);
+      border: none;
+      border-radius: 7px;
+      background: transparent;
       color: var(--text-sub);
       cursor: pointer;
-      transition: background .15s, color .15s, border-color .15s;
+      opacity: .45;
+      transition: background .15s, color .15s, opacity .15s;
+    }
+
+    .ann-row:hover .ann-iconbtn,
+    .ann-row.editing .ann-iconbtn {
+      opacity: 1;
     }
 
     .ann-iconbtn:hover {
       color: var(--text);
-      background: var(--surface-3);
+      background: var(--surface-2);
     }
 
     .ann-iconbtn.danger:hover {
       color: #f56c6c;
-      border-color: #fde0e0;
       background: #fff0f0;
     }
 

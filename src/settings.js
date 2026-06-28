@@ -370,6 +370,39 @@ function annDateToInput(ann) {
   return ann.date || '';
 }
 
+// 倒计时（与 calendar.js 同一套算法，保证两处一致）
+function annNextOccurrence(ann) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  if (!ann.repeat) {
+    const [yy, mo, dy] = String(ann.date).split('-').map(Number);
+    return new Date(yy, mo - 1, dy);
+  }
+  const [mm, dd] = String(ann.date).split('-').map(Number);
+  let d = new Date(today.getFullYear(), mm - 1, dd);
+  if (d < today) d = new Date(today.getFullYear() + 1, mm - 1, dd);
+  return d;
+}
+
+function annDaysUntil(next) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const t = new Date(next); t.setHours(0, 0, 0, 0);
+  return Math.round((t - today) / 86400000);
+}
+
+function annCountdownLabel(days) {
+  const tl = (k, n) => window.I18N.t(k).replace('{n}', n);
+  const ti = (k) => window.I18N.t(k);
+  if (days === 0) return ti('ann_today');
+  if (days === 1) return ti('ann_tomorrow');
+  if (days < 7) return tl('ann_days_later', days);
+  if (days === 7) return ti('ann_next_week');
+  if (days < 30) return tl('ann_weeks_later', Math.floor(days / 7));
+  if (days < 60) return ti('ann_next_month');
+  if (days < 365) return tl('ann_months_later', Math.round(days / 30));
+  if (days < 730) return ti('ann_next_year');
+  return tl('ann_years_later', Math.floor(days / 365));
+}
+
 function renderAnnList() {
   const list = document.getElementById('ann-list');
   if (!list) return;
@@ -386,6 +419,7 @@ function renderAnnList() {
         <button class="mini-btn ann-save-btn">${window.I18N.t('ann_save')}</button>
         <button class="ann-iconbtn ann-cancel-btn" title="${window.I18N.t('ann_cancel')}">${ANN_ICON.cancel}</button>
       `;
+      row.classList.add('editing');
       const nameEl = row.querySelector('.ann-name-cell');
       const dateEl = row.querySelector('.ann-date-input');
       const chip = row.querySelector('.ann-rep');
@@ -397,19 +431,33 @@ function renderAnnList() {
       row.querySelector('.ann-cancel-btn').addEventListener('click', () => { editingId = null; renderAnnList(); });
       nameEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveEdit(ann.id, nameEl, dateEl, chip); });
     } else {
-      // 展示行：标题 · 日期 · 重复 · 编辑/删除
+      // 展示行：日期色块 + 名称 + 倒计时 · 重复 + 编辑/删除
+      const next = annNextOccurrence(ann);
+      const valid = !isNaN(next.getTime());
+      const days = valid ? annDaysUntil(next) : NaN;
+      const urg = !valid || days < 0 ? 'past' : days === 0 ? 'today' : days <= 7 ? 'soon' : '';
+      const loc = (settings && settings.lang) || 'zh-CN';
+      const mon = valid ? next.toLocaleDateString(loc, { month: 'short' }) : '';
+      const day = valid ? next.getDate() : '';
+      const cdText = !valid ? ann.date : days < 0 ? ann.date : annCountdownLabel(days);
+      const repeatTxt = ann.repeat ? window.I18N.t('ann_repeat_yearly_short') : window.I18N.t('ann_once');
       row.innerHTML = `
-        <div class="ann-name-cell"></div>
-        <div class="ann-date-cell"></div>
-        <button type="button" class="ann-rep static"></button>
+        <div class="ann-badge ${urg}"><span class="mon"></span><span class="day"></span></div>
+        <div class="ann-main">
+          <div class="ann-title"></div>
+          <div class="ann-meta"><span class="cd ${urg}"></span> · <span class="rep"></span></div>
+        </div>
         <button class="ann-iconbtn ann-edit-btn" title="${window.I18N.t('ann_edit')}">${ANN_ICON.edit}</button>
         <button class="ann-iconbtn danger ann-del-btn" title="${window.I18N.t('ann_delete')}">${ANN_ICON.del}</button>
       `;
-      const nameCell = row.querySelector('.ann-name-cell');
-      nameCell.textContent = ann.name;       // textContent 而非 innerHTML，避免名称里的 HTML 被注入
-      nameCell.title = ann.name;
-      row.querySelector('.ann-date-cell').textContent = ann.date;
-      setChip(row.querySelector('.ann-rep'), ann.repeat);
+      // 全部用 textContent 注入，避免名称里的 HTML 被注入执行
+      row.querySelector('.ann-badge .mon').textContent = mon;
+      row.querySelector('.ann-badge .day').textContent = day;
+      const titleEl = row.querySelector('.ann-title');
+      titleEl.textContent = ann.name;
+      titleEl.title = ann.name;
+      row.querySelector('.ann-meta .cd').textContent = cdText;
+      row.querySelector('.ann-meta .rep').textContent = repeatTxt;
       row.querySelector('.ann-edit-btn').addEventListener('click', () => { editingId = ann.id; renderAnnList(); });
       row.querySelector('.ann-del-btn').addEventListener('click', () => deleteAnn(ann.id));
     }
