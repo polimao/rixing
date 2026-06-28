@@ -241,14 +241,23 @@ fn relocalize_tray(app: AppHandle) {
 }
 
 /// 切换「显示待办统计」后重建主托盘以套用最新设置。
-/// macOS 上对已有标题调用 `set_title(Some(""))`/`None` 不一定能把数字清掉，
-/// 重建托盘（以正确标题新建）是可靠的清除方式。muda/托盘只能在主线程操作。
+/// 切换「显示待办统计」后刷新主托盘标题：仅改标题、不重建托盘。
+/// 早先用「移除+重建」来清数字，但在 macOS 上移除后同一帧重建会把图标弄丢
+/// （图标只在创建时设置一次），于是关闭统计就看不到待办图标了。
+/// 实际上 `set_title(Some(""))` 能可靠清空数字（`set_title(None)` 在 macOS 是 no-op，
+/// 才是当初清不掉的原因）。托盘只能在主线程操作。
 #[tauri::command]
 fn refresh_tray_count(app: AppHandle) {
     let app_for_main = app.clone();
     let _ = app.run_on_main_thread(move || {
-        let _ = app_for_main.remove_tray_by_id("main");
-        let _ = create_main_tray(&app_for_main);
+        if let Some(tray) = app_for_main.tray_by_id("main") {
+            let title = if load_show_count() {
+                LAST_PENDING.load(Ordering::SeqCst).to_string()
+            } else {
+                String::new()
+            };
+            let _ = tray.set_title(Some(title));
+        }
     });
 }
 
