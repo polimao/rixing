@@ -305,43 +305,67 @@
       height: 16px;
     }
 
-    /* 语言：国旗单选 */
-    .row.col {
+    /* 分组卡片：同一分区的若干设置合成一张卡，行间用细分隔线 */
+    .group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .grow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+    }
+
+    .grow + .grow {
+      border-top: 1px solid var(--border);
+    }
+
+    .grow.col {
       flex-direction: column;
       align-items: stretch;
       gap: 10px;
     }
 
-    .flags {
+    .grow .label {
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* 语言：母语名文字 chip（不用国旗——国旗代表国家而非语言） */
+    .lang-chips {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      flex: 1;
-      justify-content: flex-end;
     }
 
-    .flag-btn {
-      width: 38px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      line-height: 1;
-      background: var(--surface-2);
-      border: 2px solid transparent;
+    .lang-chip {
+      padding: 5px 11px;
       border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.4;
       cursor: pointer;
-      transition: border-color .15s, background .15s;
+      white-space: nowrap;
+      transition: border-color .15s, color .15s, background .15s;
     }
 
-    .flag-btn:hover {
-      background: var(--surface-3);
-    }
-
-    .flag-btn.active {
+    .lang-chip:hover {
       border-color: var(--accent);
+    }
+
+    .lang-chip.active {
+      border-color: var(--accent);
+      color: var(--accent);
       background: var(--surface);
+      font-weight: 600;
     }
 
     /* 码放快捷键：方向键十字布局 */
@@ -534,23 +558,26 @@
     </div>
 
     <div class="section-title" data-i18n="general">通用</div>
-    <div class="row">
+    <div class="group">
+    <div class="grow">
       <span class="label" data-i18n="autostart">开机自启动</span>
       <label class="switch">
         <input type="checkbox" id="autostart">
         <span class="slider"></span>
       </label>
     </div>
-    <div class="row">
+    <div class="grow">
       <span class="label" data-i18n="show_count">显示待办统计</span>
       <label class="switch">
         <input type="checkbox" id="show-count">
         <span class="slider"></span>
       </label>
     </div>
+    </div>
 
     <div class="section-title" data-i18n="appearance">外观</div>
-    <div class="row">
+    <div class="group">
+    <div class="grow">
       <span class="label" data-i18n="theme">主题</span>
       <div class="seg" id="theme-seg">
         <button class="seg-btn" data-theme="light" data-i18n-title="theme_light" type="button" title="亮色">
@@ -577,9 +604,10 @@
         </button>
       </div>
     </div>
-    <div class="row">
+    <div class="grow col">
       <span class="label" data-i18n="language">语言</span>
-      <div class="flags" id="language-flags"></div>
+      <div class="lang-chips" id="language-flags"></div>
+    </div>
     </div>
     </div>
 

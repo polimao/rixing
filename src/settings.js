@@ -17,21 +17,20 @@ async function saveSettings() {
   try { await invoke('save_settings', { settings }); } catch (e) { console.error('save settings failed:', e); }
 }
 
-// 语言国旗：第一项“跟随系统”（地球），其余为各语言国旗
-const FLAGS = { 'zh-CN': '🇨🇳', en: '🇬🇧', ja: '🇯🇵', ko: '🇰🇷', es: '🇪🇸', fr: '🇫🇷', de: '🇩🇪', ru: '🇷🇺' };
+// 语言选择：用「母语自称」文字 chip（不用国旗——国旗代表国家而非语言）。
+// 第一项「跟随系统」带地球图标，其余显示各语言在其母语下的写法（简体中文 / English / 日本語…）。
 function buildFlags() {
   elFlags.innerHTML = '';
-  const make = (value, glyph, title) => {
+  const make = (value, text) => {
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'flag-btn';
+    b.className = 'lang-chip';
     b.dataset.value = value;
-    b.textContent = glyph;
-    b.title = title;
+    b.textContent = text;
     elFlags.appendChild(b);
   };
-  make('system', '🌐', window.I18N.t('language_system'));
-  window.I18N.SUPPORTED.forEach((code) => make(code, FLAGS[code] || code, window.I18N.DICT[code].lang_name));
+  make('system', '🌐 ' + window.I18N.t('language_system'));
+  window.I18N.SUPPORTED.forEach((code) => make(code, window.I18N.DICT[code].lang_name));
 }
 
 function currentLangSelection() {
@@ -41,7 +40,7 @@ function currentLangSelection() {
 
 function syncControls() {
   const lang = currentLangSelection();
-  elFlags.querySelectorAll('.flag-btn').forEach((b) => b.classList.toggle('active', b.dataset.value === lang));
+  elFlags.querySelectorAll('.lang-chip').forEach((b) => b.classList.toggle('active', b.dataset.value === lang));
   const theme = settings.theme || 'system';
   elThemeSeg.querySelectorAll('.seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.theme === theme));
 }
@@ -157,7 +156,7 @@ async function selectLanguage(value) {
 }
 
 elFlags.addEventListener('click', (e) => {
-  const b = e.target.closest('.flag-btn');
+  const b = e.target.closest('.lang-chip');
   if (b) selectLanguage(b.dataset.value);
 });
 
