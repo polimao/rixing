@@ -322,7 +322,7 @@
       padding: 12px 14px;
     }
 
-    .grow + .grow {
+    .grow+.grow {
       border-top: 1px solid var(--border);
     }
 
@@ -337,15 +337,9 @@
       white-space: nowrap;
     }
 
-    /* 语言：母语名文字 chip（不用国旗——国旗代表国家而非语言） */
-    .lang-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .lang-chip {
-      padding: 5px 11px;
+    /* 语言下拉选择 */
+    #language-select {
+      padding: 5px 8px;
       border-radius: 8px;
       border: 1px solid var(--border-strong);
       background: var(--surface-2);
@@ -353,19 +347,14 @@
       font-size: 12px;
       line-height: 1.4;
       cursor: pointer;
-      white-space: nowrap;
-      transition: border-color .15s, color .15s, background .15s;
+      outline: none;
+      appearance: auto;
+      min-width: 0;
+      flex: 1;
     }
 
-    .lang-chip:hover {
+    #language-select:focus {
       border-color: var(--accent);
-    }
-
-    .lang-chip.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--surface);
-      font-weight: 600;
     }
 
     /* 码放快捷键：方向键十字布局 */
@@ -444,11 +433,27 @@
     }
 
     @keyframes ann-shake {
-      0%, 100% { transform: translateX(0); }
-      20%       { transform: translateX(-4px); }
-      40%       { transform: translateX(4px); }
-      60%       { transform: translateX(-3px); }
-      80%       { transform: translateX(3px); }
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20% {
+        transform: translateX(-4px);
+      }
+
+      40% {
+        transform: translateX(4px);
+      }
+
+      60% {
+        transform: translateX(-3px);
+      }
+
+      80% {
+        transform: translateX(3px);
+      }
     }
 
     .ann-shake {
@@ -502,7 +507,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+          </path>
         </svg>
         <span data-i18n="general">通用</span>
       </button>
@@ -534,141 +541,148 @@
     </div>
 
     <div class="tab-panel active" data-panel="general">
-    <div class="section-title" data-i18n="guide">简明教程</div>
-    <div class="guide-card">
-      <div class="guide-line">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="6" rx="1"></rect>
-          <circle cx="8" cy="7" r="0.5"></circle><circle cx="11" cy="7" r="0.5"></circle>
-        </svg>
-        <span><b data-i18n="welcome_two_t">菜单栏新增两个图标</b><span class="sep">—</span><span data-i18n="welcome_two_d">待办清单 与 日历</span></span>
-      </div>
-      <div class="guide-line">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 3h14a2 2 0 0 1 2 2v3H3V5a2 2 0 0 1 2-2zM3 8h18M9 3v5"></path>
-        </svg>
-        <span><b data-i18n="welcome_left_t">左键点击</b><span class="sep">—</span><span data-i18n="welcome_left_d">打开或收起窗口</span></span>
-      </div>
-      <div class="guide-line">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 3h14a2 2 0 0 1 2 2v3H3V5a2 2 0 0 1 2-2zM3 8h18M15 3v5"></path>
-        </svg>
-        <span><b data-i18n="welcome_right_t">右键点击</b><span class="sep">—</span><span data-i18n="welcome_right_d">念日 · 窗口分屏 · 通用设置 · 关于</span></span>
-      </div>
-    </div>
-
-    <div class="section-title" data-i18n="general">通用</div>
-    <div class="group">
-    <div class="grow">
-      <span class="label" data-i18n="autostart">开机自启动</span>
-      <label class="switch">
-        <input type="checkbox" id="autostart">
-        <span class="slider"></span>
-      </label>
-    </div>
-    <div class="grow">
-      <span class="label" data-i18n="show_count">显示待办统计</span>
-      <label class="switch">
-        <input type="checkbox" id="show-count">
-        <span class="slider"></span>
-      </label>
-    </div>
-    </div>
-
-    <div class="section-title" data-i18n="appearance">外观</div>
-    <div class="group">
-    <div class="grow">
-      <span class="label" data-i18n="theme">主题</span>
-      <div class="seg" id="theme-seg">
-        <button class="seg-btn" data-theme="light" data-i18n-title="theme_light" type="button" title="亮色">
+      <div class="section-title" data-i18n="guide">简明教程</div>
+      <div class="guide-card">
+        <div class="guide-line">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4"></circle>
-            <path
-              d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41">
-            </path>
+            <rect x="3" y="4" width="18" height="6" rx="1"></rect>
+            <circle cx="8" cy="7" r="0.5"></circle>
+            <circle cx="11" cy="7" r="0.5"></circle>
           </svg>
-        </button>
-        <button class="seg-btn" data-theme="dark" data-i18n-title="theme_dark" type="button" title="暗色">
+          <span><b data-i18n="welcome_two_t">菜单栏新增两个图标</b><span class="sep">—</span><span data-i18n="welcome_two_d">待办清单
+              与 日历</span></span>
+        </div>
+        <div class="guide-line">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            <path d="M5 3h14a2 2 0 0 1 2 2v3H3V5a2 2 0 0 1 2-2zM3 8h18M9 3v5"></path>
           </svg>
-        </button>
-        <button class="seg-btn" data-theme="system" data-i18n-title="theme_system" type="button" title="随系统">
+          <span><b data-i18n="welcome_left_t">左键点击</b><span class="sep">—</span><span
+              data-i18n="welcome_left_d">打开或收起窗口</span></span>
+        </div>
+        <div class="guide-line">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2"></rect>
-            <path d="M8 21h8M12 17v4"></path>
+            <path d="M5 3h14a2 2 0 0 1 2 2v3H3V5a2 2 0 0 1 2-2zM3 8h18M15 3v5"></path>
           </svg>
-        </button>
+          <span><b data-i18n="welcome_right_t">右键点击</b><span class="sep">—</span><span data-i18n="welcome_right_d">念日 ·
+              窗口分屏 · 通用设置 · 关于</span></span>
+        </div>
       </div>
-    </div>
-    <div class="grow col">
-      <span class="label" data-i18n="language">语言</span>
-      <div class="lang-chips" id="language-flags"></div>
-    </div>
-    </div>
-    </div>
 
-    <div class="tab-panel" data-panel="ann">
-    <div id="ann-list"></div>
-    <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
-      <div style="display:flex;gap:6px;align-items:center">
-        <input id="ann-name" type="text" class="ann-input" style="flex:1;min-width:0"
-               data-i18n-placeholder="ann_name_placeholder" placeholder="如：妈妈生日">
-        <input id="ann-date" type="date" class="ann-input" style="flex-shrink:0">
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="label" style="font-size:12px" data-i18n="ann_repeat">每年重复</span>
+      <div class="section-title" data-i18n="general">通用</div>
+      <div class="group">
+        <div class="grow">
+          <span class="label" data-i18n="autostart">开机自启动</span>
           <label class="switch">
-            <input type="checkbox" id="ann-repeat" checked>
+            <input type="checkbox" id="autostart">
             <span class="slider"></span>
           </label>
         </div>
-        <button class="mini-btn" id="ann-add-btn" data-i18n="ann_add">+ 添加</button>
+        <div class="grow">
+          <span class="label" data-i18n="show_count">显示待办统计</span>
+          <label class="switch">
+            <input type="checkbox" id="show-count">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-title" data-i18n="appearance">外观</div>
+      <div class="group">
+        <div class="grow">
+          <span class="label" data-i18n="theme">主题</span>
+          <div class="seg" id="theme-seg">
+            <button class="seg-btn" data-theme="light" data-i18n-title="theme_light" type="button" title="亮色">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path
+                  d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41">
+                </path>
+              </svg>
+            </button>
+            <button class="seg-btn" data-theme="dark" data-i18n-title="theme_dark" type="button" title="暗色">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+            <button class="seg-btn" data-theme="system" data-i18n-title="theme_system" type="button" title="随系统">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                <path d="M8 21h8M12 17v4"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="grow col">
+          <span class="label" data-i18n="language">语言</span>
+          <select id="language-select"></select>
+        </div>
       </div>
     </div>
+
+    <div class="tab-panel" data-panel="ann">
+      <div id="ann-list"></div>
+      <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input id="ann-name" type="text" class="ann-input" style="flex:1;min-width:0"
+            data-i18n-placeholder="ann_name_placeholder" placeholder="如：妈妈生日">
+          <input id="ann-date" type="date" class="ann-input" style="flex-shrink:0">
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="label" style="font-size:12px" data-i18n="ann_repeat">每年重复</span>
+            <label class="switch">
+              <input type="checkbox" id="ann-repeat" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <button class="mini-btn" id="ann-add-btn" data-i18n="ann_add">+ 添加</button>
+        </div>
+      </div>
     </div>
 
     <div class="tab-panel" data-panel="tidy">
-    <div class="row">
-      <span class="label" data-i18n="tidy_enable">启用窗口整理</span>
-      <label class="switch">
-        <input type="checkbox" id="tidy-enabled">
-        <span class="slider"></span>
-      </label>
-    </div>
-    <div id="tidy-detail">
-      <div class="row perm" id="tidy-perm-row" style="display:none">
-        <span class="label" data-i18n="tidy_perm">需开启「辅助功能」权限</span>
-        <button class="mini-btn" id="tidy-grant" data-i18n="tidy_grant">去授权</button>
-      </div>
       <div class="row">
-        <span class="label" data-i18n="tidy_gap">窗口边距 (px)</span>
-        <input type="number" id="tidy-gap" class="num" min="0" max="80" step="1">
+        <span class="label" data-i18n="tidy_enable">启用窗口整理</span>
+        <label class="switch">
+          <input type="checkbox" id="tidy-enabled">
+          <span class="slider"></span>
+        </label>
       </div>
-      <!-- 快捷键按方向键十字摆放：上=最大化 / 左=左半屏 / 右=右半屏 / 下=复原 -->
-      <div class="tidy-cross">
-        <div class="cross-cell c-max">
-          <span class="cross-label" data-i18n="tidy_max">最大化</span>
-          <button class="kbd" data-key="max"></button>
+      <div id="tidy-detail">
+        <div class="row perm" id="tidy-perm-row" style="display:none">
+          <span class="label" data-i18n="tidy_perm">需开启「辅助功能」权限</span>
+          <button class="mini-btn" id="tidy-grant" data-i18n="tidy_grant">去授权</button>
         </div>
-        <div class="cross-cell c-left">
-          <span class="cross-label" data-i18n="tidy_left">左半屏</span>
-          <button class="kbd" data-key="left"></button>
+        <div class="row">
+          <span class="label" data-i18n="tidy_gap">窗口边距 (px)</span>
+          <input type="number" id="tidy-gap" class="num" min="0" max="80" step="1">
         </div>
-        <div class="cross-cell c-right">
-          <span class="cross-label" data-i18n="tidy_right">右半屏</span>
-          <button class="kbd" data-key="right"></button>
-        </div>
-        <div class="cross-cell c-restore">
-          <span class="cross-label" data-i18n="tidy_restore">复原</span>
-          <button class="kbd" data-key="restore"></button>
+        <!-- 快捷键按方向键十字摆放：上=最大化 / 左=左半屏 / 右=右半屏 / 下=复原 -->
+        <div class="tidy-cross">
+          <div class="cross-cell c-max">
+            <span class="cross-label" data-i18n="tidy_max">最大化</span>
+            <button class="kbd" data-key="max"></button>
+          </div>
+          <div class="cross-cell c-left">
+            <span class="cross-label" data-i18n="tidy_left">左半屏</span>
+            <button class="kbd" data-key="left"></button>
+          </div>
+          <div class="cross-cell c-right">
+            <span class="cross-label" data-i18n="tidy_right">右半屏</span>
+            <button class="kbd" data-key="right"></button>
+          </div>
+          <div class="cross-cell c-restore">
+            <span class="cross-label" data-i18n="tidy_restore">复原</span>
+            <button class="kbd" data-key="restore"></button>
+          </div>
         </div>
       </div>
-    </div>
     </div>
 
     <div class="tab-panel" data-panel="about">

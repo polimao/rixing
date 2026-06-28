@@ -4,7 +4,7 @@ const appEvent = window.__TAURI__ && window.__TAURI__.event;
 const elAutostart = document.getElementById('autostart');
 const elShowCount = document.getElementById('show-count');
 const elThemeSeg = document.getElementById('theme-seg');
-const elFlags = document.getElementById('language-flags');
+const elLangSelect = document.getElementById('language-select');
 
 let settings = {};   // 完整 settings 对象（合并保存，避免覆盖 sortRule 等）
 let syncing = false; // 回写控件时避免触发 change
@@ -17,20 +17,19 @@ async function saveSettings() {
   try { await invoke('save_settings', { settings }); } catch (e) { console.error('save settings failed:', e); }
 }
 
-// 语言选择：用「母语自称」文字 chip（不用国旗——国旗代表国家而非语言）。
-// 第一项「跟随系统」带地球图标，其余显示各语言在其母语下的写法（简体中文 / English / 日本語…）。
-function buildFlags() {
-  elFlags.innerHTML = '';
-  const make = (value, text) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'lang-chip';
-    b.dataset.value = value;
-    b.textContent = text;
-    elFlags.appendChild(b);
-  };
-  make('system', '🌐 ' + window.I18N.t('language_system'));
-  window.I18N.SUPPORTED.forEach((code) => make(code, window.I18N.DICT[code].lang_name));
+// 语言下拉选择
+function buildLangSelect() {
+  elLangSelect.innerHTML = '';
+  const opt = document.createElement('option');
+  opt.value = 'system';
+  opt.textContent = '🌐 ' + window.I18N.t('language_system');
+  elLangSelect.appendChild(opt);
+  window.I18N.SUPPORTED.forEach((code) => {
+    const o = document.createElement('option');
+    o.value = code;
+    o.textContent = window.I18N.DICT[code].lang_name;
+    elLangSelect.appendChild(o);
+  });
 }
 
 function currentLangSelection() {
@@ -40,7 +39,7 @@ function currentLangSelection() {
 
 function syncControls() {
   const lang = currentLangSelection();
-  elFlags.querySelectorAll('.lang-chip').forEach((b) => b.classList.toggle('active', b.dataset.value === lang));
+  elLangSelect.value = lang;
   const theme = settings.theme || 'system';
   elThemeSeg.querySelectorAll('.seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.theme === theme));
 }
@@ -97,7 +96,7 @@ async function applyWindowTitle() {
 async function init() {
   await loadSettings();
   setupTabs();
-  buildFlags();
+  buildLangSelect();
   applyWindowTitle();
   try {
     const st = await invoke('get_settings_state');
@@ -146,7 +145,7 @@ async function selectLanguage(value) {
   window.I18N.setLang(settings.lang);
   window.I18N.applyI18n(document);
   applyWindowTitle(); // 标题栏跟随新语言
-  buildFlags();       // 用新语言重写”跟随系统”等 title
+  buildLangSelect();       // 用新语言重写”跟随系统”等 title
   syncControls();
   renderAnnList();
   resizeToContent();  // 译文长度变化可能改变高度
@@ -155,9 +154,8 @@ async function selectLanguage(value) {
   try { await invoke('relocalize_tray'); } catch (e) { console.error(e); }
 }
 
-elFlags.addEventListener('click', (e) => {
-  const b = e.target.closest('.lang-chip');
-  if (b) selectLanguage(b.dataset.value);
+elLangSelect.addEventListener('change', () => {
+  selectLanguage(elLangSelect.value);
 });
 
 async function selectTheme(value) {
