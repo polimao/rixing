@@ -392,6 +392,19 @@
   };
   for (const k in DICT) Object.assign(DICT[k], ANN[k] || {});
 
+  // 念日行内编辑：编辑 / 保存 / 取消
+  const ANN_EDIT = {
+    'zh-CN': { ann_edit: '编辑', ann_save: '保存', ann_cancel: '取消' },
+    en: { ann_edit: 'Edit', ann_save: 'Save', ann_cancel: 'Cancel' },
+    ja: { ann_edit: '編集', ann_save: '保存', ann_cancel: 'キャンセル' },
+    ko: { ann_edit: '편집', ann_save: '저장', ann_cancel: '취소' },
+    es: { ann_edit: 'Editar', ann_save: 'Guardar', ann_cancel: 'Cancelar' },
+    fr: { ann_edit: 'Modifier', ann_save: 'Enregistrer', ann_cancel: 'Annuler' },
+    de: { ann_edit: 'Bearbeiten', ann_save: 'Speichern', ann_cancel: 'Abbrechen' },
+    ru: { ann_edit: 'Изменить', ann_save: 'Сохранить', ann_cancel: 'Отмена' },
+  };
+  for (const k in DICT) Object.assign(DICT[k], ANN_EDIT[k] || {});
+
   // 倒计时
   const COUNTDOWN = {
     'zh-CN': { countdown: '倒计时', countdown_done: '倒计时结束！' },

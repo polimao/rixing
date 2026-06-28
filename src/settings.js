@@ -342,30 +342,100 @@ function getAnns() {
   return Array.isArray(settings.anniversaries) ? settings.anniversaries : [];
 }
 
+// 当前正在行内编辑的念日 id（null 表示无）
+let editingId = null;
+
+// 操作按钮图标
+const ANN_ICON = {
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  cancel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+};
+
+function repeatLabel(on) {
+  return on ? window.I18N.t('ann_repeat_yearly_short') : window.I18N.t('ann_once');
+}
+
+// 重复药丸：同步开关样式与文案（展示行只读、编辑/新增行可点切换）
+function setChip(btn, on) {
+  btn.classList.toggle('on', !!on);
+  btn.textContent = repeatLabel(!!on);
+}
+
+// 念日 date 字段：每年重复存 MM-DD，一次性存 YYYY-MM-DD；编辑时补全成 input[type=date] 需要的 YYYY-MM-DD
+function annDateToInput(ann) {
+  if (typeof ann.date === 'string' && ann.date.length === 5) {
+    return `${new Date().getFullYear()}-${ann.date}`;
+  }
+  return ann.date || '';
+}
+
 function renderAnnList() {
   const list = document.getElementById('ann-list');
   if (!list) return;
   list.innerHTML = '';
   getAnns().forEach((ann) => {
-    const typeLabel = ann.repeat
-      ? window.I18N.t('ann_repeat_yearly_short')
-      : window.I18N.t('ann_once');
     const row = document.createElement('div');
-    row.className = 'row';
-    row.style.marginBottom = '8px';
-    row.innerHTML = `
-      <div style="flex:1;min-width:0">
-        <div class="label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ann.name}</div>
-        <div style="font-size:11px;color:var(--text-sub);margin-top:2px">${typeLabel} · ${ann.date}</div>
-      </div>
-      <button class="ann-del-btn" style="background:#fff0f0;border:1px solid #fde0e0;color:#f56c6c;
-        border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;flex-shrink:0"
-        data-i18n="ann_delete">${window.I18N.t('ann_delete')}</button>
-    `;
-    row.querySelector('.ann-del-btn').addEventListener('click', () => deleteAnn(ann.id));
+    row.className = 'ann-row';
+    if (ann.id === editingId) {
+      // 行内编辑：标题 · 日期 · 重复 · 保存/取消
+      row.innerHTML = `
+        <input type="text" class="ann-input ann-name-cell">
+        <input type="date" class="ann-input ann-date-input">
+        <button type="button" class="ann-rep" title="${window.I18N.t('ann_repeat')}"></button>
+        <button class="mini-btn ann-save-btn">${window.I18N.t('ann_save')}</button>
+        <button class="ann-iconbtn ann-cancel-btn" title="${window.I18N.t('ann_cancel')}">${ANN_ICON.cancel}</button>
+      `;
+      const nameEl = row.querySelector('.ann-name-cell');
+      const dateEl = row.querySelector('.ann-date-input');
+      const chip = row.querySelector('.ann-rep');
+      nameEl.value = ann.name;
+      dateEl.value = annDateToInput(ann);
+      setChip(chip, ann.repeat);
+      chip.addEventListener('click', () => setChip(chip, !chip.classList.contains('on')));
+      row.querySelector('.ann-save-btn').addEventListener('click', () => saveEdit(ann.id, nameEl, dateEl, chip));
+      row.querySelector('.ann-cancel-btn').addEventListener('click', () => { editingId = null; renderAnnList(); });
+      nameEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveEdit(ann.id, nameEl, dateEl, chip); });
+    } else {
+      // 展示行：标题 · 日期 · 重复 · 编辑/删除
+      row.innerHTML = `
+        <div class="ann-name-cell"></div>
+        <div class="ann-date-cell"></div>
+        <button type="button" class="ann-rep static"></button>
+        <button class="ann-iconbtn ann-edit-btn" title="${window.I18N.t('ann_edit')}">${ANN_ICON.edit}</button>
+        <button class="ann-iconbtn danger ann-del-btn" title="${window.I18N.t('ann_delete')}">${ANN_ICON.del}</button>
+      `;
+      const nameCell = row.querySelector('.ann-name-cell');
+      nameCell.textContent = ann.name;       // textContent 而非 innerHTML，避免名称里的 HTML 被注入
+      nameCell.title = ann.name;
+      row.querySelector('.ann-date-cell').textContent = ann.date;
+      setChip(row.querySelector('.ann-rep'), ann.repeat);
+      row.querySelector('.ann-edit-btn').addEventListener('click', () => { editingId = ann.id; renderAnnList(); });
+      row.querySelector('.ann-del-btn').addEventListener('click', () => deleteAnn(ann.id));
+    }
     list.appendChild(row);
   });
+  // 新增行的重复药丸文案随语言刷新
+  const addChip = document.getElementById('ann-repeat');
+  if (addChip) addChip.textContent = repeatLabel(addChip.classList.contains('on'));
   resizeToContent();
+}
+
+async function saveEdit(id, nameEl, dateEl, chip) {
+  const name = nameEl.value.trim();
+  const dateStr = dateEl.value;
+  const repeat = chip.classList.contains('on');
+  if (!name) { shakeEl(nameEl); nameEl.focus(); return; }
+  if (!dateStr) { shakeEl(dateEl); dateEl.focus(); return; }
+  const dateVal = repeat ? dateStr.slice(5) : dateStr;
+  const anns = getAnns();
+  const item = anns.find((a) => a.id === id);
+  if (item) { item.name = name; item.date = dateVal; item.repeat = repeat; }
+  settings.anniversaries = anns;
+  await saveSettings();
+  if (appEvent) appEvent.emit('settings-updated');
+  editingId = null;
+  renderAnnList();
 }
 
 async function deleteAnn(id) {
@@ -392,7 +462,7 @@ async function addAnn() {
   const repeatEl = document.getElementById('ann-repeat');
 
   const name = nameEl.value.trim();
-  const repeat = repeatEl.checked;
+  const repeat = repeatEl.classList.contains('on');
   const dateStr = dateEl.value; // 原生日期选择器保证合法（不会出现 2 月 31 日）；格式为 YYYY-MM-DD 或空
 
   if (!name) { shakeEl(nameEl); nameEl.focus(); return; }
@@ -408,12 +478,19 @@ async function addAnn() {
 
   nameEl.value = '';
   dateEl.value = '';
-  repeatEl.checked = true;
+  setChip(repeatEl, true); // 重置为「每年」
   renderAnnList();
 }
 
 document.getElementById('ann-add-btn').addEventListener('click', addAnn);
 document.getElementById('ann-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') addAnn(); });
+// 新增行的重复药丸：初始「每年」+ 点击切换
+(() => {
+  const addChip = document.getElementById('ann-repeat');
+  if (!addChip) return;
+  setChip(addChip, true);
+  addChip.addEventListener('click', () => setChip(addChip, !addChip.classList.contains('on')));
+})();
 
 // ---------------------------------------------------------------------------
 // 关于

@@ -411,12 +411,98 @@
       border-color: var(--accent);
     }
 
-    .ann-del-btn:hover {
-      background: #fde0e0 !important;
-    }
-
     input[type="date"].ann-input {
       color-scheme: light dark;
+    }
+
+    /* 念日：单行式（展示 / 编辑 / 新增 同构：标题 · 日期 · 重复 · 操作） */
+    .ann-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .ann-name-cell {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    .ann-date-cell {
+      flex-shrink: 0;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ann-date-input {
+      flex-shrink: 0;
+      width: 130px;
+    }
+
+    /* 重复设置：可点切换的小药丸（展示行用 .static 只读外观） */
+    .ann-rep {
+      flex-shrink: 0;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: transparent;
+      color: var(--text-sub);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+
+    .ann-rep.on {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .ann-rep.static {
+      cursor: default;
+    }
+
+    /* 操作按钮：编辑 / 删除 / 取消（图标小按钮） */
+    .ann-iconbtn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+
+    .ann-iconbtn:hover {
+      color: var(--text);
+      background: var(--surface-3);
+    }
+
+    .ann-iconbtn.danger:hover {
+      color: #f56c6c;
+      border-color: #fde0e0;
+      background: #fff0f0;
+    }
+
+    .ann-iconbtn svg {
+      width: 15px;
+      height: 15px;
     }
 
     @keyframes ann-shake {
@@ -585,22 +671,13 @@
 
     <div class="tab-panel" data-panel="ann">
     <div id="ann-list"></div>
-    <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
-      <div style="display:flex;gap:6px;align-items:center">
-        <input id="ann-name" type="text" class="ann-input" style="flex:1;min-width:0"
-               data-i18n-placeholder="ann_name_placeholder" placeholder="如：妈妈生日">
-        <input id="ann-date" type="date" class="ann-input" style="flex-shrink:0">
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="label" style="font-size:12px" data-i18n="ann_repeat">每年重复</span>
-          <label class="switch">
-            <input type="checkbox" id="ann-repeat" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-        <button class="mini-btn" id="ann-add-btn" data-i18n="ann_add">+ 添加</button>
-      </div>
+    <div class="ann-row">
+      <input id="ann-name" type="text" class="ann-input ann-name-cell"
+             data-i18n-placeholder="ann_name_placeholder" placeholder="如：妈妈生日">
+      <input id="ann-date" type="date" class="ann-input ann-date-input">
+      <button type="button" id="ann-repeat" class="ann-rep on"
+              data-i18n-title="ann_repeat" title="每年重复">每年</button>
+      <button class="mini-btn" id="ann-add-btn" data-i18n="ann_add">+ 添加</button>
     </div>
     </div>
 
