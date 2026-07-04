@@ -105,6 +105,7 @@ async function init() {
   syncing = true; elShowCount.checked = !!settings.showCount; syncing = false;
   syncControls();
   await initTiling();
+  await initTodoHotkey();
   renderAnnList();
   resizeToContent();
   // 字体/emoji 布局稳定后再校准一次
@@ -179,7 +180,8 @@ const elTidyDetail = document.getElementById('tidy-detail');
 const elTidyGap = document.getElementById('tidy-gap');
 const elPermRow = document.getElementById('tidy-perm-row');
 const elGrant = document.getElementById('tidy-grant');
-const kbdBtns = Array.from(document.querySelectorAll('.kbd[data-key]'));
+const kbdBtns = Array.from(document.querySelectorAll('.kbd[data-key]:not([data-key="todo"])'));
+const todoKbdBtn = document.querySelector('.kbd[data-key="todo"]');
 
 const SYM = {
   super: '⌘', control: '⌃', alt: '⌥', shift: '⇧',
@@ -265,24 +267,34 @@ async function startRecording(btn) {
 // 结束录制并恢复码放快捷键（按当前已保存的设置重新注册）
 async function endRecording() {
   if (!recordingBtn) return;
-  const btn = recordingBtn;
-  recordingBtn = null;
-  btn.classList.remove('recording');
-  btn.textContent = labelFor(btn);
-  try { await invoke('apply_tiling_shortcuts'); } catch (e) { /* ignore */ }
+  const wasTodo = recordingBtn === todoKbdBtn;
+  if (wasTodo) {
+    recordingBtn = null;
+    todoKbdBtn.classList.remove('recording');
+    todoKbdBtn.textContent = fmtTodoAccel(settings.todoShortcut);
+    try { await invoke('apply_todo_shortcut_settings'); } catch (e) { /* ignore */ }
+  } else {
+    const btn = recordingBtn;
+    recordingBtn = null;
+    btn.classList.remove('recording');
+    btn.textContent = labelFor(btn);
+    try { await invoke('apply_tiling_shortcuts'); } catch (e) { /* ignore */ }
+  }
 }
 
 kbdBtns.forEach((btn) => {
   btn.addEventListener('click', () => {
     if (recordingBtn === btn) { endRecording(); return; }
     if (recordingBtn) {
-      // 切换到另一个：保持挂起状态，只改目标
-      recordingBtn.classList.remove('recording');
-      recordingBtn.textContent = labelFor(recordingBtn);
+      // 如果之前在录制待办快捷键，先结束它（恢复待办热键）
+      if (recordingBtn === todoKbdBtn) { endRecording(); }
+      else {
+        // 切换到另一个分屏快捷键：保持挂起状态，只改目标
+        recordingBtn.classList.remove('recording');
+        recordingBtn.textContent = labelFor(recordingBtn);
+      }
       recordingBtn = btn;
-      btn.classList.add('recording');
-      btn.classList.remove('warn');
-      btn.textContent = window.I18N.t('tidy_record');
+      startRecording(btn);
     } else {
       startRecording(btn);
     }
@@ -291,6 +303,29 @@ kbdBtns.forEach((btn) => {
 
 window.addEventListener('keydown', async (e) => {
   if (!recordingBtn) return;
+  // 待办快捷键录制与分屏快捷键录制共用此 handler
+  if (recordingBtn === todoKbdBtn) {
+    e.preventDefault();
+    if (e.key === 'Escape') { endRecording(); return; }
+    if (['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
+    const mods = [];
+    if (e.metaKey) mods.push('super');
+    if (e.ctrlKey) mods.push('control');
+    if (e.altKey) mods.push('alt');
+    if (e.shiftKey) mods.push('shift');
+    if (mods.length === 0) return;
+    const accel = [...mods, e.code].join('+');
+
+    settings.todoShortcut = accel;
+    await saveSettings();
+    recordingBtn = null;
+    todoKbdBtn.classList.remove('recording');
+    todoKbdBtn.textContent = fmtTodoAccel(accel);
+    try { await invoke('apply_todo_shortcut_settings'); } catch (e2) { console.error(e2); }
+    return;
+  }
+
+  // 以下是分屏快捷键录制逻辑
   e.preventDefault();
   if (e.key === 'Escape') { endRecording(); return; }
   if (['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) return; // 等非修饰键
@@ -325,11 +360,45 @@ window.addEventListener('keydown', async (e) => {
   try { await invoke('apply_tiling_shortcuts'); } catch (e2) { console.error(e2); }
 }, true);
 
-// 失焦/关闭设置窗口时若仍在录制，务必恢复码放快捷键，避免一直处于挂起状态
+// 失焦/关闭设置窗口时若仍在录制，务必恢复快捷键，避免一直处于挂起状态
 window.addEventListener('blur', () => { if (recordingBtn) endRecording(); });
 
 // 每次窗口被显示/聚焦（从托盘”设置”打开）时重新贴合高度
 window.addEventListener('focus', () => resizeToContent());
+
+// ---------------------------------------------------------------------------
+// 待办窗口快捷键（可自定义，与码放快捷键共用录制模式）
+// ---------------------------------------------------------------------------
+
+function fmtTodoAccel(s) {
+  if (!s) return SYM['super'] + SYM['shift'] + ' U';
+  return s.split('+').map((p) => SYM[p]
+    || (p.startsWith('Key') ? p.slice(3) : p.startsWith('Digit') ? p.slice(5) : p)).join(' ');
+}
+
+async function initTodoHotkey() {
+  if (!todoKbdBtn) return;
+  try {
+    const res = await invoke('get_todo_shortcut');
+    settings.todoShortcut = (res && res.shortcut) || 'super+shift+KeyU';
+  } catch (e) {
+    settings.todoShortcut = 'super+shift+KeyU';
+  }
+  todoKbdBtn.textContent = fmtTodoAccel(settings.todoShortcut);
+}
+
+todoKbdBtn && todoKbdBtn.addEventListener('click', async () => {
+  if (recordingBtn === todoKbdBtn) { endRecording(); return; }
+  if (recordingBtn) {
+    // 切换到待办快捷键录制：先结束当前的，再开始新的
+    endRecording();
+  }
+  recordingBtn = todoKbdBtn;
+  todoKbdBtn.classList.add('recording');
+  todoKbdBtn.classList.remove('warn');
+  todoKbdBtn.textContent = window.I18N.t('todo_hotkey_record');
+  try { await invoke('suspend_todo_shortcut'); } catch (e) { /* ignore */ }
+});
 
 // ---------------------------------------------------------------------------
 // 念日（重要日期倒计时）

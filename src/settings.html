@@ -59,14 +59,38 @@
     }
 
     .tab.active {
-      color: var(--accent);
-      border-color: var(--accent);
       background: var(--surface);
     }
 
     .tab svg {
       width: 14px;
       height: 14px;
+    }
+
+    .tab .icon-line { display: none; }
+    .tab .icon-filled {
+      display: block;
+      padding: 2px;
+      border-radius: 5px;
+      width: 22px;
+      height: 22px;
+    }
+
+    .tab[data-tab="general"] .icon-filled {
+      color: #fff;
+      background: var(--tab-general);
+    }
+    .tab[data-tab="ann"] .icon-filled {
+      color: #fff;
+      background: var(--tab-ann);
+    }
+    .tab[data-tab="tidy"] .icon-filled {
+      color: #fff;
+      background: var(--tab-tidy);
+    }
+    .tab[data-tab="about"] .icon-filled {
+      color: #fff;
+      background: var(--tab-about);
     }
 
     .tab-panel {
@@ -82,44 +106,39 @@
       margin-top: 0;
     }
 
-    /* 简明教程：通用页顶部的轻量提示卡 */
+    /* 简明教程：通用页顶部的轻量提示块（一个整体，无内部分割线） */
     .guide-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 4px 12px;
+      padding: 13px 14px;
       margin-bottom: 8px;
     }
 
     .guide-line {
       display: flex;
       align-items: center;
-      gap: 9px;
-      padding: 8px 0;
-    }
-
-    .guide-line:not(:last-child) {
-      border-bottom: 1px solid var(--border);
+      gap: 10px;
+      color: var(--text-sub);
     }
 
     .guide-line svg {
       flex-shrink: 0;
-      width: 15px;
-      height: 15px;
+      width: 16px;
+      height: 16px;
       color: var(--accent);
     }
 
     .guide-line b {
-      font-weight: 600;
+      font-weight: 400;
     }
 
     .guide-line .sep {
-      color: var(--text-sub);
       margin: 0 6px;
-    }
-
-    .guide-line span span {
-      color: var(--text-sub);
+      opacity: .5;
     }
 
     .section-title {
@@ -340,17 +359,15 @@
     /* 语言下拉选择 */
     #language-select {
       padding: 5px 8px;
+      height: 32px;
       border-radius: 8px;
       border: 1px solid var(--border-strong);
       background: var(--surface-2);
       color: var(--text);
       font-size: 12px;
-      line-height: 1.4;
       cursor: pointer;
       outline: none;
       appearance: auto;
-      min-width: 0;
-      flex: 1;
     }
 
     #language-select:focus {
@@ -504,26 +521,33 @@
   <div class="wrap">
     <div class="tabs" id="tabs">
       <button class="tab active" type="button" data-tab="general">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
+        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
-          <path
-            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
-          </path>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+        </svg>
+        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
         <span data-i18n="general">通用</span>
       </button>
       <button class="tab" type="button" data-tab="ann">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
+        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 10c0 6-8 11-8 11s-8-5-8-11a8 8 0 0 1 16 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"></path>
         </svg>
         <span data-i18n="ann_section">念日</span>
       </button>
       <button class="tab" type="button" data-tab="tidy">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
+        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="18" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="8" rx="1"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+        </svg>
+        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
           <rect x="3" y="3" width="7" height="18" rx="1"></rect>
           <rect x="14" y="3" width="7" height="8" rx="1"></rect>
           <rect x="14" y="14" width="7" height="7" rx="1"></rect>
@@ -531,43 +555,43 @@
         <span data-i18n="tidy">窗口分屏</span>
       </button>
       <button class="tab" type="button" data-tab="about">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
+        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <path d="M12 16v-4M12 8h.01"></path>
+        </svg>
+        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 5h2v2h-2V7zm0 4h2v6h-2v-6z"></path>
         </svg>
         <span data-i18n="about">关于</span>
       </button>
     </div>
 
     <div class="tab-panel active" data-panel="general">
-      <div class="section-title" data-i18n="guide">简明教程</div>
+      <div class="section-title" data-i18n="guide">操作指南</div>
       <div class="guide-card">
         <div class="guide-line">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <rect x="3" y="4" width="18" height="6" rx="1"></rect>
-            <circle cx="8" cy="7" r="0.5"></circle>
-            <circle cx="11" cy="7" r="0.5"></circle>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="2" width="12" height="20" rx="6"></rect>
+            <path d="M12 2v9"></path>
+            <path d="M12 2.2A5.8 5.8 0 0 0 6.2 8V11H12Z" fill="currentColor" stroke="none"></path>
           </svg>
-          <span><b data-i18n="welcome_two_t">菜单栏新增两个图标</b><span class="sep">—</span><span data-i18n="welcome_two_d">待办清单
-              与 日历</span></span>
+          <span><b data-i18n="welcome_left_t">左键点击</b> <span data-i18n="welcome_todo_tray">「待办」托盘图标</span><span class="sep">→</span><span data-i18n="welcome_todo_d">弹出待办列表</span></span>
         </div>
         <div class="guide-line">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M5 3h14a2 2 0 0 1 2 2v3H3V5a2 2 0 0 1 2-2zM3 8h18M9 3v5"></path>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="2" width="12" height="20" rx="6"></rect>
+            <path d="M12 2v9"></path>
+            <path d="M12 2.2A5.8 5.8 0 0 0 6.2 8V11H12Z" fill="currentColor" stroke="none"></path>
           </svg>
-          <span><b data-i18n="welcome_left_t">左键点击</b><span class="sep">—</span><span
-              data-i18n="welcome_left_d">打开或收起窗口</span></span>
+          <span><b data-i18n="welcome_left_t">左键点击</b> <span data-i18n="welcome_cal_tray">「日期」托盘图标</span><span class="sep">→</span><span data-i18n="welcome_cal_d">弹出农历日历</span></span>
         </div>
         <div class="guide-line">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M5 3h14a2 2 0 0 1 2 2v3H3V5a2 2 0 0 1 2-2zM3 8h18M15 3v5"></path>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="2" width="12" height="20" rx="6"></rect>
+            <path d="M12 2v9"></path>
+            <path d="M12 2.2A5.8 5.8 0 0 1 17.8 8V11H12Z" fill="currentColor" stroke="none"></path>
           </svg>
-          <span><b data-i18n="welcome_right_t">右键点击</b><span class="sep">—</span><span data-i18n="welcome_right_d">念日 ·
-              窗口分屏 · 通用设置 · 关于</span></span>
+          <span><b data-i18n="welcome_right_t">右键点击</b> <span data-i18n="welcome_right_d">任意托盘图标</span><span class="sep">→</span><span data-i18n="welcome_right_menu">设置 / 其他功能 / 退出</span></span>
         </div>
       </div>
 
@@ -586,6 +610,15 @@
             <input type="checkbox" id="show-count">
             <span class="slider"></span>
           </label>
+        </div>
+      </div>
+
+
+      <div class="section-title" data-i18n="hotkey_section">快捷键</div>
+      <div class="group">
+        <div class="grow">
+          <span class="label" data-i18n="todo_hotkey">待办窗口快捷键</span>
+          <button class="kbd" data-key="todo"></button>
         </div>
       </div>
 
@@ -618,7 +651,7 @@
             </button>
           </div>
         </div>
-        <div class="grow col">
+        <div class="grow">
           <span class="label" data-i18n="language">语言</span>
           <select id="language-select"></select>
         </div>

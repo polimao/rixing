@@ -12,6 +12,11 @@
   --border-strong: #dcdfe6;
   --accent: #409eff;
   --shadow: rgba(0, 0, 0, 0.12);
+  /* 设置面板 tab 图标色 */
+  --tab-general: #007aff;
+  --tab-ann: #ff3b30;
+  --tab-tidy: #5856d6;
+  --tab-about: #34c759;
 }
 
 [data-theme="dark"] {
@@ -25,6 +30,11 @@
   --border-strong: #4a4d52;
   --accent: #4aa3ff;
   --shadow: rgba(0, 0, 0, 0.45);
+  /* 暗色下 tab 图标色稍微提亮 */
+  --tab-general: #4da6ff;
+  --tab-ann: #ff5e57;
+  --tab-tidy: #7d7aff;
+  --tab-about: #40d96b;
 }
 
 /* ===================== 待办 / 日历窗口的暗色覆盖 ===================== */

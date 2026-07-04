@@ -16,7 +16,7 @@ use tauri::{
     AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, State, WebviewWindow, WindowEvent,
 };
 use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
-use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 // ===========================================================================
 // 应用共享状态
@@ -266,6 +266,80 @@ const TILE_DEFAULTS: [(&str, &str); 4] = [
 fn registered_tiling() -> &'static Mutex<Vec<Shortcut>> {
     static S: OnceLock<Mutex<Vec<Shortcut>>> = OnceLock::new();
     S.get_or_init(|| Mutex::new(Vec::new()))
+}
+
+// ---------------------------------------------------------------------------
+// 待办窗口全局快捷键（可自定义，类似码放快捷键的模式）
+// ---------------------------------------------------------------------------
+const TODO_DEFAULT_SHORTCUT: &str = "super+shift+KeyU";
+
+fn registered_todo_shortcut() -> &'static Mutex<Option<Shortcut>> {
+    static S: OnceLock<Mutex<Option<Shortcut>>> = OnceLock::new();
+    S.get_or_init(|| Mutex::new(None))
+}
+
+fn todo_shortcut() -> String {
+    settings_path()
+        .and_then(|p| read_json(&p))
+        .and_then(|v| v.get("todoShortcut").and_then(|x| x.as_str()).map(String::from))
+        .unwrap_or_else(|| TODO_DEFAULT_SHORTCUT.to_string())
+}
+
+fn apply_todo_shortcut(app: &AppHandle) {
+    let gs = app.global_shortcut();
+    let mut reg = match registered_todo_shortcut().lock() {
+        Ok(g) => g,
+        Err(_) => return,
+    };
+    // 先注销旧快捷键
+    if let Some(old) = reg.take() {
+        let _ = gs.unregister(old);
+    }
+    let sc: Shortcut = match todo_shortcut().parse() {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+    let win = app.get_webview_window("main");
+    let ok = gs
+        .on_shortcut(sc, move |_app, _scut, event| {
+            if event.state() == ShortcutState::Pressed {
+                if let Some(ref w) = win {
+                    if w.is_visible().unwrap_or(false) {
+                        let _ = w.hide();
+                    } else {
+                        let _ = w.show();
+                        let _ = w.set_focus();
+                    }
+                }
+            }
+        })
+        .is_ok();
+    if ok {
+        *reg = Some(sc);
+    }
+}
+
+/// 读取当前待办窗口快捷键（返回给设置面板展示）。
+#[tauri::command]
+fn get_todo_shortcut() -> Value {
+    serde_json::json!({ "shortcut": todo_shortcut() })
+}
+
+/// 保存后由前端调用，按最新设置重注册待办快捷键。
+#[tauri::command]
+fn apply_todo_shortcut_settings(app: AppHandle) {
+    apply_todo_shortcut(&app);
+}
+
+/// 录制期间临时注销待办快捷键，避免被系统吞掉。
+#[tauri::command]
+fn suspend_todo_shortcut(app: AppHandle) {
+    let gs = app.global_shortcut();
+    if let Ok(mut reg) = registered_todo_shortcut().lock() {
+        if let Some(old) = reg.take() {
+            let _ = gs.unregister(old);
+        }
+    }
 }
 
 fn tiling_gap() -> f64 {
@@ -694,7 +768,10 @@ fn main() {
             apply_tiling_shortcuts,
             suspend_tiling_shortcuts,
             resize_settings,
-            open_settings
+            open_settings,
+            get_todo_shortcut,
+            apply_todo_shortcut_settings,
+            suspend_todo_shortcut
         ])
         .setup(move |app| {
             // 隐藏 Dock 图标（等效 Electron 的 app.dock.hide()）
@@ -769,23 +846,8 @@ fn main() {
                 let _ = settings_win.set_focus();
             }
 
-            // 全局快捷键 Cmd/Ctrl+Shift+U 切换显隐
-            let win_for_shortcut = window.clone();
-            let toggle_shortcut =
-                Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyU);
-            app.global_shortcut().on_shortcut(
-                toggle_shortcut,
-                move |_app, _shortcut, event| {
-                    if event.state() == ShortcutState::Pressed {
-                        if win_for_shortcut.is_visible().unwrap_or(false) {
-                            let _ = win_for_shortcut.hide();
-                        } else {
-                            let _ = win_for_shortcut.show();
-                            let _ = win_for_shortcut.set_focus();
-                        }
-                    }
-                },
-            )?;
+            // 全局快捷键切换待办窗口显隐（从 settings 读取，默认 ⌘⇧U）
+            apply_todo_shortcut(app_handle);
 
             Ok(())
         })
