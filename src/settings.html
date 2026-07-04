@@ -59,7 +59,13 @@
     }
 
     .tab.active {
-      background: var(--surface);
+      background: var(--active-tab, #2c5aa0);
+      border-color: var(--active-tab, #2c5aa0);
+      color: #fff;
+    }
+    .tab.active .icon-filled {
+      background: transparent !important;
+      color: #fff !important;
     }
 
     .tab svg {
