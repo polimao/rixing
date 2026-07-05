@@ -43,7 +43,7 @@
         "label": "settings",
         "title": "日行设置",
         "width": 600,
-        "height": 600,
+        "height": 700,
         "resizable": false,
         "decorations": true,
         "transparent": false,
@@ -71,6 +71,9 @@
       "icons/icon.ico"
     ],
     "category": "Productivity",
+    "resources": {
+      "python/mrt2_bridge.py": "python/"
+    },
     "macOS": {
       "minimumSystemVersion": "10.15"
     }

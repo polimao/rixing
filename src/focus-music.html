@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>轻听</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+      font-size: 13px;
+      transition: background .2s, color .2s;
+    }
+
+    .wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px 18px;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    /* ── header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .header-sub {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    /* ── transport (play / stop) ── */
+    .transport {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .play-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: transform .12s, filter .12s;
+      flex-shrink: 0;
+    }
+
+    .play-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .play-btn:active {
+      transform: scale(0.95);
+    }
+
+    .play-btn.playing {
+      background: var(--text-sub);
+    }
+
+    .now-playing {
+      font-size: 12px;
+      color: var(--text-sub);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 200px;
+    }
+
+    .now-playing strong {
+      color: var(--text);
+    }
+
+    /* ── preset sections ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: -4px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .preset-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: background .12s, border-color .12s, box-shadow .12s;
+    }
+
+    .preset-card:hover {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+    }
+
+    .preset-card.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .preset-card .preset-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .preset-card .preset-desc {
+      font-size: 10px;
+      color: var(--text-sub);
+      line-height: 1.35;
+    }
+
+    /* ── custom prompt ── */
+    .prompt-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .prompt-input {
+      flex: 1;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .prompt-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .prompt-input::placeholder {
+      color: var(--text-sub);
+    }
+
+    /* ── controls row ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-sub);
+    }
+
+    .toggle-row input {
+      display: none;
+    }
+
+    .toggle-track {
+      width: 32px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--border-strong);
+      position: relative;
+      transition: background .15s;
+    }
+
+    .toggle-track.on {
+      background: var(--accent);
+    }
+
+    .toggle-knob {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: left .15s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .toggle-track.on .toggle-knob {
+      left: 16px;
+    }
+
+    /* ── volume ── */
+    .volume-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .volume-icon {
+      font-size: 14px;
+      color: var(--text-sub);
+      flex-shrink: 0;
+    }
+
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border-strong);
+      outline: none;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    /* ── status ── */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border-strong);
+      flex-shrink: 0;
+    }
+
+    .status-dot.ready {
+      background: #34c759;
+    }
+
+    .status-dot.playing {
+      background: var(--accent);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .status-dot.error {
+      background: #ff3b30;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── setup banner ── */
+    .setup-banner {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .setup-banner p {
+      margin: 0 0 10px;
+      color: var(--text-sub);
+    }
+
+    /* ── progress (setup / download) ── */
+    .progress-section {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-section .stage-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--surface);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width .3s;
+    }
+
+    .progress-fill.animated {
+      width: 35% !important;
+      animation: loading-pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes loading-pulse {
+      0% { margin-left: 0%; width: 25%; }
+      50% { margin-left: 45%; width: 35%; }
+      100% { margin-left: 75%; width: 25%; }
+    }
+
+    .progress-text {
+      font-size: 11px;
+      color: var(--text-sub);
+      line-height: 1.4;
+      min-height: 1.4em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .progress-percent {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .12s, border-color .12s;
+    }
+
+    .btn:hover {
+      background: var(--surface-2);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      filter: brightness(1.08);
+    }
+
+    .btn.primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <!-- header -->
+    <div class="header">
+      <span class="header-icon">🎵</span>
+      <span class="header-title" data-i18n="focus_title">轻听</span>
+      <span class="header-sub" data-i18n="focus_subtitle">AI 实时生成</span>
+      <span class="spacer"></span>
+    </div>
+
+    <!-- transport -->
+    <div class="transport">
+      <button class="play-btn" id="play-btn" title="播放 / 暂停">▶</button>
+      <span class="now-playing" id="now-playing">
+        <span data-i18n="focus_ready">就绪</span>
+      </span>
+    </div>
+
+    <!-- setup banner (hidden once setup is done or in progress) -->
+    <div class="setup-banner" id="setup-banner">
+      <p data-i18n="focus_setup_desc">需要 Python 环境和 MRT2 模型才能使用。首次使用请先安装依赖。</p>
+      <button class="btn primary" id="setup-btn" data-i18n="focus_check_setup">检查并启动</button>
+      <button class="btn" id="open-docs-btn" style="margin-left:6px;" data-i18n="focus_setup_guide">安装指南</button>
+    </div>
+
+    <!-- progress section (setup / download streaming) -->
+    <div class="progress-section hidden" id="progress-section">
+      <div class="stage-label" id="progress-stage" data-i18n="focus_preparing">正在准备…</div>
+      <div class="progress-bar">
+        <div class="progress-fill animated" id="progress-fill"></div>
+      </div>
+      <div class="progress-text" id="progress-text"></div>
+    </div>
+
+    <!-- error banner (retry on failure) -->
+    <div class="setup-banner hidden" id="error-banner" style="border-color:#ff3b30;">
+      <p id="error-text" style="color:#ff3b30; text-align:left; white-space:pre-wrap; word-break:break-word;"></p>
+      <button class="btn primary" id="retry-btn" data-i18n="focus_retry">重试</button>
+    </div>
+
+    <!-- main UI (hidden until bridge is ready) -->
+    <div id="main-ui" class="hidden" style="display:flex;flex-direction:column;gap:12px;">
+
+      <!-- presets: ambiance -->
+      <span class="section-label" data-i18n="focus_vibe">场景氛围</span>
+      <div class="preset-grid" id="preset-vibe"></div>
+
+      <!-- presets: genre -->
+      <span class="section-label" data-i18n="focus_genre">音乐风格</span>
+      <div class="preset-grid" id="preset-genre"></div>
+
+      <!-- presets: instrument -->
+      <span class="section-label" data-i18n="focus_instrument">乐器主导</span>
+      <div class="preset-grid" id="preset-instrument"></div>
+
+      <!-- custom prompt -->
+      <span class="section-label" data-i18n="focus_custom">自定义提示词</span>
+      <div class="prompt-row">
+        <input class="prompt-input" id="custom-prompt"
+          data-i18n-placeholder="focus_custom_placeholder"
+          placeholder="描述你想要的音乐...">
+        <button class="btn primary" id="apply-prompt-btn" data-i18n="focus_apply">应用</button>
+      </div>
+
+      <!-- controls -->
+      <div class="controls">
+        <div class="toggle-row" id="drums-toggle" role="switch" aria-checked="true" tabindex="0">
+          <span class="toggle-track on" id="drums-track">
+            <span class="toggle-knob"></span>
+          </span>
+          <span data-i18n="focus_drums">鼓点 / 节奏</span>
+        </div>
+        <span class="spacer"></span>
+      </div>
+
+      <!-- volume -->
+      <div class="volume-row">
+        <span class="volume-icon">🔊</span>
+        <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="80">
+      </div>
+
+    </div>
+
+    <!-- status bar -->
+    <div class="status-row" id="status-row">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text" data-i18n="focus_status_init">未启动</span>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="ui-common.js"></script>
+  <script src="focus-music.js"></script>
+</body>
+</html>

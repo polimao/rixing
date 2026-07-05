@@ -23,9 +23,13 @@
 - ✅ **Frictionless to-dos** — group by category / priority / time, inline editing, one-tap status, and an *Achievements* view with a completion trend chart.
 - 🍅 **Built-in Pomodoro** — turn any task into a focus session; the capsule timer floats above full-screen apps.
 - 📅 **Calendar with Chinese lunar dates** — solar + lunar days, public holidays and 休/班 (rest/work) badges, today highlighted.
-- ⌨️ **Customizable global hotkey** — set your own shortcut for the to-do window in Settings.
+- 🎵 **QingTing — on-device AI music** — real-time generative music for focus, powered by Magenta RealTime 2 (MRT2) running locally via MLX on Apple Silicon. Pick a preset (vibe / genre / instrument) or write your own prompt, toggle drums, set volume — the music streams endlessly and switches style on the fly. First launch auto-installs the Python env + model (from HuggingFace, with an `hf-mirror.com` fallback so downloads are fast in China).
+- 🌐 **On-device translation** — a local HY-MT model (~1.1 GB gguf, runs via `llama.cpp`) translates between 8 languages without leaving the app. `⌘⇧Y` pops the translate panel; everything runs on your CPU/GPU, no cloud.
+- ⌨️ **Customizable global hotkeys** — set your own shortcut for the to-do window (`⌘⇧U` default) and the snap shortcuts in Settings.
 - 🪟 **Split screen** — snap the **active window of any app** to the left/right half, maximize, or restore it — with **customizable** hotkeys (default `⌘⌃ + arrows`) and an adjustable gap. Requires macOS Accessibility permission.
-- ☁️ **Private by design** — your data is plain JSON in *your* iCloud Drive. No account, no telemetry, no servers.
+- 🌗 **Light / dark / follow-system** theme, synced across every window.
+- 🌍 **8 languages** — 简体中文, English, 日本語, 한국어, Español, Français, Deutsch, Русский. Tray labels and menus switch too.
+- ☁️ **Private by design** — to-dos and settings are plain JSON in *your* iCloud Drive. No account, no telemetry, no servers.
 
 ## 📸 Screenshots
 
@@ -92,7 +96,16 @@ Everything stays on your machine. To-dos and settings are stored as JSON — in 
 ~/Library/Application Support/com.limao.rixing/.todos_settings.json
 ```
 
-No accounts, no analytics, no network calls.
+No accounts, no analytics, no telemetry.
+
+### AI features & network
+
+The translation and QingTing music features run their AI models **entirely on-device** after a one-time download:
+
+- **Translation** — the HY-MT gguf model (~1.1 GB) is fetched from HuggingFace on first use and cached under the app's data dir (iCloud Drive / App Support, same as your to-dos).
+- **QingTing** — the MRT2 model (~0.5 GB) plus a small `uv`-managed Python env are fetched on first launch and cached under `~/Documents/Magenta/magenta-rt-v2/`.
+
+Both auto-fall back to `hf-mirror.com` when the HuggingFace main site is slow/unreachable. After the initial download, inference is 100% local — no audio, text, or to-do data ever leaves your Mac.
 
 ## 📄 License
 

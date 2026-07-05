@@ -17,6 +17,8 @@
   --tab-ann: #ff3b30;
   --tab-tidy: #5856d6;
   --tab-about: #8e8e93;
+  --tab-translate: #007aff;
+  --tab-focus: #af52de;
 }
 
 [data-theme="dark"] {
@@ -35,6 +37,8 @@
   --tab-ann: #ff5e57;
   --tab-tidy: #7d7aff;
   --tab-about: #98989d;
+  --tab-translate: #0a84ff;
+  --tab-focus: #bf5af2;
 }
 
 /* ===================== 待办 / 日历窗口的暗色覆盖 ===================== */

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>翻译</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+      font-size: 13px;
+      transition: background .2s, color .2s;
+    }
+
+    .wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 18px;
+      height: 100%;
+    }
+
+    /* ── lang row ── */
+    .lang-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .lang-row select {
+      padding: 3px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .lang-arrow {
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .tgt-lang-label {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* ── text areas ── */
+    textarea {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    textarea.source,
+    textarea.result {
+      flex: 1;
+      min-height: 100px;
+      resize: none;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
+      line-height: 1.55;
+      font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+      transition: border-color .15s;
+    }
+
+    textarea.source:focus,
+    textarea.result:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    textarea.result {
+      background: var(--surface);
+      cursor: text;
+    }
+
+    textarea:disabled {
+      opacity: 0.7;
+    }
+
+    /* ── actions ── */
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .12s, border-color .12s;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--surface-2);
+    }
+
+    .btn:active {
+      background: var(--surface-3);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      filter: brightness(1.08);
+    }
+
+    .btn.primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+    }
+
+    /* ── progress bar ── */
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width .3s;
+    }
+    .progress-fill.animated {
+      width: 30% !important;
+      animation: loading-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes loading-pulse {
+      0%   { margin-left: 0%; width: 20%; }
+      50%  { margin-left: 50%; width: 30%; }
+      100% { margin-left: 80%; width: 20%; }
+    }
+
+    .progress-text {
+      font-size: 11px;
+      color: var(--text-sub);
+      text-align: center;
+    }
+
+    /* ── status bar ── */
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .loading-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .model-status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .model-status-tag.downloaded {
+      background: rgba(52, 199, 89, 0.12);
+      color: #34c759;
+    }
+
+    .model-status-tag.loaded {
+      background: rgba(41, 98, 217, 0.12);
+      color: #2962d9;
+    }
+
+    .model-status-tag.none {
+      background: var(--surface-2);
+      color: var(--text-sub);
+    }
+
+    .char-limit {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .char-limit.warn {
+      color: #ff9500;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <!-- Lang row -->
+    <div class="lang-row">
+      <span data-i18n="translate_src">源语言</span>
+      <select id="src-lang">
+        <option value="auto" data-i18n="translate_auto">自动检测</option>
+        <option value="Chinese">中文</option>
+        <option value="English">English</option>
+        <option value="Japanese">日本語</option>
+        <option value="Korean">한국어</option>
+        <option value="Spanish">Español</option>
+        <option value="French">Français</option>
+        <option value="German">Deutsch</option>
+        <option value="Russian">Русский</option>
+      </select>
+      <span class="lang-arrow">→</span>
+      <span class="tgt-lang-label" id="tgt-lang-label">English</span>
+    </div>
+
+    <!-- Source text -->
+    <textarea class="source" id="source-text"
+      data-i18n-placeholder="translate_placeholder"
+      placeholder="输入或粘贴需要翻译的文字..."></textarea>
+
+    <!-- Action row 1 -->
+    <div class="actions">
+      <button class="btn primary" id="translate-btn" data-i18n="translate_btn">翻译</button>
+      <div id="loading-indicator" class="loading-spinner hidden"></div>
+      <div class="spacer"></div>
+      <button class="btn" id="model-btn" data-i18n="translate_load_model">加载模型</button>
+      <button class="btn" id="download-btn" data-i18n="translate_download_model" style="display:none;">下载模型</button>
+    </div>
+
+    <!-- Progress bar -->
+    <div id="progress-section" class="hidden">
+      <div class="progress-bar">
+        <div class="progress-fill animated" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-text" id="progress-text">0%</div>
+    </div>
+
+    <!-- Result text -->
+    <textarea class="result" id="result-text" readonly
+      data-i18n-placeholder="translate_result_placeholder"
+      placeholder="翻译结果将显示在这里..."></textarea>
+
+    <!-- Action row 2 -->
+    <div class="actions">
+      <button class="btn" id="copy-btn" data-i18n="translate_copy" disabled>复制结果</button>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-row">
+      <span id="model-status" data-i18n="translate_no_model">
+        <span class="model-status-tag none">模型未加载</span>
+      </span>
+      <span class="char-limit" id="char-count">0 / 3500</span>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="ui-common.js"></script>
+  <script src="translate.js"></script>
+</body>
+</html>

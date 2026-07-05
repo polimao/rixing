@@ -4,10 +4,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod tiling;
+mod focus_music;
 
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU32, Ordering};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, mpsc, Mutex, OnceLock};
 
 use serde_json::Value;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -24,7 +25,7 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 struct AppState {
     /// 是否处于番茄钟（专注）模式——决定失焦时是否隐藏窗口
     is_pomodoro: Arc<AtomicBool>,
-    /// 窗口高度动画的“代号”，每次新的 resize 自增以取消上一段动画
+    /// 窗口高度动画的"代号"，每次新的 resize 自增以取消上一段动画
     resize_gen: Arc<AtomicU32>,
 }
 
@@ -185,9 +186,10 @@ fn load_lang() -> String {
         .unwrap_or_else(|| "zh-CN".to_string())
 }
 
-/// 托盘三处文案：(待办标题, “设置”菜单项, “退出”菜单项)。
-/// 托盘右键菜单文案：分别跳转到设置面板对应标签页（念日 / 窗口分屏 / 通用设置 / 关于）+ 退出。
+/// 托盘三处文案：(待办标题, "设置"菜单项, "退出"菜单项)。
+/// 托盘右键菜单文案：分别跳转到设置面板对应标签页（倒计时 / 窗口分屏 / 通用设置 / 关于）+ 退出。
 struct TrayLabels {
+    focus: &'static str,
     ann: &'static str,
     tidy: &'static str,
     general: &'static str,
@@ -197,14 +199,14 @@ struct TrayLabels {
 
 fn tray_strings(lang: &str) -> TrayLabels {
     match lang {
-        "en" => TrayLabels { ann: "Anniversaries", tidy: "Split screen", general: "General settings", about: "About", quit: "Quit" },
-        "ja" => TrayLabels { ann: "記念日", tidy: "画面分割", general: "一般設定", about: "このアプリについて", quit: "終了" },
-        "ko" => TrayLabels { ann: "기념일", tidy: "화면 분할", general: "일반 설정", about: "정보", quit: "종료" },
-        "es" => TrayLabels { ann: "Aniversarios", tidy: "Dividir pantalla", general: "Ajustes generales", about: "Acerca de", quit: "Salir" },
-        "fr" => TrayLabels { ann: "Anniversaires", tidy: "Partage d’écran", general: "Réglages généraux", about: "À propos", quit: "Quitter" },
-        "de" => TrayLabels { ann: "Jahrestage", tidy: "Bildschirm teilen", general: "Allgemeine Einstellungen", about: "Über", quit: "Beenden" },
-        "ru" => TrayLabels { ann: "Годовщины", tidy: "Разделение экрана", general: "Общие настройки", about: "О программе", quit: "Выход" },
-        _ => TrayLabels { ann: "念日", tidy: "窗口分屏", general: "通用设置", about: "关于", quit: "退出" }, // zh-CN 及默认
+        "en" => TrayLabels { focus: "QingTing", ann: "Anniversaries", tidy: "Split screen", general: "General settings", about: "About", quit: "Quit" },
+        "ja" => TrayLabels { focus: "QingTing", ann: "重要日倒计时", tidy: "画面分割", general: "一般設定", about: "このアプリについて", quit: "終了" },
+        "ko" => TrayLabels { focus: "QingTing", ann: "기념일", tidy: "화면 분할", general: "일반 설정", about: "정보", quit: "종료" },
+        "es" => TrayLabels { focus: "QingTing", ann: "Aniversarios", tidy: "Dividir pantalla", general: "Ajustes generales", about: "Acerca de", quit: "Salir" },
+        "fr" => TrayLabels { focus: "QingTing", ann: "Anniversaires", tidy: "Partage d'écran", general: "Réglages généraux", about: "À propos", quit: "Quitter" },
+        "de" => TrayLabels { focus: "QingTing", ann: "Jahrestage", tidy: "Bildschirm teilen", general: "Allgemeine Einstellungen", about: "Über", quit: "Beenden" },
+        "ru" => TrayLabels { focus: "QingTing", ann: "Годовщины", tidy: "Разделение экрана", general: "Общие настройки", about: "О программе", quit: "Выход" },
+        _ => TrayLabels { focus: "轻听", ann: "倒计时", tidy: "窗口分屏", general: "通用设置", about: "关于", quit: "退出" }, // zh-CN 及默认
     }
 }
 
@@ -342,6 +344,406 @@ fn suspend_todo_shortcut(app: AppHandle) {
     }
 }
 
+// ===========================================================================
+// 翻译快捷键（固定 Cmd+Shift+Y，不走设置，不可自定义）
+// 打开设置面板的翻译标签页，而非独立窗口。
+// ===========================================================================
+fn apply_translate_shortcut(app: &AppHandle) {
+    let gs = app.global_shortcut();
+    let sc: Shortcut = "super+shift+KeyY"
+        .parse()
+        .expect("translate shortcut 'super+shift+KeyY' should be valid");
+    let app_clone = app.clone();
+    let _ = gs.on_shortcut(sc, move |_app, _scut, event| {
+        if event.state() == ShortcutState::Pressed {
+            show_settings_tab(&app_clone, "translate");
+        }
+    });
+}
+
+// ===========================================================================
+// 翻译模型管理：下载、加载、推理、卸载
+// ===========================================================================
+
+/// 模型文件名
+const MODEL_FILENAME: &str = "HY-MT1.5-1.8B-Q4_K_M.gguf";
+/// Hugging Face 下载 URL（主站，境外可用）
+const MODEL_URL: &str =
+    "https://huggingface.co/tencent/HY-MT1.5-1.8B-GGUF/resolve/main/HY-MT1.5-1.8B-Q4_K_M.gguf";
+/// Hugging Face 镜像站（境内可用）
+const MODEL_URL_MIRROR: &str =
+    "https://hf-mirror.com/tencent/HY-MT1.5-1.8B-GGUF/resolve/main/HY-MT1.5-1.8B-Q4_K_M.gguf";
+
+fn model_path() -> PathBuf {
+    base_dir().join(MODEL_FILENAME)
+}
+
+
+/// 翻译任务。前端发来翻译请求后通过 channel 交给 worker 线程。
+enum TranslateJob {
+    Translate {
+        id: String,
+        text: String,
+        tgt_lang: String,
+    },
+    Shutdown,
+}
+
+/// worker 线程的发送端，启动后置入 OnceLock。
+static TRANSLATE_TX: OnceLock<Mutex<Option<mpsc::Sender<TranslateJob>>>> = OnceLock::new();
+
+/// 检查模型文件是否已下载（做基本的文件大小校验）。
+#[tauri::command]
+fn check_model_status() -> Value {
+    let path = model_path();
+    let downloaded = path.is_file();
+    let size = if downloaded {
+        std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0)
+    } else {
+        0
+    };
+    serde_json::json!({
+        "downloaded": downloaded && size > 100_000_000, // 至少 100 MB 才算有效
+        "path": path.to_string_lossy(),
+        "size": size,
+    })
+}
+
+/// 下载模型文件（带进度上报）。
+#[tauri::command]
+fn download_model(app: AppHandle) -> Result<Value, String> {
+    let path = model_path();
+    if path.is_file() {
+        if let Ok(meta) = std::fs::metadata(&path) {
+            if meta.len() > 100_000_000 {
+                return Ok(serde_json::json!({ "success": true, "message": "Already downloaded" }));
+            }
+        }
+    }
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+
+    // Phase 1: HEAD probe each URL (short timeout) to find a reachable one
+    let client = reqwest::blocking::Client::new();
+    let download_url = {
+        let mut chosen = None;
+        for url in &[MODEL_URL, MODEL_URL_MIRROR] {
+            match client
+                .head(*url)
+                .timeout(std::time::Duration::from_secs(10))
+                .send()
+            {
+                Ok(resp) if resp.status().is_success() || resp.status().is_redirection() => {
+                    chosen = Some(*url);
+                    break;
+                }
+                _ => {}
+            }
+        }
+        chosen.ok_or("All download URLs unreachable")?
+    };
+
+    // Phase 2: actual GET download with long timeout (1.1 GB may take a while)
+    let tmp_path = path.with_extension("gguf.tmp");
+    let mut resp = client
+        .get(download_url)
+        .timeout(std::time::Duration::from_secs(3600))
+        .send()
+        .map_err(|e| format!("Download request failed: {}", e))?;
+    let status = resp.status();
+    if !status.is_success() {
+        return Err(format!("Server returned {}", status));
+    }
+    let total = resp.content_length().unwrap_or(0);
+    let mut downloaded: u64 = 0;
+    let mut dest = std::fs::File::create(&tmp_path).map_err(|e| e.to_string())?;
+    use std::io::{Read, Write};
+    let mut buf = [0u8; 8192];
+    loop {
+        let n = resp.read(&mut buf).map_err(|e| format!("Read error: {}", e))?;
+        if n == 0 {
+            break;
+        }
+        dest.write_all(&buf[..n]).map_err(|e| e.to_string())?;
+        downloaded += n as u64;
+        let _ = app.emit("translate-model-download-progress", serde_json::json!({
+            "downloaded": downloaded,
+            "total": total,
+        }));
+    }
+    dest.flush().map_err(|e| e.to_string())?;
+    drop(dest);
+    std::fs::rename(&tmp_path, &path).map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({ "success": true }))
+}
+
+/// 启动翻译 worker 线程，加载模型。
+/// 注意：llama-cpp-2 的类型不是 Send 的，所以 worker 线程在加载完成后通过
+/// 另一个 channel 发回确认，后续翻译任务在该线程内串行执行。
+#[tauri::command]
+fn load_translate_model(app: AppHandle) -> Result<Value, String> {
+    let tx_ref = TRANSLATE_TX.get_or_init(|| Mutex::new(None));
+    {
+        let guard = tx_ref.lock().map_err(|e| e.to_string())?;
+        if guard.is_some() {
+            return Ok(serde_json::json!({ "loaded": true, "message": "Already loaded" }));
+        }
+    }
+    let mp = model_path();
+    if !mp.is_file() {
+        return Err("Model file not found. Please download it first.".to_string());
+    }
+
+    let (tx, rx) = mpsc::channel::<TranslateJob>();
+
+    std::thread::spawn(move || {
+        let _ = app.emit("translate-model-status", serde_json::json!({ "stage": "loading", "detail": "init_backend" }));
+
+        let backend = match llama_cpp_2::llama_backend::LlamaBackend::init() {
+            Ok(b) => b,
+            Err(e) => {
+                let _ = app.emit("translate-error", serde_json::json!({ "error": format!("Backend init: {}", e) }));
+                return;
+            }
+        };
+
+        let _ = app.emit("translate-model-status", serde_json::json!({ "stage": "loading", "detail": "loading_model" }));
+
+        let model_params = llama_cpp_2::model::params::LlamaModelParams::default();
+        let model = match llama_cpp_2::model::LlamaModel::load_from_file(&backend, &mp, &model_params) {
+            Ok(m) => m,
+            Err(e) => {
+                let _ = app.emit("translate-error", serde_json::json!({ "error": format!("Failed to load model: {}", e) }));
+                return;
+            }
+        };
+
+        let _ = app.emit("translate-model-status", serde_json::json!({ "stage": "loading", "detail": "creating_context" }));
+
+        let n_ctx = std::num::NonZeroU32::new(4096).unwrap();
+        let ctx_params = llama_cpp_2::context::params::LlamaContextParams::default()
+            .with_n_ctx(Some(n_ctx));
+        let mut ctx = match model.new_context(&backend, ctx_params) {
+            Ok(c) => c,
+            Err(e) => {
+                let _ = app.emit("translate-error", serde_json::json!({ "error": format!("Failed to create context: {}", e) }));
+                return;
+            }
+        };
+
+        let _ = app.emit("translate-model-status", serde_json::json!({ "stage": "loading", "detail": "warming_up" }));
+
+        // Warm up: feed a single token so Metal shaders compile NOW rather than
+        // during the first real translation (which can take 30s–2min on Apple Silicon).
+        // The warmup prompt is a minimal translation request so the model warms up
+        // the same attention pattern (cross-attention) used by real requests.
+        {
+            let warmup_prompt =
+                "<｜hy_begin▁of▁sentence｜><｜hy_User｜>Translate the following segment into English, without additional explanation.\n\nhello<｜hy_Assistant｜>";
+            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                let _ = do_translate(&model, &mut ctx, warmup_prompt);
+            })) {
+                _ => { /* warmup result doesn't matter; shader compilation happened */ }
+            }
+            // Clear KV cache so warmup doesn't contaminate the first real request
+            ctx.clear_kv_cache();
+        }
+
+        let _ = app.emit("translate-model-status", serde_json::json!({ "stage": "ready" }));
+
+        for job in rx {
+            match job {
+                TranslateJob::Translate { id, text, tgt_lang } => {
+                    let prompt = format!(
+                        "<｜hy_begin▁of▁sentence｜><｜hy_User｜>Translate the following segment into {}, without additional explanation.\n\n{}<｜hy_Assistant｜>",
+                        tgt_lang, text
+                    );
+                    // catch_unwind: sample_token_greedy panics if selected_token is None.
+                    // If the model produces garbage, we want to surface the error instead of
+                    // silently killing the worker thread.
+                    let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        do_translate(&model, &mut ctx, &prompt)
+                    })) {
+                        Ok(r) => r,
+                        Err(panic) => {
+                            let msg = if let Some(s) = panic.downcast_ref::<String>() {
+                                s.clone()
+                            } else if let Some(s) = panic.downcast_ref::<&str>() {
+                                s.to_string()
+                            } else {
+                                "unknown panic in do_translate".to_string()
+                            };
+                            Err(msg)
+                        }
+                    };
+                    match result {
+                        Ok(translated) => {
+                            let _ = app.emit("translate-result", serde_json::json!({
+                                "id": id,
+                                "text": translated
+                            }));
+                        }
+                        Err(e) => {
+                            let _ = app.emit("translate-error", serde_json::json!({
+                                "id": id,
+                                "error": e
+                            }));
+                        }
+                    }
+                }
+                TranslateJob::Shutdown => break,
+            }
+        }
+        // model/ctx/backend 在此处 drop
+    });
+
+    let mut guard = tx_ref.lock().map_err(|e| e.to_string())?;
+    *guard = Some(tx);
+    Ok(serde_json::json!({ "loaded": true }))
+}
+
+/// 卸载翻译模型（发送 Shutdown，回收线程和内存）。
+#[tauri::command]
+fn unload_translate_model() -> Result<Value, String> {
+    let tx_ref = TRANSLATE_TX.get_or_init(|| Mutex::new(None));
+    let mut guard = tx_ref.lock().map_err(|e| e.to_string())?;
+    if let Some(tx) = guard.take() {
+        let _ = tx.send(TranslateJob::Shutdown);
+        // 不等待线程 join — Drop 后线程自行结束
+    }
+    Ok(serde_json::json!({ "loaded": false }))
+}
+
+/// 查询翻译模型当前状态。
+#[tauri::command]
+fn get_translate_status() -> Value {
+    let mp = model_path();
+    let downloaded = mp.is_file() && std::fs::metadata(&mp).map(|m| m.len() > 100_000_000).unwrap_or(false);
+    let loaded = match TRANSLATE_TX.get().and_then(|m| m.lock().ok()) {
+        Some(guard) => guard.is_some(),
+        None => false,
+    };
+    serde_json::json!({ "downloaded": downloaded, "loaded": loaded })
+}
+
+/// 发起翻译（通过 channel 发给 worker 线程，立即返回；结果通过事件推送）。
+#[tauri::command]
+fn translate_text(app: AppHandle, text: String, tgt_lang: String) -> Result<Value, String> {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let tx_ref = TRANSLATE_TX.get().ok_or("Model not initialized")?;
+    let guard = tx_ref.lock().map_err(|e| e.to_string())?;
+    let tx = guard.as_ref().ok_or("Model not loaded. Please load the model first.")?;
+    let id = format!("{}", SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis());
+    tx.send(TranslateJob::Translate { id: id.clone(), text, tgt_lang })
+        .map_err(|e| format!("Failed to send translation request: {}", e))?;
+    let _ = app.emit("translate-model-status", serde_json::json!({ "stage": "translating" }));
+    Ok(serde_json::json!({ "id": id }))
+}
+
+/// 核心推理：tokenize → decode → sample → detokenize。
+/// 此函数在 worker 线程中调用，借用 model + &mut ctx。
+fn do_translate(
+    model: &llama_cpp_2::model::LlamaModel,
+    ctx: &mut llama_cpp_2::context::LlamaContext,
+    prompt: &str,
+) -> Result<String, String> {
+    use llama_cpp_2::llama_batch::LlamaBatch;
+    use llama_cpp_2::model::AddBos;
+    use llama_cpp_2::sampling::LlamaSampler;
+    use llama_cpp_2::token::LlamaToken;
+
+    // Tokenize the prompt (BOS is already in the HY-MT template)
+    let tokens = model
+        .str_to_token(prompt, AddBos::Never)
+        .map_err(|e| format!("Tokenization error: {}", e))?;
+
+    let n_ctx = ctx.n_ctx() as usize;
+
+    // Clear KV cache before feeding
+    ctx.clear_kv_cache();
+
+    // Feed prompt tokens in batches
+    {
+        let mut n_processed = 0usize;
+        while n_processed < tokens.len() {
+            let chunk_end = (n_processed + n_ctx).min(tokens.len());
+            let mut batch = LlamaBatch::new(chunk_end - n_processed, 1);
+            for (i, &tok) in tokens[n_processed..chunk_end].iter().enumerate() {
+                let is_last = n_processed + i == tokens.len() - 1;
+                batch
+                    .add(tok, (n_processed + i) as i32, &[0], is_last)
+                    .map_err(|e| format!("Batch add error: {}", e))?;
+            }
+            ctx.decode(&mut batch)
+                .map_err(|e| format!("Decode error: {}", e))?;
+            n_processed = chunk_end;
+        }
+    }
+
+    // Build sampler chain: top_k=20, top_p=0.6, greedy for deterministic output
+    let sampler_top_k = LlamaSampler::top_k(20);
+    let sampler_top_p = LlamaSampler::top_p(0.6, 1);
+
+    let eos_token = model.token_eos();
+    let mut output_tokens: Vec<LlamaToken> = Vec::new();
+    let mut decoder = encoding_rs::UTF_8.new_decoder();
+
+    for _ in 0..1024 {
+        let mut candidates = ctx.token_data_array();
+        candidates.apply_sampler(&sampler_top_k);
+        candidates.apply_sampler(&sampler_top_p);
+        // Use greedy last: selects the token with highest probability after top_k/top_p filtering.
+        // If no token has a non-zero probability (shouldn't happen with the HY-MT model), fall back
+        // to the raw argmax of the logits array.
+        candidates.apply_sampler(&LlamaSampler::greedy());
+        let token = match candidates.selected_token() {
+            Some(t) => t,
+            None => {
+                // Rare edge case: all probabilities vanished after filtering.
+                // Fall back to raw argmax over the unfiltered logits.
+                let raw = ctx.token_data_array();
+                let best = raw
+                    .data
+                    .iter()
+                    .max_by(|a, b| a.logit().partial_cmp(&b.logit()).unwrap_or(std::cmp::Ordering::Equal))
+                    .map(|d| d.id());
+                best.unwrap_or(eos_token)
+            }
+        };
+
+        if token == eos_token || model.is_eog_token(token) {
+            break;
+        }
+
+        // Feed the sampled token back for the next step.
+        // Position = prompt token count + already-generated token count, so it stays consecutive.
+        let pos = (tokens.len() + output_tokens.len()) as i32;
+        output_tokens.push(token);
+        let mut batch = LlamaBatch::new(1, 1);
+        batch
+            .add(token, pos, &[0], true)
+            .map_err(|e| format!("Batch add error: {}", e))?;
+        ctx.decode(&mut batch)
+            .map_err(|e| format!("Decode error: {}", e))?;
+    }
+
+    if output_tokens.is_empty() {
+        return Err("No output tokens generated".to_string());
+    }
+
+    // Detokenize
+    let mut result = String::new();
+    for token in output_tokens {
+        let piece = model
+            .token_to_piece(token, &mut decoder, false, None)
+            .map_err(|e| format!("Detokenization error: {}", e))?;
+        result.push_str(&piece);
+    }
+
+    Ok(result.trim().to_string())
+}
+
 fn tiling_gap() -> f64 {
     settings_path()
         .and_then(|p| read_json(&p))
@@ -434,7 +836,7 @@ fn get_tiling_settings() -> Value {
     })
 }
 
-/// 弹出系统“辅助功能”授权引导，返回当前是否已授权。
+/// 弹出系统"辅助功能"授权引导，返回当前是否已授权。
 #[tauri::command]
 fn request_accessibility() -> bool {
     tiling::accessibility_trusted(true)
@@ -459,7 +861,7 @@ fn apply_tiling_shortcuts(app: AppHandle) {
 }
 
 /// 录制快捷键期间临时注销码放快捷键：避免按到组合键时把设置窗口码放掉，
-/// 也避免组合键被全局快捷键“吞掉”导致录制不到。录制结束再调 apply 恢复。
+/// 也避免组合键被全局快捷键"吞掉"导致录制不到。录制结束再调 apply 恢复。
 #[tauri::command]
 fn suspend_tiling_shortcuts(app: AppHandle) {
     let gs = app.global_shortcut();
@@ -477,7 +879,7 @@ fn suspend_tiling_shortcuts(app: AppHandle) {
 fn update_tray_title(app: AppHandle, pending: i64, _completed: i64) {
     LAST_PENDING.store(pending, Ordering::SeqCst);
     if let Some(tray) = app.tray_by_id("main") {
-        // 图标恒显；数字仅在“显示待办统计”开启时显示，否则清空只留图标
+        // 图标恒显；数字仅在"显示待办统计"开启时显示，否则清空只留图标
         if load_show_count() {
             let _ = tray.set_title(Some(pending.to_string()));
         } else {
@@ -600,6 +1002,7 @@ fn get_today_date_str() -> String {
 // ===========================================================================
 fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let s = tray_strings(&load_lang());
+    let focus_item = MenuItem::with_id(app, "open-focus", s.focus, true, None::<&str>)?;
     let ann_item = MenuItem::with_id(app, "open-ann", s.ann, true, None::<&str>)?;
     let tidy_item = MenuItem::with_id(app, "open-tidy", s.tidy, true, None::<&str>)?;
     let general_item = MenuItem::with_id(app, "open-general", s.general, true, None::<&str>)?;
@@ -608,7 +1011,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let quit_item = MenuItem::with_id(app, "quit", s.quit, true, None::<&str>)?;
     Menu::with_items(
         app,
-        &[&ann_item, &tidy_item, &general_item, &about_item, &sep, &quit_item],
+        &[&focus_item, &ann_item, &tidy_item, &general_item, &about_item, &sep, &quit_item],
     )
 }
 
@@ -625,6 +1028,9 @@ fn show_settings_tab(app: &AppHandle, tab: &str) {
 
 fn handle_tray_menu_event(app: &AppHandle, id: &str) {
     match id {
+        "open-focus" => {
+            show_settings_tab(app, "focus");
+        }
         "open-ann" | "open-tidy" | "open-general" | "open-about" => {
             // 菜单项 id 映射到设置面板的标签页名
             let tab = match id {
@@ -672,11 +1078,11 @@ fn toggle_window_at_tray(window: &WebviewWindow, rect: tauri::Rect) {
 }
 
 // ===========================================================================
-// 托盘图标的创建（显隐通过“创建 / 移除”实现，比 set_visible 在 macOS 上更可靠）
+// 托盘图标的创建（显隐通过"创建 / 移除"实现，比 set_visible 在 macOS 上更可靠）
 // ===========================================================================
 fn create_main_tray(app: &AppHandle) -> tauri::Result<()> {
     let menu = build_tray_menu(app)?;
-    // 数字仅在“显示待办统计”开启时显示
+    // 数字仅在"显示待办统计"开启时显示
     let title = if load_show_count() {
         LAST_PENDING.load(Ordering::SeqCst).to_string()
     } else {
@@ -771,7 +1177,21 @@ fn main() {
             open_settings,
             get_todo_shortcut,
             apply_todo_shortcut_settings,
-            suspend_todo_shortcut
+            suspend_todo_shortcut,
+            check_model_status,
+            download_model,
+            load_translate_model,
+            unload_translate_model,
+            get_translate_status,
+            translate_text,
+            focus_music::focus_init,
+            focus_music::focus_start,
+            focus_music::focus_stop,
+            focus_music::focus_set_prompt,
+            focus_music::focus_set_drums,
+            focus_music::focus_set_volume,
+            focus_music::focus_get_status,
+            focus_music::focus_setup_status,
         ])
         .setup(move |app| {
             // 隐藏 Dock 图标（等效 Electron 的 app.dock.hide()）
@@ -810,6 +1230,7 @@ fn main() {
             }
 
             // 菜单事件全局分发，只注册一次即可覆盖两个托盘（含之后重建的托盘）
+            // 轻听运行实例 tracker
             app.on_menu_event(move |app, event| {
                 handle_tray_menu_event(app, event.id.as_ref());
             });
@@ -848,6 +1269,20 @@ fn main() {
 
             // 全局快捷键切换待办窗口显隐（从 settings 读取，默认 ⌘⇧U）
             apply_todo_shortcut(app_handle);
+
+            // 翻译快捷键（固定 Cmd+Shift+Y）
+            apply_translate_shortcut(app_handle);
+
+            // 设置窗口：点关闭按钮时只隐藏、不销毁
+            if let Some(settings_win) = app.get_webview_window("settings") {
+                let sw = settings_win.clone();
+                settings_win.on_window_event(move |event| {
+                    if let WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        let _ = sw.hide();
+                    }
+                });
+            }
 
             Ok(())
         })

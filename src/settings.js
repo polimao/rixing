@@ -68,7 +68,7 @@ function setupTabs() {
     const btn = e.target.closest('.tab');
     if (btn) switchTab(btn.dataset.tab);
   });
-  // 托盘右键菜单项点击后由后端发来目标标签页（念日/窗口分屏/通用设置/关于）
+  // 托盘右键菜单项点击后由后端发来目标标签页（倒计时/窗口分屏/通用设置/关于）
   if (appEvent) {
     appEvent.listen('settings-open-tab', (e) => {
       if (typeof e.payload === 'string') switchTab(e.payload);
@@ -401,7 +401,7 @@ todoKbdBtn && todoKbdBtn.addEventListener('click', async () => {
 });
 
 // ---------------------------------------------------------------------------
-// 念日（重要日期倒计时）
+// 重要日期倒计时设置
 // ---------------------------------------------------------------------------
 
 function getAnns() {
@@ -495,5 +495,552 @@ async function initAbout() {
   });
 }
 
+// ---------------------------------------------------------------------------
+// 翻译面板（内嵌到设置面板 translate 标签页）
+// ---------------------------------------------------------------------------
+let trModelDownloaded = false;
+let trModelLoaded = false;
+let trIsTranslating = false;
+let trIsDownloading = false;
+let trCurrentTargetLang = 'English';
+const TR_MAX_CHARS = 3500;
+
+const I18N_TO_MT_LANG = {
+  'zh-CN': 'Chinese',
+  'en': 'English',
+  'ja': 'Japanese',
+  'ko': 'Korean',
+  'es': 'Spanish',
+  'fr': 'French',
+  'de': 'German',
+  'ru': 'Russian',
+};
+
+function trUpdateButtonStates() {
+  const elModelBtn = document.getElementById('model-btn');
+  const elDownloadBtn = document.getElementById('download-btn');
+  const elTranslateBtn = document.getElementById('translate-btn');
+  const elSourceText = document.getElementById('source-text');
+  const elCopyBtn = document.getElementById('copy-btn');
+  const elLoading = document.getElementById('loading-indicator');
+  const elResultText = document.getElementById('result-text');
+
+  if (!trModelDownloaded) {
+    elModelBtn.style.display = 'none';
+    elDownloadBtn.style.display = '';
+  } else if (trModelLoaded) {
+    elModelBtn.textContent = window.I18N ? window.I18N.t('translate_unload_model') : '卸载模型';
+    elModelBtn.style.display = '';
+    elDownloadBtn.style.display = 'none';
+  } else {
+    elModelBtn.textContent = window.I18N ? window.I18N.t('translate_load_model') : '加载模型';
+    elModelBtn.style.display = '';
+    elDownloadBtn.style.display = 'none';
+  }
+  elTranslateBtn.disabled = !trModelLoaded || trIsTranslating || trIsDownloading;
+  if (trIsTranslating) {
+    elTranslateBtn.textContent = window.I18N ? window.I18N.t('translate_loading') : '翻译中...';
+  } else {
+    elTranslateBtn.textContent = window.I18N ? window.I18N.t('translate_btn') : '翻译';
+  }
+  elSourceText.disabled = !trModelLoaded || trIsTranslating;
+  if (elCopyBtn) elCopyBtn.disabled = !elResultText.value.trim();
+  elLoading.classList.toggle('hidden', !trIsTranslating);
+}
+
+function trUpdateModelStatus() {
+  const elModelStatus = document.getElementById('model-status');
+  if (trModelLoaded) {
+    elModelStatus.innerHTML = `<span class="model-status-tag loaded">${window.I18N ? window.I18N.t('translate_model_ready') : '模型就绪'}</span>`;
+  } else if (trModelDownloaded) {
+    elModelStatus.innerHTML = `<span class="model-status-tag downloaded">${window.I18N ? window.I18N.t('translate_model_downloaded') : '已下载'}</span>`;
+  } else {
+    elModelStatus.innerHTML = `<span class="model-status-tag none">${window.I18N ? window.I18N.t('translate_no_model') : '模型未加载'}</span>`;
+  }
+}
+
+function trUpdateCharCount() {
+  const elSourceText = document.getElementById('source-text');
+  const elCharCount = document.getElementById('char-count');
+  if (!elSourceText || !elCharCount) return;
+  const n = elSourceText.value.length;
+  elCharCount.textContent = `${n} / ${TR_MAX_CHARS}`;
+  elCharCount.classList.toggle('warn', n > TR_MAX_CHARS);
+}
+
+async function trRefreshStatus() {
+  try {
+    const status = await invoke('get_translate_status');
+    trModelDownloaded = status.downloaded;
+    trModelLoaded = status.loaded;
+    trUpdateButtonStates();
+    trUpdateModelStatus();
+  } catch (e) { console.error('refreshStatus error:', e); }
+}
+
+function trShowError(msg) {
+  const elResultText = document.getElementById('result-text');
+  if (!elResultText) return;
+  elResultText.value = typeof msg === 'string' ? msg : (msg.error || 'Unknown error');
+  elResultText.style.color = '#ff3b30';
+  setTimeout(() => { elResultText.style.color = ''; }, 3000);
+}
+
+async function trToggleModel() {
+  if (trModelLoaded) {
+    try {
+      await invoke('unload_translate_model');
+      trModelLoaded = false;
+      trUpdateButtonStates();
+      trUpdateModelStatus();
+    } catch (e) { trShowError(e); }
+  } else {
+    try {
+      await invoke('load_translate_model');
+      trModelLoaded = true;
+      trUpdateButtonStates();
+      trUpdateModelStatus();
+    } catch (e) {
+      trShowError(e);
+      await trRefreshStatus();
+    }
+  }
+}
+
+async function trStartDownload() {
+  trIsDownloading = true;
+  trUpdateButtonStates();
+  const elProgressSection = document.getElementById('progress-section');
+  const elProgressFill = document.getElementById('progress-fill');
+  const elProgressText = document.getElementById('progress-text');
+  const elModelBtn = document.getElementById('model-btn');
+  const elDownloadBtn = document.getElementById('download-btn');
+  elProgressSection.classList.remove('hidden');
+  elProgressFill.style.width = '0%';
+  elProgressText.textContent = '0%';
+  elModelBtn.style.display = 'none';
+  elDownloadBtn.style.display = 'none';
+
+  try {
+    const result = await invoke('download_model');
+    if (result.success) {
+      trModelDownloaded = true;
+      elProgressText.textContent = '100%';
+      trUpdateButtonStates();
+      trUpdateModelStatus();
+      await trToggleModel();
+    }
+  } catch (e) { trShowError(e); }
+  finally {
+    trIsDownloading = false;
+    trUpdateButtonStates();
+    setTimeout(() => elProgressSection.classList.add('hidden'), 2000);
+  }
+}
+
+async function trDoTranslate() {
+  const elSourceText = document.getElementById('source-text');
+  const elResultText = document.getElementById('result-text');
+  const text = elSourceText.value.trim();
+  if (!text || trIsTranslating) return;
+  if (!trModelLoaded) {
+    try {
+      await invoke('load_translate_model');
+      trModelLoaded = true;
+      trUpdateButtonStates();
+      trUpdateModelStatus();
+    } catch (e) {
+      trShowError(e);
+      await trRefreshStatus();
+      return;
+    }
+  }
+
+  trIsTranslating = true;
+  trUpdateButtonStates();
+  elResultText.value = '';
+
+  try {
+    await invoke('translate_text', { text: text, tgtLang: trCurrentTargetLang });
+  } catch (e) {
+    trShowError(e);
+    trIsTranslating = false;
+    trUpdateButtonStates();
+  }
+}
+
+async function trCopyResult() {
+  const elResultText = document.getElementById('result-text');
+  const elCopyBtn = document.getElementById('copy-btn');
+  const text = elResultText.value.trim();
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    elCopyBtn.textContent = window.I18N ? window.I18N.t('translate_copied') : '已复制';
+    setTimeout(() => {
+      elCopyBtn.textContent = window.I18N ? window.I18N.t('translate_copy') : '复制结果';
+    }, 2000);
+  } catch (e) {
+    elResultText.select();
+    document.execCommand('copy');
+  }
+}
+
+async function initTranslate() {
+  const elTgtLabel = document.getElementById('tgt-lang-label');
+  const elSourceText = document.getElementById('source-text');
+  const elTranslateBtn = document.getElementById('translate-btn');
+  const elModelBtn = document.getElementById('model-btn');
+  const elDownloadBtn = document.getElementById('download-btn');
+  const elCopyBtn = document.getElementById('copy-btn');
+
+  // No translate elements? Skip (tab HTML not present in this page)
+  if (!elTranslateBtn || !elModelBtn) return;
+
+  try {
+    const s = await invoke('load_settings');
+    const appLang = s.lang || 'zh-CN';
+    trCurrentTargetLang = I18N_TO_MT_LANG[appLang] || 'English';
+  } catch (e) { }
+  elTgtLabel.textContent = trCurrentTargetLang;
+
+  await trRefreshStatus();
+
+  if (appEvent && typeof appEvent.listen === 'function') {
+    appEvent.listen('translate-result', (event) => {
+      document.getElementById('result-text').value = event.payload.text;
+      document.getElementById('copy-btn').disabled = false;
+      trIsTranslating = false;
+      trUpdateButtonStates();
+    });
+    appEvent.listen('translate-error', (event) => {
+      const payload = typeof event.payload === 'string' ? event.payload : (event.payload.error || 'Translation failed');
+      if (payload.indexOf('Model not loaded') !== -1) {
+        trModelLoaded = false;
+        trUpdateButtonStates();
+        trUpdateModelStatus();
+      }
+      trShowError(payload);
+      trIsTranslating = false;
+      trUpdateButtonStates();
+    });
+    appEvent.listen('translate-model-download-progress', (event) => {
+      const { downloaded, total } = event.payload;
+      const elProgressFill = document.getElementById('progress-fill');
+      const elProgressText = document.getElementById('progress-text');
+      if (total > 0) {
+        const pct = Math.round((downloaded / total) * 100);
+        elProgressFill.style.width = pct + '%';
+        const mb = (downloaded / 1048576).toFixed(0);
+        const totalMb = (total / 1048576).toFixed(0);
+        elProgressText.textContent = `${pct}% (${mb} / ${totalMb} MB)`;
+      } else {
+        const mb = (downloaded / 1048576).toFixed(0);
+        elProgressText.textContent = `${mb} MB`;
+      }
+    });
+    appEvent.listen('translate-model-status', (event) => {
+      const p = event.payload;
+      const elProgressSection = document.getElementById('progress-section');
+      const elProgressFill = document.getElementById('progress-fill');
+      const elProgressText = document.getElementById('progress-text');
+      const elModelStatus = document.getElementById('model-status');
+      if (p.stage === 'ready') {
+        trModelLoaded = true;
+        elProgressSection.classList.add('hidden');
+        elProgressFill.classList.remove('animated');
+        trUpdateButtonStates();
+        trUpdateModelStatus();
+      } else if (p.stage === 'loading') {
+        trModelLoaded = false;
+        elProgressSection.classList.remove('hidden');
+        elProgressFill.classList.add('animated');
+        elProgressFill.style.width = '';
+        const d = p.detail;
+        const labels = {
+          init_backend: window.I18N ? window.I18N.t('translate_init_backend') : '正在初始化推理引擎…',
+          loading_model: window.I18N ? window.I18N.t('translate_loading_model_file') : '正在加载模型文件 (~1.1 GB)…',
+          creating_context: window.I18N ? window.I18N.t('translate_creating_context') : '正在创建推理上下文…',
+        };
+        elProgressText.textContent = labels[d] || (window.I18N ? window.I18N.t('translate_loading_model') : '加载中…');
+        elModelStatus.innerHTML = `<span class="model-status-tag none">${window.I18N ? window.I18N.t('translate_loading_model') : '加载中…'}</span>`;
+      }
+    });
+    // Reload target language on settings change
+    try {
+      appEvent.listen('settings-updated', async () => {
+        try {
+          const s = await invoke('load_settings');
+          const appLang = s.lang || 'zh-CN';
+          trCurrentTargetLang = I18N_TO_MT_LANG[appLang] || 'English';
+          elTgtLabel.textContent = trCurrentTargetLang;
+        } catch (e) { }
+      });
+    } catch (e) { }
+  }
+
+  elTranslateBtn.addEventListener('click', trDoTranslate);
+  elModelBtn.addEventListener('click', trToggleModel);
+  elDownloadBtn.addEventListener('click', trStartDownload);
+  elCopyBtn.addEventListener('click', trCopyResult);
+  elSourceText.addEventListener('input', trUpdateCharCount);
+
+  elSourceText.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      trDoTranslate();
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// 轻听面板（内嵌到设置面板 focus 标签页）
+// ---------------------------------------------------------------------------
+(function () {
+  const fmPRESETS = {
+    vibe: [
+      { title: 'Lo-fi 深夜书房', prompt: 'lo-fi hip hop, mellow, late night study vibes', desc: '温暖节拍 · 放松专注' },
+      { title: '雨天的爵士咖啡馆', prompt: 'soft jazz piano trio, rainy cafe atmosphere', desc: '钢琴三重奏 · 慵懒惬意' },
+      { title: '冥想空灵氛围', prompt: 'ambient meditation, ethereal pads, slow evolving textures', desc: '合成器铺底 · 深度放松' },
+      { title: '海边日出的钢琴', prompt: 'gentle piano, warm sunrise by the ocean', desc: '温柔琴键 · 宁静舒缓' },
+      { title: '林间清晨', prompt: 'acoustic guitar, birdsong atmosphere, morning forest', desc: '木吉他 · 清新自然' },
+      { title: '深夜代码', prompt: 'electronic chill, minimal beats, coding focus', desc: '极简电子 · 深度专注' },
+    ],
+    genre: [
+      { title: 'Lo-fi 嘻哈', prompt: 'lo-fi hip hop, chill beats, study music', desc: '经典专注伴奏' },
+      { title: '氛围电子 Ambient', prompt: 'ambient electronic, spacious, slow pads', desc: '空间感 · 无节奏干扰' },
+      { title: '古典弦乐四重奏', prompt: 'classical string quartet, elegant, flowing', desc: '优雅弦乐 · 创造力' },
+      { title: '爵士钢琴三重奏', prompt: 'jazz piano trio, walking bass, brush drums', desc: '经典爵士 · 灵感' },
+      { title: '后摇 Post-rock', prompt: 'post-rock, clean guitar, building crescendos', desc: '渐强 · 情绪推升' },
+      { title: 'Bossa Nova', prompt: 'bossa nova, nylon guitar, light percussion', desc: '轻松拉丁 · 愉悦' },
+    ],
+    instrument: [
+      { title: '钢琴独奏', prompt: 'solo piano, gentle and slow, minimal', desc: '温柔 · 极简' },
+      { title: '大提琴', prompt: 'solo cello, deep and warm, legato', desc: '深沉 · 悠长' },
+      { title: '木吉他指弹', prompt: 'fingerstyle acoustic guitar, light and melodic', desc: '轻快 · 旋律感' },
+      { title: '古筝流水', prompt: 'chinese guzheng, flowing water imagery, pentatonic', desc: '东方韵味 · 禅意' },
+      { title: '萨克斯', prompt: 'smooth saxophone, breathy, late night', desc: '醇厚 · 感性' },
+      { title: '合成器浪潮', prompt: 'synthwave, retro synthesizer, dreamy', desc: '复古 · 梦幻' },
+    ],
+  };
+
+  let fmBridgeReady = false;
+  let fmPlaying = false;
+  let fmCurrentPrompt = '';
+  let fmDrumsOn = true;
+  let fmVolume = 0.8;
+
+  function fmQ(s) { return document.querySelector(s); }
+
+  function fmT(key) {
+    return (window.I18N && window.I18N.t(key)) || key;
+  }
+
+  function fmSetStatus(stage, message) {
+    const dot = fmQ('#status-dot');
+    const txt = fmQ('#status-text');
+    if (dot) dot.className = 'status-dot ' + stage;
+    if (message && txt) txt.textContent = message;
+  }
+
+  function fmUpdatePlayBtn() {
+    const btn = fmQ('#play-btn');
+    if (!btn) return;
+    btn.textContent = fmPlaying ? '⏸' : '▶';
+    btn.classList.toggle('playing', fmPlaying);
+  }
+
+  function fmUpdateDrumsUI() {
+    const check = fmQ('#drums-check');
+    const track = fmQ('#drums-track');
+    if (check) check.checked = fmDrumsOn;
+    if (track) track.classList.toggle('on', fmDrumsOn);
+  }
+
+  function fmBuildPresets() {
+    for (const [group, items] of Object.entries(fmPRESETS)) {
+      const grid = fmQ('#preset-' + group);
+      if (!grid) continue;
+      items.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'preset-card';
+        card.innerHTML =
+          '<div class="preset-title">' + item.title + '</div>' +
+          '<div class="preset-desc">' + item.desc + '</div>';
+        card.addEventListener('click', () => fmSelectPreset(item.prompt, card, grid));
+        grid.appendChild(card);
+      });
+    }
+  }
+
+  function fmSelectPreset(prompt, cardEl, grid) {
+    grid.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+    cardEl.classList.add('active');
+    const cp = fmQ('#custom-prompt');
+    if (cp) cp.value = '';
+
+    fmCurrentPrompt = prompt;
+    const np = fmQ('#now-playing');
+    if (np) np.innerHTML = '<strong>' + cardEl.querySelector('.preset-title').textContent + '</strong>';
+
+    if (fmBridgeReady && fmPlaying) {
+      invoke('focus_set_prompt', { text: prompt });
+    } else if (fmBridgeReady) {
+      fmStartMusic(prompt);
+    }
+  }
+
+  async function fmTogglePlay() {
+    if (!fmBridgeReady) {
+      await fmInitBridge();
+      return;
+    }
+    if (fmPlaying) {
+      await invoke('focus_stop');
+    } else {
+      const prompt = fmCurrentPrompt || fmPRESETS.vibe[0].prompt;
+      await fmStartMusic(prompt);
+    }
+  }
+
+  async function fmStartMusic(prompt) {
+    fmCurrentPrompt = prompt;
+    await invoke('focus_start', { prompt: prompt, drums: fmDrumsOn });
+  }
+
+  function fmOnDrumsToggle() {
+    fmDrumsOn = !fmDrumsOn;
+    fmUpdateDrumsUI();
+    invoke('focus_set_drums', { on: fmDrumsOn });
+  }
+
+  function fmOnVolumeChange() {
+    fmVolume = parseInt(fmQ('#volume-slider').value) / 100;
+    invoke('focus_set_volume', { level: fmVolume });
+  }
+
+  function fmApplyCustomPrompt() {
+    const text = fmQ('#custom-prompt').value.trim();
+    if (!text) return;
+    fmCurrentPrompt = text;
+    const np = fmQ('#now-playing');
+    if (np) np.innerHTML = '<strong>' + text + '</strong>';
+    document.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+
+    if (fmBridgeReady && fmPlaying) {
+      invoke('focus_set_prompt', { text: text });
+    } else if (fmBridgeReady) {
+      fmStartMusic(text);
+    }
+  }
+
+  async function fmInitBridge() {
+    fmSetStatus('loading', '正在加载 MRT2 模型…');
+    const banner = fmQ('#setup-banner');
+    const main = fmQ('#main-ui');
+    if (banner) banner.classList.add('hidden');
+    if (main) { main.classList.remove('hidden'); main.style.display = 'flex'; }
+
+    try {
+      await Promise.race([
+        invoke('focus_init'),
+        new Promise((_, reject) => setTimeout(() => reject('初始化超时，请检查网络连接后重试'), 300000))
+      ]);
+    } catch (e) {
+      fmSetStatus('error', '加载失败: ' + e);
+      if (banner) banner.classList.remove('hidden');
+      if (main) main.classList.add('hidden');
+    }
+  }
+
+  function fmOnBridgeStatus(payload) {
+    const stage = payload && payload.stage;
+    const message = payload && payload.message;
+
+    switch (stage) {
+      case 'loading':
+        fmSetStatus('loading', message || '加载中…');
+        break;
+      case 'ready':
+        fmBridgeReady = true;
+        fmQ('#setup-banner').classList.add('hidden');
+        const main = fmQ('#main-ui');
+        if (main) { main.classList.remove('hidden'); main.style.display = 'flex'; }
+        fmSetStatus('ready', '模型就绪 — 选择预设或输入提示词开始');
+        break;
+      case 'playing':
+        fmPlaying = true;
+        fmUpdatePlayBtn();
+        fmSetStatus('playing', '正在生成…');
+        break;
+      case 'stopped':
+        fmPlaying = false;
+        fmUpdatePlayBtn();
+        const np = fmQ('#now-playing');
+        if (np) np.innerHTML = '<span>' + fmT('focus_ready') + '</span>';
+        fmSetStatus('ready', '已停止');
+        break;
+      case 'error':
+        fmSetStatus('error', message || '出错');
+        break;
+    }
+  }
+
+  function initFocusMusic() {
+    const playBtn = fmQ('#play-btn');
+    if (!playBtn) return; // focus tab not present in this page
+
+    fmBuildPresets();
+    fmUpdateDrumsUI();
+
+    playBtn.addEventListener('click', fmTogglePlay);
+    const drumsCheck = fmQ('#drums-check');
+    if (drumsCheck) drumsCheck.addEventListener('change', fmOnDrumsToggle);
+    const drumsToggle = fmQ('#drums-toggle');
+    if (drumsToggle) drumsToggle.addEventListener('click', function (e) {
+      if (e.target === drumsCheck) return;
+      fmOnDrumsToggle();
+    });
+    const volSlider = fmQ('#volume-slider');
+    if (volSlider) volSlider.addEventListener('input', fmOnVolumeChange);
+    const applyBtn = fmQ('#apply-prompt-btn');
+    if (applyBtn) applyBtn.addEventListener('click', fmApplyCustomPrompt);
+    const customPrompt = fmQ('#custom-prompt');
+    if (customPrompt) customPrompt.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') fmApplyCustomPrompt();
+    });
+
+    const setupBtn = fmQ('#setup-btn');
+    if (setupBtn) setupBtn.addEventListener('click', fmInitBridge);
+    const docsBtn = fmQ('#open-docs-btn');
+    if (docsBtn) docsBtn.addEventListener('click', function () {
+      window.__TAURI__.shell.open('https://magenta.github.io/magenta-realtime/').catch(() => { });
+    });
+
+    if (appEvent && typeof appEvent.listen === 'function') {
+      appEvent.listen('focus-music-status', function (e) {
+        fmOnBridgeStatus(e.payload);
+      });
+    }
+
+    // check if already running
+    invoke('focus_get_status').then(function (s) {
+      if (s && s.playing) {
+        fmPlaying = true;
+        fmBridgeReady = true;
+        fmUpdatePlayBtn();
+        const banner = fmQ('#setup-banner');
+        const main = fmQ('#main-ui');
+        if (banner) banner.classList.add('hidden');
+        if (main) { main.classList.remove('hidden'); main.style.display = 'flex'; }
+        fmSetStatus('playing', '正在生成…');
+      }
+    }).catch(function () { });
+  }
+
+  initFocusMusic();
+})();
+
 init();
 initAbout();
+initTranslate();

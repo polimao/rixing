@@ -74,7 +74,10 @@
       color: #333;
     }
 
-    [data-theme="dark"] .cal-settings-btn { color: #666; }
+    [data-theme="dark"] .cal-settings-btn {
+      color: #666;
+    }
+
     [data-theme="dark"] .cal-settings-btn:hover {
       background-color: rgba(255, 255, 255, 0.05);
       color: #e5eaf3;
@@ -279,7 +282,9 @@
        Dark Mode（跟随 App 的主题设置：ui-common 会在 <html> 上写 data-theme，
        "随系统" 也会被解析成具体的 light/dark，因此用属性选择器而非 @media）
        ========================================= */
-    [data-theme="dark"] #month-year:hover { color: #ff6b6b; }
+    [data-theme="dark"] #month-year:hover {
+      color: #ff6b6b;
+    }
 
     [data-theme="dark"] .arrow-up {
       background-color: #2b2d30;
@@ -296,22 +301,51 @@
       color: #e5eaf3;
     }
 
-    [data-theme="dark"] .header { color: #e5eaf3; }
-    [data-theme="dark"] .nav-btn { color: #666; }
-    [data-theme="dark"] .nav-btn:hover { color: #e5eaf3; }
-    [data-theme="dark"] .divider { border-bottom-color: rgba(255, 255, 255, 0.05); }
-    [data-theme="dark"] .day-num { color: #e5eaf3; }
-    [data-theme="dark"] .day-lunar { color: #a3a6ad; }
+    [data-theme="dark"] .header {
+      color: #e5eaf3;
+    }
+
+    [data-theme="dark"] .nav-btn {
+      color: #666;
+    }
+
+    [data-theme="dark"] .nav-btn:hover {
+      color: #e5eaf3;
+    }
+
+    [data-theme="dark"] .divider {
+      border-bottom-color: rgba(255, 255, 255, 0.05);
+    }
+
+    [data-theme="dark"] .day-num {
+      color: #e5eaf3;
+    }
+
+    [data-theme="dark"] .day-lunar {
+      color: #a3a6ad;
+    }
 
     [data-theme="dark"] .day.other-month .day-num,
-    [data-theme="dark"] .day.other-month .day-lunar { color: #555; }
+    [data-theme="dark"] .day.other-month .day-lunar {
+      color: #555;
+    }
 
     [data-theme="dark"] .day.holiday .day-num,
-    [data-theme="dark"] .day.holiday .day-lunar { color: #ff6b6b; }
+    [data-theme="dark"] .day.holiday .day-lunar {
+      color: #ff6b6b;
+    }
 
-    [data-theme="dark"] .day.weekend .day-num { color: #ff6b6b; }
-    [data-theme="dark"] .badge-rest { color: #ff6b6b; }
-    [data-theme="dark"] .badge-work { color: #a3a6ad; }
+    [data-theme="dark"] .day.weekend .day-num {
+      color: #ff6b6b;
+    }
+
+    [data-theme="dark"] .badge-rest {
+      color: #ff6b6b;
+    }
+
+    [data-theme="dark"] .badge-work {
+      color: #a3a6ad;
+    }
 
     [data-theme="dark"] .day.today {
       background-color: #d32f2f;
@@ -319,23 +353,35 @@
     }
 
     [data-theme="dark"] .day.today .day-num,
-    [data-theme="dark"] .day.today .badge { color: #ffffff; }
-    [data-theme="dark"] .day.today .day-lunar { color: #ffb5b8; }
+    [data-theme="dark"] .day.today .badge {
+      color: #ffffff;
+    }
+
+    [data-theme="dark"] .day.today .day-lunar {
+      color: #ffb5b8;
+    }
 
     [data-theme="dark"] .day.holiday.other-month .day-num,
     [data-theme="dark"] .day.holiday.other-month .day-lunar,
     [data-theme="dark"] .day.weekend.other-month .day-num,
-    [data-theme="dark"] .day.other-month .badge-rest { color: #8c3a3a; }
+    [data-theme="dark"] .day.other-month .badge-rest {
+      color: #8c3a3a;
+    }
 
-    [data-theme="dark"] .day.other-month .badge-work { color: #444; }
-    [data-theme="dark"] .expand-btn { color: #666; }
+    [data-theme="dark"] .day.other-month .badge-work {
+      color: #444;
+    }
+
+    [data-theme="dark"] .expand-btn {
+      color: #666;
+    }
 
     [data-theme="dark"] .expand-btn:hover {
       background-color: rgba(255, 255, 255, 0.05);
       color: #e5eaf3;
     }
 
-    /* 念日标记：左上角爱心 + 整格红色描边，让纪念日一目了然 */
+    /* 倒计时标记：左上角爱心 + 整格红色描边，让重要日期一目了然 */
     .ann-mark {
       position: absolute;
       top: 3px;
@@ -350,20 +396,36 @@
       box-shadow: inset 0 0 0 1.5px rgba(204, 37, 44, .35);
     }
 
-    .day.other-month .ann-mark { color: #f0b6b6; }
+    .day.other-month .ann-mark {
+      color: #f0b6b6;
+    }
+
     .day.has-ann.other-month:not(.today) {
       box-shadow: inset 0 0 0 1.5px rgba(204, 37, 44, .15);
     }
-    .day.today .ann-mark { color: #ffffff; }
 
-    [data-theme="dark"] .ann-mark { background: none; color: #ff6b6b; }
-    [data-theme="dark"] .day.other-month .ann-mark { color: #8c3a3a; }
-    [data-theme="dark"] .day.today .ann-mark { color: #ffffff; }
+    .day.today .ann-mark {
+      color: #ffffff;
+    }
+
+    [data-theme="dark"] .ann-mark {
+      background: none;
+      color: #ff6b6b;
+    }
+
+    [data-theme="dark"] .day.other-month .ann-mark {
+      color: #8c3a3a;
+    }
+
+    [data-theme="dark"] .day.today .ann-mark {
+      color: #ffffff;
+    }
+
     [data-theme="dark"] .day.has-ann:not(.today) {
       box-shadow: inset 0 0 0 1.5px rgba(255, 107, 107, .4);
     }
 
-    /* 念日面板 */
+    /* 倒计时面板 */
     #ann-panel {
       padding: 0 2px;
     }
@@ -375,8 +437,13 @@
       margin-bottom: 4px;
     }
 
-    [data-theme="dark"] #ann-panel .ann-panel-title { color: #555; }
-    [data-theme="dark"] #ann-panel { border-top-color: rgba(255,255,255,0.06) !important; }
+    [data-theme="dark"] #ann-panel .ann-panel-title {
+      color: #555;
+    }
+
+    [data-theme="dark"] #ann-panel {
+      border-top-color: rgba(255, 255, 255, 0.06) !important;
+    }
   </style>
 </head>
 
@@ -384,9 +451,12 @@
   <div class="arrow-up"></div>
   <div class="calendar-container">
     <button id="open-settings-btn" class="cal-settings-btn" title="日行设置">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        <path
+          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+        </path>
       </svg>
     </button>
     <div class="header">
@@ -406,7 +476,7 @@
     </div>
     <div class="days" id="days-grid"></div>
     <div id="ann-panel" style="display:none;margin-top:8px;border-top:1px solid #f0f0f0;padding-top:6px">
-      <div class="ann-panel-title" data-i18n="ann_section">念日</div>
+      <div class="ann-panel-title" data-i18n="ann_section">倒计时</div>
       <div id="ann-panel-list"></div>
     </div>
 

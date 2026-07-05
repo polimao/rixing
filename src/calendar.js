@@ -7,7 +7,7 @@ const { invoke } = window.__TAURI__.core;
 let isExpanded = false;
 
 // ---------------------------------------------------------------------------
-// 念日
+// 重要日期倒计时
 // ---------------------------------------------------------------------------
 let currentAnns = [];
 
@@ -39,7 +39,7 @@ function countdownLabel(targetDate) {
   const ti = (key) => window.I18N ? window.I18N.t(key) : key;
   if (days === 0) return ti('ann_today');
   if (days === 1) return ti('ann_tomorrow');
-  if (days < 7)  return tl('ann_days_later', days);
+  if (days < 7) return tl('ann_days_later', days);
   if (days === 7) return ti('ann_next_week');
   if (days < 30) return tl('ann_weeks_later', Math.floor(days / 7));
   if (days < 60) return ti('ann_next_month');
@@ -55,7 +55,7 @@ function renderAnniversaryPanel() {
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
-  // 显示最近的若干个念日倒计时；一次性且已过期的不再显示
+  // 显示最近的若干个倒计时；一次性且已过期的不再显示
   const upcoming = currentAnns
     .map((ann) => ({ ann, next: nextOccurrence(ann) }))
     .filter(({ ann, next }) => ann.repeat || next >= today)
@@ -164,7 +164,7 @@ function renderCalendar(date) {
     daysGrid.appendChild(createDayElement(endYear, endMonth + 1, i, true));
   }
 
-  // 渲染念日面板（在高度计算前）
+  // 渲染倒计时面板（在高度计算前）
   renderAnniversaryPanel();
 
   // Calculate new height:
@@ -271,7 +271,7 @@ function createDayElement(year, month, day, isOtherMonth, isToday = false) {
     dayNumStyle = 'font-size: 14px;';
   }
 
-  // 检测当日是否有念日
+  // 检测当日是否有重要日期倒计时
   const mStr = String(m).padStart(2, '0');
   const dStr = String(d).padStart(2, '0');
   const hasAnn = currentAnns.some((ann) => {
@@ -399,11 +399,11 @@ document.getElementById('expand-btn').addEventListener('click', () => {
   renderCalendar(currentViewDate);
 });
 
-// Initial render（先加载念日再渲染，确保圆点和面板首次就正确显示）
+// Initial render（先加载重要日期倒计时再渲染，确保圆点和面板首次就正确显示）
 renderWeekdays();
 loadAnns().then(() => renderCalendar(currentViewDate));
 
-// 语言/主题变更，或设置（含念日）更新：重新加载念日并重渲染
+// 语言/主题变更，或设置（含重要日期）更新：重新加载重要日期并重渲染
 document.addEventListener('app-settings-updated', async () => {
   await loadAnns();
   renderWeekdays();
