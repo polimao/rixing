@@ -26,42 +26,88 @@
     }
 
     .wrap {
-      padding: 16px 18px;
-    }
-
-    /* 顶部标签分页 */
-    .tabs {
+      padding: 0 18px 16px;
       display: flex;
-      gap: 4px;
-      margin-bottom: 14px;
+      flex-direction: column;
+      --title-h: 34px;
     }
 
-    .tab {
-      flex: 1;
+    /* 窗口顶部可拖拽条：高度 = 标题高度，横跨整个窗口宽度，并在其中显示当前面板标题作为视觉标识 */
+    .window-drag-bar {
+      height: var(--title-h);
+      flex: 0 0 var(--title-h);
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 5px;
-      padding: 7px 8px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
+      padding-left: 150px; /* 避让 macOS 红黄绿按钮 */
+      cursor: default;
+    }
+
+    .window-drag-bar .drag-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+      user-select: none;
+      pointer-events: none; /* 让整条都可拖拽，不被文字拦截 */
+    }
+
+    /* 拖拽条下方的内容行：左侧 tab 栏 + 右侧面板 */
+    .content-row {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    /* 左侧竖向标签分页（整列作为侧边栏，与内容区左右分栏） */
+    .tabs {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 132px;
+      gap: 4px;
+      margin-bottom: 0;
+      position: sticky;
+      top: 0;
+      padding-top: 0;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      padding-right: 10px;
+    }
+
+    /* 面板标题已移至顶部拖拽条（#window-title），此处不再单独渲染 */
+
+    .tab {
+      flex: none;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      padding: 9px 10px;
+      background: transparent; /* 与侧边栏背景融为一体，不再有卡片感 */
+      border: none;          /* 去掉卡片边框 / tab 之间的分割线 */
       border-radius: 8px;
       color: var(--text-sub);
       cursor: pointer;
       font-size: 12px;
       font-weight: 500;
       white-space: nowrap;
-      transition: background .15s, color .15s, border-color .15s;
+      transition: background .15s, color .15s;
     }
 
     .tab:hover {
       color: var(--text);
+      background: var(--surface-2);
     }
 
     .tab.active {
       background: var(--active-tab, #2962d9);
-      border-color: var(--active-tab, #2962d9);
       color: #fff;
+    }
+
+    /* 实验室开关控制：隐藏的 tab 入口不占布局 */
+    .tab[hidden] {
+      display: none !important;
     }
 
     .tab svg {
@@ -111,12 +157,19 @@
       background: var(--tab-focus);
     }
 
+    .tab[data-tab="keepawake"] .icon-filled {
+      color: #fff;
+      background: #b07a4a;
+    }
+
     .tab-panel {
       display: none;
     }
 
     .tab-panel.active {
       display: block;
+      flex: 1;
+      min-width: 0;
     }
 
     /* 标签页内首个分组标题与标签栏间距收紧 */
@@ -303,6 +356,11 @@
       pointer-events: none;
     }
 
+    #keepawake-detail.disabled {
+      opacity: .45;
+      pointer-events: none;
+    }
+
     /* 主题：图标分段选择 */
     .seg {
       display: inline-flex;
@@ -378,6 +436,7 @@
     #language-select {
       padding: 5px 8px;
       height: 32px;
+      width: 120px; /* 与「主题」分段按钮（.seg）等宽，视觉对齐 */
       border-radius: 8px;
       border: 1px solid var(--border-strong);
       background: var(--surface-2);
@@ -449,6 +508,8 @@
       border: 1px solid var(--border-strong);
       border-radius: 6px;
       padding: 5px 10px;
+      height: 30px;
+      box-sizing: border-box;
       font-size: 13px;
       outline: none;
       -webkit-user-select: text;
@@ -499,10 +560,10 @@
     /* 关于 */
     .about-row {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      gap: 6px;
-      padding: 22px 12px;
+      gap: 10px;
+      padding: 12px 14px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -527,6 +588,7 @@
       background: none;
       border: none;
       padding: 0;
+      margin-left: auto;
     }
 
     .about-link:hover {
@@ -699,6 +761,12 @@
       justify-content: space-between;
       font-size: 11px;
       color: var(--text-sub);
+    }
+
+    /* 翻译页隐藏目标语言提示、模型状态与字符计数（标题已移至拖拽条） */
+    .tab-panel[data-panel="translate"] .lang-row,
+    .tab-panel[data-panel="translate"] .tr-status-row {
+      display: none;
     }
 
     .hidden {
@@ -987,6 +1055,68 @@
       cursor: pointer;
     }
 
+    /* 防休眠：时长滑块刻度 */
+    .keepawake-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-top: 2px;
+      user-select: none;
+    }
+
+    .keepawake-ticks span {
+      flex: 1;
+      text-align: center;
+      cursor: pointer;
+      padding: 2px 0;
+      border-radius: 4px;
+    }
+
+    .keepawake-ticks span.active {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .keepawake-ticks span:hover {
+      background: var(--surface-2);
+    }
+
+    .keepawake-note {
+      font-size: 11px;
+      color: var(--text-sub);
+      line-height: 1.5;
+      margin: 10px 2px 0;
+    }
+
+    .keepawake-countdown {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 8px;
+    }
+
+    .keepawake-countdown #keepawake-remain {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .link-btn:hover {
+      background: var(--surface-2);
+    }
+
     .fm-status-row {
       display: flex;
       align-items: center;
@@ -1046,35 +1176,18 @@
 
 <body>
   <div class="wrap">
+    <div class="window-drag-bar" data-tauri-drag-region>
+      <span class="drag-title" id="window-title"></span>
+    </div>
+    <div class="content-row">
     <div class="tabs" id="tabs">
-      <button class="tab active" type="button" data-tab="general">
-        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path
-            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42">
-          </path>
-        </svg>
-        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
-          <path
-            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
-          </path>
-        </svg>
-        <span data-i18n="general">通用</span>
-      </button>
-
       <button class="tab" type="button" data-tab="translate">
-        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 8l5-5 5 5"></path>
-          <path d="M5 16l5 5 5-5"></path>
-          <line x1="10" y1="3" x2="10" y2="21"></line>
-          <line x1="5" y1="8" x2="15" y2="8"></line>
-          <line x1="5" y1="16" x2="15" y2="16"></line>
+        <svg class="icon-line" viewBox="0 0 1024 1024" fill="none" stroke="currentColor"
+          stroke-width="80" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M128 64c-35.345655 0-64 28.654345-64 64v768c0 35.345655 28.654345 64 64 64h768c35.345655 0 64-28.654345 64-64v-768c0-35.345655-28.654345-64-64-64h-768z m0-64h768C966.692487 0 1024 57.307513 1024 128v768C1024 966.692487 966.692487 1024 896 1024h-768C57.307513 1024 0 966.692487 0 896v-768C0 57.307513 57.307513 0 128 0z m329.143025 251.428487h301.715127v68.571513c-18.020046 27.895172-58.368 67.967706-96.000589 96.000589 24.064 8.704 69.777949 13.274336 137.143026 13.71336l-13.714538 68.57269c-63.360883-7.297471-123.483807-31.818152-164.572102-54.858152-43.775411 21.120294-101.211218 41.41668-164.570924 54.856975l-27.429076-68.571513c56.378851-8.492138 100.279025-12.452782 137.143026-27.427898-28.031706-24.960883-54.747513-45.038345-68.571513-82.286051h-41.142437v-68.571513z m114.85749 68.571513c12.288 25.728294 22.271411 41.183632 47.998529 60.000515 31.873471-19.969177 45.072478-35.424515 60.048772-60.000515h-108.047301zM512 512h68.571513v-41.142437h68.556211V512h68.586814v68.571513h-68.586814v41.142436h109.729251v68.57269h-109.729251v109.712772H580.57269v-109.713949h-109.71395v-68.571513h109.71395V580.57269H512V512zM306.285462 223.999411c34.286345 22.113692 81.117278 54.858152 109.713949 82.286051l-54.856974 68.57269c-21.504-26.113177-54.527411-65.665471-95.999412-96.000589l41.142437-54.856974z m137.157149 397.714538v54.856975c-56.437701 53.431614-97.586023 90.002538-123.442611 109.715127l-36.000074-58.28561c10.752-9.600883 22.285536-25.042097 22.285536-37.714979V470.857563h-82.284873v-68.572689h150.857563V662.857563c28.631982-9.103007 51.494253-22.817545 68.584459-41.143614z"></path>
         </svg>
-        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        <svg class="icon-filled" viewBox="0 0 1024 1024">
+          <path d="M128 64c-35.345655 0-64 28.654345-64 64v768c0 35.345655 28.654345 64 64 64h768c35.345655 0 64-28.654345 64-64v-768c0-35.345655-28.654345-64-64-64h-768z m0-64h768C966.692487 0 1024 57.307513 1024 128v768C1024 966.692487 966.692487 1024 896 1024h-768C57.307513 1024 0 966.692487 0 896v-768C0 57.307513 57.307513 0 128 0z m329.143025 251.428487h301.715127v68.571513c-18.020046 27.895172-58.368 67.967706-96.000589 96.000589 24.064 8.704 69.777949 13.274336 137.143026 13.71336l-13.714538 68.57269c-63.360883-7.297471-123.483807-31.818152-164.572102-54.858152-43.775411 21.120294-101.211218 41.41668-164.570924 54.856975l-27.429076-68.571513c56.378851-8.492138 100.279025-12.452782 137.143026-27.427898-28.031706-24.960883-54.747513-45.038345-68.571513-82.286051h-41.142437v-68.571513z m114.85749 68.571513c12.288 25.728294 22.271411 41.183632 47.998529 60.000515 31.873471-19.969177 45.072478-35.424515 60.048772-60.000515h-108.047301zM512 512h68.571513v-41.142437h68.556211V512h68.586814v68.571513h-68.586814v41.142436h109.729251v68.57269h-109.729251v109.712772H580.57269v-109.713949h-109.71395v-68.571513h109.71395V580.57269H512V512zM306.285462 223.999411c34.286345 22.113692 81.117278 54.858152 109.713949 82.286051l-54.856974 68.57269c-21.504-26.113177-54.527411-65.665471-95.999412-96.000589l41.142437-54.856974z m137.157149 397.714538v54.856975c-56.437701 53.431614-97.586023 90.002538-123.442611 109.715127l-36.000074-58.28561c10.752-9.600883 22.285536-25.042097 22.285536-37.714979V470.857563h-82.284873v-68.572689h150.857563V662.857563c28.631982-9.103007 51.494253-22.817545 68.584459-41.143614z" fill="currentColor"></path>
         </svg>
         <span data-i18n="tab_translate">翻译</span>
       </button>
@@ -1116,23 +1229,48 @@
           <rect x="14" y="3" width="7" height="8" rx="1"></rect>
           <rect x="14" y="14" width="7" height="7" rx="1"></rect>
         </svg>
-        <span data-i18n="tidy">窗口分屏</span>
+        <span data-i18n="tidy">分屏</span>
       </button>
-      <button class="tab" type="button" data-tab="about">
+      <button class="tab" type="button" data-tab="keepawake">
         <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M12 16v-4M12 8h.01"></path>
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+          <line x1="6" y1="2" x2="6" y2="5"></line>
+          <line x1="10" y1="2" x2="10" y2="5"></line>
+          <line x1="14" y1="2" x2="14" y2="5"></line>
         </svg>
         <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 5h2v2h-2V7zm0 4h2v6h-2v-6z">
-          </path>
+          <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"></path>
         </svg>
-        <span data-i18n="about">关于</span>
+        <span data-i18n="keepawake">防休眠</span>
+      </button>
+      <button class="tab active" type="button" data-tab="general">
+        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="21" y1="4" x2="14" y2="4"></line>
+          <line x1="10" y1="4" x2="3" y2="4"></line>
+          <line x1="21" y1="12" x2="12" y2="12"></line>
+          <line x1="8" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="20" x2="16" y2="20"></line>
+          <line x1="12" y1="20" x2="3" y2="20"></line>
+          <line x1="14" y1="2" x2="14" y2="6"></line>
+          <line x1="8" y1="10" x2="8" y2="14"></line>
+          <line x1="16" y1="18" x2="16" y2="22"></line>
+        </svg>
+        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="3" y="3.4" width="18" height="1.8" rx="0.9"></rect>
+          <rect x="3" y="11" width="18" height="1.8" rx="0.9"></rect>
+          <rect x="3" y="18.6" width="18" height="1.8" rx="0.9"></rect>
+          <circle cx="15" cy="4.3" r="2.6"></circle>
+          <circle cx="9" cy="11.9" r="2.6"></circle>
+          <circle cx="16" cy="19.5" r="2.6"></circle>
+        </svg>
+        <span data-i18n="general">通用</span>
       </button>
     </div>
 
-    <div class="tab-panel active" data-panel="general">
+    <div class="tab-panel active" data-panel="general" data-title-key="general">
       <div class="section-title" data-i18n="guide">操作指南</div>
       <div class="guide-card">
         <div class="guide-line">
@@ -1228,9 +1366,27 @@
           <select id="language-select"></select>
         </div>
       </div>
+
+      <div class="section-title" data-i18n="lab">实验室</div>
+      <div class="group">
+        <div class="grow">
+          <span class="label" data-i18n="lab_focus_tab">显示轻听标签</span>
+          <label class="switch">
+            <input type="checkbox" id="lab-focus-tab">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-title" data-i18n="about">关于</div>
+      <div class="about-row">
+        <span class="about-name">日行 · RiXing</span>
+        <span class="about-version" id="about-version">v1.0.0</span>
+        <button class="about-link" id="about-github" data-i18n="about_github">GitHub 主页</button>
+      </div>
     </div>
 
-    <div class="tab-panel" data-panel="ann">
+    <div class="tab-panel" data-panel="ann" data-title-key="ann_section">
       <div id="ann-list"></div>
       <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
         <div style="display:flex;gap:6px;align-items:center">
@@ -1251,7 +1407,7 @@
       </div>
     </div>
 
-    <div class="tab-panel" data-panel="tidy">
+    <div class="tab-panel" data-panel="tidy" data-title-key="tidy">
       <div class="row">
         <span class="label" data-i18n="tidy_enable">启用窗口整理</span>
         <label class="switch">
@@ -1290,29 +1446,38 @@
       </div>
     </div>
 
-    <div class="tab-panel" data-panel="about">
-      <div class="about-row">
-        <span class="about-name">日行 · RiXing</span>
-        <span class="about-version" id="about-version">v1.0.0</span>
-        <button class="about-link" id="about-github" data-i18n="about_github">GitHub 主页</button>
+    <div class="tab-panel" data-panel="keepawake" data-title-key="keepawake">
+      <div class="row">
+        <div class="label" style="display:flex;flex-direction:column;gap:2px">
+          <span data-i18n="keepawake_enable">启用防休眠</span>
+          <span style="font-size:11px;color:var(--text-sub)" data-i18n="keepawake_enable_hint">开启后电脑不会进入休眠</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="keepawake-enabled">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div id="keepawake-detail">
+        <div class="group">
+          <div class="grow col">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="label" data-i18n="keepawake_duration_label">防休眠生效时长</span>
+              <span id="keepawake-value" style="font-weight:600;color:var(--accent)">1 小时</span>
+            </div>
+            <input type="range" class="volume-slider" id="keepawake-duration" min="0" max="9" step="1" value="2">
+            <div class="keepawake-ticks" id="keepawake-ticks"></div>
+            <div class="keepawake-countdown" id="keepawake-countdown" style="display:none">
+              <span id="keepawake-remain">剩余 --</span>
+              <button type="button" class="link-btn" id="keepawake-cancel">取消</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="tab-panel" data-panel="translate">
+    <div class="tab-panel" data-panel="translate" data-title-key="tab_translate">
       <div class="tr-wrap">
         <div class="lang-row">
-          <span data-i18n="translate_src">源语言</span>
-          <select id="src-lang">
-            <option value="auto" data-i18n="translate_auto">自动检测</option>
-            <option value="Chinese">中文</option>
-            <option value="English">English</option>
-            <option value="Japanese">日本語</option>
-            <option value="Korean">한국어</option>
-            <option value="Spanish">Español</option>
-            <option value="French">Français</option>
-            <option value="German">Deutsch</option>
-            <option value="Russian">Русский</option>
-          </select>
           <span class="lang-arrow">→</span>
           <span class="tgt-lang-label" id="tgt-lang-label">English</span>
         </div>
@@ -1323,9 +1488,6 @@
         <div class="tr-actions">
           <button class="btn primary" id="translate-btn" data-i18n="translate_btn">翻译</button>
           <div id="loading-indicator" class="loading-spinner hidden"></div>
-          <div style="flex:1"></div>
-          <button class="btn" id="model-btn" data-i18n="translate_load_model">加载模型</button>
-          <button class="btn" id="download-btn" data-i18n="translate_download_model" style="display:none;">下载模型</button>
         </div>
 
         <div id="progress-section" class="hidden">
@@ -1351,7 +1513,7 @@
       </div>
     </div>
 
-    <div class="tab-panel" data-panel="focus">
+    <div class="tab-panel" data-panel="focus" data-title-key="tab_focus">
       <div class="fm-wrap">
         <div class="fm-header">
           <span class="fm-header-icon">🎵</span>
@@ -1412,6 +1574,7 @@
           <span id="status-text" data-i18n="focus_status_init">未启动</span>
         </div>
       </div>
+    </div>
     </div>
   </div>
 

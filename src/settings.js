@@ -5,6 +5,20 @@ const elAutostart = document.getElementById('autostart');
 const elShowCount = document.getElementById('show-count');
 const elThemeSeg = document.getElementById('theme-seg');
 const elLangSelect = document.getElementById('language-select');
+const elLabFocus = document.getElementById('lab-focus-tab');
+
+// 防休眠
+const elKeepEnabled = document.getElementById('keepawake-enabled');
+const elKeepDetail = document.getElementById('keepawake-detail');
+const elKeepDuration = document.getElementById('keepawake-duration');
+const elKeepValue = document.getElementById('keepawake-value');
+const elKeepTicks = document.getElementById('keepawake-ticks');
+const elKeepCountdown = document.getElementById('keepawake-countdown');
+const elKeepRemain = document.getElementById('keepawake-remain');
+const elKeepCancel = document.getElementById('keepawake-cancel');
+let keepTimer = null;
+const KEEP_DURATIONS = [10, 30, 60, 120, 240, 720, 1440, 4320, 10080, 0]; // 分钟；末位 0 = 永久
+const KEEP_LABELS = ['10分', '30分', '1时', '2时', '4时', '12时', '1天', '3天', '一周', '永久'];
 
 let settings = {};   // 完整 settings 对象（合并保存，避免覆盖 sortRule 等）
 let syncing = false; // 回写控件时避免触发 change
@@ -42,6 +56,14 @@ function syncControls() {
   elLangSelect.value = lang;
   const theme = settings.theme || 'system';
   elThemeSeg.querySelectorAll('.seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.theme === theme));
+  elLabFocus.checked = !!settings.labFocusTab;
+}
+
+// 实验室：根据设置显示/隐藏「轻听」tab（仅隐藏入口，相关代码保留）
+function applyLabFocusVisibility() {
+  const focusTab = document.querySelector('.tab[data-tab="focus"]');
+  if (focusTab) focusTab.hidden = !settings.labFocusTab;
+  resizeToContent();
 }
 
 // 顶部标签分页：一次只显示一页，切换后重新贴合窗口高度
@@ -58,7 +80,18 @@ function switchTab(name) {
   document.querySelectorAll('.tab-panel').forEach((p) => {
     p.classList.toggle('active', p.dataset.panel === name);
   });
+  updateWindowTitle();
   resizeToContent();
+}
+
+// 把当前激活面板的标题显示到顶部拖拽条（作为拖拽区的视觉标识）
+function updateWindowTitle() {
+  const el = document.getElementById('window-title');
+  if (!el) return;
+  const activePanel = document.querySelector('.tab-panel.active');
+  const key = activePanel && activePanel.dataset.titleKey;
+  if (!key) return;
+  el.textContent = (window.I18N && window.I18N.t(key)) || key;
 }
 
 function setupTabs() {
@@ -71,7 +104,10 @@ function setupTabs() {
   // 托盘右键菜单项点击后由后端发来目标标签页（倒计时/窗口分屏/通用设置/关于）
   if (appEvent) {
     appEvent.listen('settings-open-tab', (e) => {
-      if (typeof e.payload === 'string') switchTab(e.payload);
+      if (typeof e.payload !== 'string') return;
+      // 「关于」已并入「通用」页，统一跳转过去
+      const target = e.payload === 'about' ? 'general' : e.payload;
+      switchTab(target);
     });
   }
 }
@@ -86,26 +122,21 @@ function resizeToContent() {
   });
 }
 
-// 设置窗口有原生标题栏：让标题随界面语言本地化（中文版「设置」/ 国际版 Settings…）
-async function applyWindowTitle() {
-  try {
-    await window.__TAURI__.window.getCurrentWindow().setTitle(window.I18N.t('settings_title'));
-  } catch (e) { /* ignore */ }
-}
-
 async function init() {
   await loadSettings();
   setupTabs();
   buildLangSelect();
-  applyWindowTitle();
   try {
     const st = await invoke('get_settings_state');
     syncing = true; elAutostart.checked = !!(st && st.autostart); syncing = false;
   } catch (e) { console.error(e); }
   syncing = true; elShowCount.checked = !!settings.showCount; syncing = false;
   syncControls();
+  applyLabFocusVisibility();
+  updateWindowTitle();
   await initTiling();
   await initTodoHotkey();
+  await initKeepAwake();
   renderAnnList();
   resizeToContent();
   // 字体/emoji 布局稳定后再校准一次
@@ -133,6 +164,13 @@ elShowCount.addEventListener('change', async () => {
   try { await invoke('refresh_tray_count'); } catch (e) { console.error('refresh_tray_count failed:', e); }
 });
 
+elLabFocus.addEventListener('change', async () => {
+  if (syncing) return;
+  settings.labFocusTab = elLabFocus.checked;
+  await saveSettings();
+  applyLabFocusVisibility();
+});
+
 async function selectLanguage(value) {
   if (value === 'system') {
     settings.langMode = 'system';
@@ -145,7 +183,7 @@ async function selectLanguage(value) {
   // 本窗口立即套用
   window.I18N.setLang(settings.lang);
   window.I18N.applyI18n(document);
-  applyWindowTitle(); // 标题栏跟随新语言
+  updateWindowTitle();     // 语言切换后刷新拖拽条标题
   buildLangSelect();       // 用新语言重写”跟随系统”等 title
   syncControls();
   renderAnnList();
@@ -397,7 +435,208 @@ todoKbdBtn && todoKbdBtn.addEventListener('click', async () => {
   todoKbdBtn.classList.add('recording');
   todoKbdBtn.classList.remove('warn');
   todoKbdBtn.textContent = window.I18N.t('todo_hotkey_record');
-  try { await invoke('suspend_todo_shortcut'); } catch (e) { /* ignore */ }
+    try { await invoke('suspend_todo_shortcut'); } catch (e) { /* ignore */ }
+});
+
+// ---------------------------------------------------------------------------
+// 防休眠
+// ---------------------------------------------------------------------------
+
+function formatKeepValue(idx) {
+  if (idx === KEEP_DURATIONS.length - 1) return '永久'; // 末档：永久
+  const minutes = KEEP_DURATIONS[idx];
+  if (minutes < 60) return minutes + ' 分钟';
+  const hours = minutes / 60;
+  if (hours < 24) return hours + ' 小时';
+  const days = hours / 24;
+  if (days < 7) return days + ' 天';
+  return (days / 7) + ' 周';
+}
+
+// 时长档位对应的毫秒数；末档(0)为「永久」，返回 0
+function keepDurationMs(idx) {
+  const minutes = KEEP_DURATIONS[idx];
+  if (!minutes || minutes <= 0) return 0;
+  return minutes * 60 * 1000;
+}
+
+function formatRemain(ms) {
+  if (ms <= 0) return '0 分钟';
+  const totalMin = Math.ceil(ms / 60000);
+  if (totalMin < 60) return totalMin + ' 分钟';
+  const hours = totalMin / 60;
+  if (hours < 24) return (Math.round(hours * 10) / 10) + ' 小时';
+  const days = hours / 24;
+  if (days < 7) return (Math.round(days * 10) / 10) + ' 天';
+  return (Math.round((days / 7) * 10) / 10) + ' 周';
+}
+
+function stopKeepCountdown() {
+  if (keepTimer) { clearInterval(keepTimer); keepTimer = null; }
+}
+
+// reset=true：以当前时刻重新计时（开启 / 重新设置档位时）
+// reset=false：沿用已保存的 startedAt 继续（启动恢复时）
+function startKeepCountdown(reset = true) {
+  stopKeepCountdown();
+  const idx = settings.keepAwake.index;
+  const dur = keepDurationMs(idx);
+  if (dur === 0) {
+    // 永久档：不倒计时，仅提示
+    if (elKeepCountdown) elKeepCountdown.style.display = '';
+    if (elKeepRemain) elKeepRemain.textContent = '永久生效';
+    if (elKeepCancel) elKeepCancel.style.display = 'none';
+    return;
+  }
+  if (reset || !settings.keepAwake.startedAt) {
+    settings.keepAwake.startedAt = Date.now();
+    saveSettings();
+  }
+  if (elKeepCancel) elKeepCancel.style.display = '';
+  const tick = () => {
+    const remain = dur - (Date.now() - settings.keepAwake.startedAt);
+    if (remain <= 0) {
+      // 到点：自动关闭防休眠
+      stopKeepCountdown();
+      settings.keepAwake.enabled = false;
+      settings.keepAwake.startedAt = null;
+      elKeepEnabled.checked = false;
+      elKeepDetail.classList.add('disabled');
+      saveSettings();
+      invoke('set_keep_awake', { enabled: false, index: settings.keepAwake.index })
+        .catch((e) => console.error('set_keep_awake failed:', e));
+      if (elKeepCountdown) elKeepCountdown.style.display = 'none';
+      if (elKeepCancel) elKeepCancel.style.display = 'none';
+      return;
+    }
+    if (elKeepCountdown) elKeepCountdown.style.display = '';
+    if (elKeepRemain) elKeepRemain.textContent = '剩余 ' + formatRemain(remain);
+  };
+  tick();
+  keepTimer = setInterval(tick, 1000);
+}
+
+function reflectKeepValue(i) {
+  if (elKeepValue) elKeepValue.textContent = formatKeepValue(i);
+  if (elKeepTicks) {
+    elKeepTicks.querySelectorAll('span').forEach((s) => {
+      s.classList.toggle('active', parseInt(s.dataset.index, 10) === i);
+    });
+  }
+}
+
+function buildKeepTicks() {
+  if (!elKeepTicks) return;
+  elKeepTicks.innerHTML = '';
+  KEEP_LABELS.forEach((lab, i) => {
+    const s = document.createElement('span');
+    s.textContent = lab;
+    s.dataset.index = i;
+    s.addEventListener('click', () => {
+      if (syncing) return;
+      elKeepDuration.value = i;
+      reflectKeepValue(i);
+      settings.keepAwake.index = i;
+      saveSettings();
+      if (settings.keepAwake.enabled) {
+        // 重新设置档位 → 重新拉起断言并重置倒计时
+        invoke('set_keep_awake', { enabled: true, index: i })
+          .catch((e) => console.error('set_keep_awake failed:', e));
+        startKeepCountdown(true);
+      }
+    });
+    elKeepTicks.appendChild(s);
+  });
+}
+
+async function initKeepAwake() {
+  const ka = (settings.keepAwake && typeof settings.keepAwake === 'object') ? settings.keepAwake : {};
+  // 默认：开关关闭（避免误触导致发热/耗电），时长默认 1 小时（index=2）
+  const enabled = ka.enabled === true;
+  const index = typeof ka.index === 'number' ? ka.index : 2;
+  let startedAt = (typeof ka.startedAt === 'number') ? ka.startedAt : null;
+  settings.keepAwake = { enabled, index, startedAt: enabled ? startedAt : null };
+  buildKeepTicks();
+  syncing = true;
+  elKeepEnabled.checked = enabled;
+  elKeepDuration.value = index;
+  syncing = false;
+  reflectKeepValue(index);
+  elKeepDetail.classList.toggle('disabled', !enabled);
+  await saveSettings(); // 持久化默认设置，便于下次启动恢复
+  if (enabled) {
+    const dur = keepDurationMs(index);
+    if (dur > 0 && startedAt && (Date.now() - startedAt) >= dur) {
+      // 上次 App 关闭期间已到期：自动关闭（不重新拉起断言）
+      settings.keepAwake.enabled = false;
+      settings.keepAwake.startedAt = null;
+      elKeepEnabled.checked = false;
+      elKeepDetail.classList.add('disabled');
+      if (elKeepCountdown) elKeepCountdown.style.display = 'none';
+      if (elKeepCancel) elKeepCancel.style.display = 'none';
+      await saveSettings();
+      invoke('set_keep_awake', { enabled: false, index })
+        .catch((e) => console.error('set_keep_awake failed:', e));
+    } else {
+      // 未到期（或永久）：恢复断言并继续 / 开始倒计时
+      try {
+        await invoke('set_keep_awake', { enabled: true, index });
+      } catch (e) {
+        console.error('set_keep_awake failed:', e);
+      }
+      startKeepCountdown(false); // 沿用已有 startedAt
+    }
+  }
+}
+
+elKeepEnabled.addEventListener('change', async () => {
+  if (syncing) return;
+  const on = elKeepEnabled.checked;
+  settings.keepAwake.enabled = on;
+  if (!on) {
+    // 关闭 / 取消：停止倒计时并释放断言
+    stopKeepCountdown();
+    settings.keepAwake.startedAt = null;
+  }
+  await saveSettings();
+  elKeepDetail.classList.toggle('disabled', !on);
+  try {
+    await invoke('set_keep_awake', { enabled: on, index: settings.keepAwake.index });
+  } catch (e) {
+    console.error('set_keep_awake failed:', e);
+  }
+  if (on) {
+    startKeepCountdown(true); // 开启即从此刻起计时
+  } else {
+    if (elKeepCountdown) elKeepCountdown.style.display = 'none';
+    if (elKeepCancel) elKeepCancel.style.display = 'none';
+  }
+});
+
+elKeepDuration.addEventListener('input', () => {
+  if (syncing) return;
+  const i = parseInt(elKeepDuration.value, 10);
+  reflectKeepValue(i);
+  settings.keepAwake.index = i;
+  saveSettings();
+});
+
+elKeepDuration.addEventListener('change', () => {
+  if (syncing) return;
+  if (settings.keepAwake.enabled) {
+    const i = parseInt(elKeepDuration.value, 10);
+    // 重新设置档位 → 重新拉起断言并重置倒计时
+    invoke('set_keep_awake', { enabled: true, index: i })
+      .catch((e) => console.error('set_keep_awake failed:', e));
+    startKeepCountdown(true);
+  }
+});
+
+elKeepCancel.addEventListener('click', () => {
+  if (syncing) return;
+  // 取消 = 关闭开关（会触发上面的 change 监听，停止倒计时并释放断言）
+  elKeepEnabled.checked = false;
+  elKeepEnabled.dispatchEvent(new Event('change'));
 });
 
 // ---------------------------------------------------------------------------
@@ -502,50 +741,29 @@ let trModelDownloaded = false;
 let trModelLoaded = false;
 let trIsTranslating = false;
 let trIsDownloading = false;
+let trIsUnloading = false;
 let trCurrentTargetLang = 'English';
 const TR_MAX_CHARS = 3500;
 
-const I18N_TO_MT_LANG = {
-  'zh-CN': 'Chinese',
-  'en': 'English',
-  'ja': 'Japanese',
-  'ko': 'Korean',
-  'es': 'Spanish',
-  'fr': 'French',
-  'de': 'German',
-  'ru': 'Russian',
-};
-
 function trUpdateButtonStates() {
-  const elModelBtn = document.getElementById('model-btn');
-  const elDownloadBtn = document.getElementById('download-btn');
   const elTranslateBtn = document.getElementById('translate-btn');
   const elSourceText = document.getElementById('source-text');
   const elCopyBtn = document.getElementById('copy-btn');
   const elLoading = document.getElementById('loading-indicator');
   const elResultText = document.getElementById('result-text');
 
-  if (!trModelDownloaded) {
-    elModelBtn.style.display = 'none';
-    elDownloadBtn.style.display = '';
-  } else if (trModelLoaded) {
-    elModelBtn.textContent = window.I18N ? window.I18N.t('translate_unload_model') : '卸载模型';
-    elModelBtn.style.display = '';
-    elDownloadBtn.style.display = 'none';
-  } else {
-    elModelBtn.textContent = window.I18N ? window.I18N.t('translate_load_model') : '加载模型';
-    elModelBtn.style.display = '';
-    elDownloadBtn.style.display = 'none';
-  }
-  elTranslateBtn.disabled = !trModelLoaded || trIsTranslating || trIsDownloading;
+  const busy = trIsTranslating || trIsDownloading || trIsUnloading;
+  elTranslateBtn.disabled = busy;
   if (trIsTranslating) {
     elTranslateBtn.textContent = window.I18N ? window.I18N.t('translate_loading') : '翻译中...';
+  } else if (trIsDownloading) {
+    elTranslateBtn.textContent = window.I18N ? window.I18N.t('translate_downloading') : '下载中...';
   } else {
     elTranslateBtn.textContent = window.I18N ? window.I18N.t('translate_btn') : '翻译';
   }
-  elSourceText.disabled = !trModelLoaded || trIsTranslating;
+  elSourceText.disabled = busy;
   if (elCopyBtn) elCopyBtn.disabled = !elResultText.value.trim();
-  elLoading.classList.toggle('hidden', !trIsTranslating);
+  elLoading.classList.toggle('hidden', !busy);
 }
 
 function trUpdateModelStatus() {
@@ -566,6 +784,9 @@ function trUpdateCharCount() {
   const n = elSourceText.value.length;
   elCharCount.textContent = `${n} / ${TR_MAX_CHARS}`;
   elCharCount.classList.toggle('warn', n > TR_MAX_CHARS);
+  // 实时更新目标语言提示（智能检测）
+  const elTgt = document.getElementById('tgt-lang-label');
+  if (elTgt) elTgt.textContent = trDetectTargetLang(elSourceText.value.trim());
 }
 
 async function trRefreshStatus() {
@@ -586,24 +807,46 @@ function trShowError(msg) {
   setTimeout(() => { elResultText.style.color = ''; }, 3000);
 }
 
-async function trToggleModel() {
-  if (trModelLoaded) {
-    try {
-      await invoke('unload_translate_model');
-      trModelLoaded = false;
-      trUpdateButtonStates();
-      trUpdateModelStatus();
-    } catch (e) { trShowError(e); }
-  } else {
-    try {
-      await invoke('load_translate_model');
-      trModelLoaded = true;
-      trUpdateButtonStates();
-      trUpdateModelStatus();
-    } catch (e) {
-      trShowError(e);
-      await trRefreshStatus();
-    }
+// 智能检测目标语言：输入文本中中文占比 > 50% → 译为英文，否则 → 译为中文
+function trDetectTargetLang(text) {
+  if (!text) return 'English';
+  const cjk = (text.match(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/g) || []).length;
+  return (cjk / text.length) > 0.5 ? 'English' : 'Chinese';
+}
+
+// 单次翻译成功后自动卸载模型，释放显存/内存
+async function trAutoUnload() {
+  if (!trModelLoaded) return;
+  trIsUnloading = true;
+  trUpdateButtonStates();
+  try {
+    await invoke('unload_translate_model');
+  } catch (e) { console.warn('auto unload failed:', e); }
+  finally {
+    trModelLoaded = false;
+    trIsUnloading = false;
+    trUpdateButtonStates();
+    trUpdateModelStatus();
+  }
+}
+
+// 确保模型可用：未下载则先下载并自动加载，已下载未加载则加载；全程对用户透明
+async function trEnsureModel() {
+  if (trModelLoaded) return true;
+  if (!trModelDownloaded) {
+    await trStartDownload();
+    return trModelLoaded;
+  }
+  try {
+    await invoke('load_translate_model');
+    trModelLoaded = true;
+    trUpdateButtonStates();
+    trUpdateModelStatus();
+    return true;
+  } catch (e) {
+    trShowError(e);
+    await trRefreshStatus();
+    return false;
   }
 }
 
@@ -613,13 +856,9 @@ async function trStartDownload() {
   const elProgressSection = document.getElementById('progress-section');
   const elProgressFill = document.getElementById('progress-fill');
   const elProgressText = document.getElementById('progress-text');
-  const elModelBtn = document.getElementById('model-btn');
-  const elDownloadBtn = document.getElementById('download-btn');
   elProgressSection.classList.remove('hidden');
   elProgressFill.style.width = '0%';
   elProgressText.textContent = '0%';
-  elModelBtn.style.display = 'none';
-  elDownloadBtn.style.display = 'none';
 
   try {
     const result = await invoke('download_model');
@@ -628,7 +867,13 @@ async function trStartDownload() {
       elProgressText.textContent = '100%';
       trUpdateButtonStates();
       trUpdateModelStatus();
-      await trToggleModel();
+      // 下载完成后自动加载模型
+      try {
+        await invoke('load_translate_model');
+        trModelLoaded = true;
+        trUpdateButtonStates();
+        trUpdateModelStatus();
+      } catch (e) { trShowError(e); }
     }
   } catch (e) { trShowError(e); }
   finally {
@@ -642,26 +887,22 @@ async function trDoTranslate() {
   const elSourceText = document.getElementById('source-text');
   const elResultText = document.getElementById('result-text');
   const text = elSourceText.value.trim();
-  if (!text || trIsTranslating) return;
-  if (!trModelLoaded) {
-    try {
-      await invoke('load_translate_model');
-      trModelLoaded = true;
-      trUpdateButtonStates();
-      trUpdateModelStatus();
-    } catch (e) {
-      trShowError(e);
-      await trRefreshStatus();
-      return;
-    }
-  }
+  if (!text || trIsTranslating || trIsDownloading || trIsUnloading) return;
+
+  // 智能选择目标语言
+  const tgt = trDetectTargetLang(text);
+  trCurrentTargetLang = tgt;
+
+  // 点击翻译后自动确保模型就绪（下载/加载对用户透明，无需手动选择）
+  const ok = await trEnsureModel();
+  if (!ok) return;
 
   trIsTranslating = true;
   trUpdateButtonStates();
   elResultText.value = '';
 
   try {
-    await invoke('translate_text', { text: text, tgtLang: trCurrentTargetLang });
+    await invoke('translate_text', { text: text, tgtLang: tgt });
   } catch (e) {
     trShowError(e);
     trIsTranslating = false;
@@ -690,19 +931,13 @@ async function initTranslate() {
   const elTgtLabel = document.getElementById('tgt-lang-label');
   const elSourceText = document.getElementById('source-text');
   const elTranslateBtn = document.getElementById('translate-btn');
-  const elModelBtn = document.getElementById('model-btn');
-  const elDownloadBtn = document.getElementById('download-btn');
   const elCopyBtn = document.getElementById('copy-btn');
 
   // No translate elements? Skip (tab HTML not present in this page)
-  if (!elTranslateBtn || !elModelBtn) return;
+  if (!elTranslateBtn) return;
 
-  try {
-    const s = await invoke('load_settings');
-    const appLang = s.lang || 'zh-CN';
-    trCurrentTargetLang = I18N_TO_MT_LANG[appLang] || 'English';
-  } catch (e) { }
-  elTgtLabel.textContent = trCurrentTargetLang;
+  // 目标语言由输入文本智能决定，初始化时先显示一次
+  elTgtLabel.textContent = trDetectTargetLang(elSourceText.value.trim());
 
   await trRefreshStatus();
 
@@ -712,6 +947,8 @@ async function initTranslate() {
       document.getElementById('copy-btn').disabled = false;
       trIsTranslating = false;
       trUpdateButtonStates();
+      // 单次翻译成功后自动卸载模型
+      trAutoUnload();
     });
     appEvent.listen('translate-error', (event) => {
       const payload = typeof event.payload === 'string' ? event.payload : (event.payload.error || 'Translation failed');
@@ -766,22 +1003,9 @@ async function initTranslate() {
         elModelStatus.innerHTML = `<span class="model-status-tag none">${window.I18N ? window.I18N.t('translate_loading_model') : '加载中…'}</span>`;
       }
     });
-    // Reload target language on settings change
-    try {
-      appEvent.listen('settings-updated', async () => {
-        try {
-          const s = await invoke('load_settings');
-          const appLang = s.lang || 'zh-CN';
-          trCurrentTargetLang = I18N_TO_MT_LANG[appLang] || 'English';
-          elTgtLabel.textContent = trCurrentTargetLang;
-        } catch (e) { }
-      });
-    } catch (e) { }
   }
 
   elTranslateBtn.addEventListener('click', trDoTranslate);
-  elModelBtn.addEventListener('click', trToggleModel);
-  elDownloadBtn.addEventListener('click', trStartDownload);
   elCopyBtn.addEventListener('click', trCopyResult);
   elSourceText.addEventListener('input', trUpdateCharCount);
 

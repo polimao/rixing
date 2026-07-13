@@ -229,6 +229,98 @@ fn set_autostart(app: AppHandle, enabled: bool) -> Result<(), String> {
     }
 }
 
+// ===========================================================================
+// 防休眠：macOS 上用 `caffeinate` 子进程接管电源断言（系统/空闲/磁盘不休眠）
+// -i 防止系统空闲休眠，-m 防止磁盘休眠，-s 防止系统休眠，-t 到点自动释放（安全兜底）
+// 关闭开关或退出 App（子进程随父进程被回收）即自动解除断言。
+// ===========================================================================
+
+/// 时长档位（分钟）：10m,30m,1h,2h,4h,12h,1d,3d,1w,永久(0=不限时)
+const KEEP_AWAKE_DURATIONS: [u64; 10] = [10, 30, 60, 120, 240, 720, 1440, 4320, 10080, 0];
+
+/// 持有当前 caffeinate 子进程，全局唯一。
+fn keep_awake_child() -> &'static Mutex<Option<std::process::Child>> {
+    static S: OnceLock<Mutex<Option<std::process::Child>>> = OnceLock::new();
+    S.get_or_init(|| Mutex::new(None))
+}
+
+#[tauri::command]
+fn set_keep_awake(enabled: bool, index: u64) -> Result<(), String> {
+    // 先释放上一次的子进程
+    if let Ok(mut guard) = keep_awake_child().lock() {
+        if let Some(mut child) = guard.take() {
+            let _ = child.kill();
+        }
+    }
+    if !enabled {
+        return Ok(());
+    }
+    #[cfg(target_os = "macos")]
+    {
+        let idx = index as usize;
+        let minutes = if idx < KEEP_AWAKE_DURATIONS.len() {
+            KEEP_AWAKE_DURATIONS[idx]
+        } else {
+            KEEP_AWAKE_DURATIONS[2]
+        };
+        // 最后一档（index = 9）为「永久」，不传 -t，由关闭开关 / 退出 App 释放
+        let mut cmd = std::process::Command::new("caffeinate");
+        cmd.args(["-i", "-m", "-s"]);
+        if minutes > 0 {
+            cmd.args(["-t", &(minutes.saturating_mul(60)).to_string()]);
+        }
+        let child = cmd
+            .spawn()
+            .map_err(|e| format!("启动 caffeinate 失败: {e}"))?;
+        if let Ok(mut guard) = keep_awake_child().lock() {
+            *guard = Some(child);
+        }
+        Ok(())
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        Err("防休眠功能仅支持 macOS".to_string())
+    }
+}
+
+/// 应用启动时按保存的设置恢复防休眠状态。
+fn apply_keep_awake_from_settings(_app: &AppHandle) {
+    let settings = match settings_path().and_then(|p| read_json(&p)) {
+        Some(v) => v,
+        None => return,
+    };
+    let keep = match settings.get("keepAwake").and_then(|k| k.as_object()) {
+        Some(k) => k,
+        None => return,
+    };
+    let enabled = keep.get("enabled").and_then(|x| x.as_bool()).unwrap_or(false);
+    if !enabled {
+        return;
+    }
+    let index = keep.get("index").and_then(|x| x.as_u64()).unwrap_or(2);
+    // 若记录了生效起点(startedAt, 毫秒时间戳)且按所选时长已到期，则视为已结束，
+    // 不再拉起电源断言（前端会在 init 时把开关回弹为关闭），避免 App 关闭期间
+    // 到期仍残留断言。
+    if let Some(started) = keep.get("startedAt").and_then(|x| x.as_i64()) {
+        let minutes = if (index as usize) < KEEP_AWAKE_DURATIONS.len() {
+            KEEP_AWAKE_DURATIONS[index as usize]
+        } else {
+            KEEP_AWAKE_DURATIONS[2]
+        };
+        if minutes > 0 {
+            let now_ms = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis() as i64)
+                .unwrap_or(0);
+            if now_ms - started >= (minutes as i64) * 60 * 1000 {
+                return; // 已到期：不拉起
+            }
+        }
+    }
+
+    let _ = set_keep_awake(true, index);
+}
+
 /// 语言切换后，按新语言重建两个托盘（菜单文案 / 待办标题 / 日期格式）。
 /// muda 菜单只能在主线程创建，命令运行在工作线程，故 marshal 到主线程执行。
 #[tauri::command]
@@ -1167,6 +1259,7 @@ fn main() {
             exit_pomodoro,
             get_settings_state,
             set_autostart,
+            set_keep_awake,
             relocalize_tray,
             refresh_tray_count,
             get_tiling_settings,
@@ -1272,6 +1365,9 @@ fn main() {
 
             // 翻译快捷键（固定 Cmd+Shift+Y）
             apply_translate_shortcut(app_handle);
+
+            // 防休眠：按保存的设置恢复（开关开启则重新拉起 caffeinate）
+            apply_keep_awake_from_settings(app_handle);
 
             // 设置窗口：点关闭按钮时只隐藏、不销毁
             if let Some(settings_win) = app.get_webview_window("settings") {

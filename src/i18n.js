@@ -160,7 +160,7 @@
 
   // 码放（窗口整理）相关文案，合并进各语言词典
   const TIDY = {
-    'zh-CN': { tidy: '窗口分屏', tidy_enable: '启用窗口分屏', tidy_gap: '窗口边距 (px)', tidy_left: '左半屏', tidy_right: '右半屏', tidy_max: '最大化', tidy_restore: '复原', tidy_perm: '需开启「辅助功能」权限', tidy_grant: '去授权', tidy_record: '按下快捷键', tidy_none: '未设置', tidy_dup: '已被占用' },
+    'zh-CN': { tidy: '分屏', tidy_enable: '启用窗口分屏', tidy_gap: '窗口边距 (px)', tidy_left: '左半屏', tidy_right: '右半屏', tidy_max: '最大化', tidy_restore: '复原', tidy_perm: '需开启「辅助功能」权限', tidy_grant: '去授权', tidy_record: '按下快捷键', tidy_none: '未设置', tidy_dup: '已被占用' },
     en: { tidy: 'Split screen', tidy_enable: 'Enable split screen', tidy_gap: 'Window gap (px)', tidy_left: 'Left half', tidy_right: 'Right half', tidy_max: 'Maximize', tidy_restore: 'Restore', tidy_perm: 'Requires Accessibility permission', tidy_grant: 'Grant', tidy_record: 'Press keys', tidy_none: 'Unset', tidy_dup: 'Already in use' },
     ja: { tidy: '画面分割', tidy_enable: '画面分割を有効化', tidy_gap: '余白 (px)', tidy_left: '左半分', tidy_right: '右半分', tidy_max: '最大化', tidy_restore: '元に戻す', tidy_perm: 'アクセシビリティ権限が必要', tidy_grant: '許可', tidy_record: 'キーを押す', tidy_none: '未設定', tidy_dup: '使用中' },
     ko: { tidy: '화면 분할', tidy_enable: '화면 분할 사용', tidy_gap: '여백 (px)', tidy_left: '왼쪽 절반', tidy_right: '오른쪽 절반', tidy_max: '최대화', tidy_restore: '복원', tidy_perm: '손쉬운 사용 권한 필요', tidy_grant: '허용', tidy_record: '키 입력', tidy_none: '미설정', tidy_dup: '이미 사용 중' },
@@ -170,6 +170,19 @@
     ru: { tidy: 'Разделение экрана', tidy_enable: 'Включить разделение экрана', tidy_gap: 'Отступ (px)', tidy_left: 'Левая половина', tidy_right: 'Правая половина', tidy_max: 'Развернуть', tidy_restore: 'Восстановить', tidy_perm: 'Нужно разрешение «Универсальный доступ»', tidy_grant: 'Разрешить', tidy_record: 'Нажмите клавиши', tidy_none: 'Не задано', tidy_dup: 'Уже занято' },
   };
   for (const k in DICT) Object.assign(DICT[k], TIDY[k] || {});
+
+  // 实验室（实验性功能）相关文案，合并进各语言词典
+  const LAB = {
+    'zh-CN': { lab: '实验室', lab_focus_tab: '显示轻听标签' },
+    en: { lab: 'Lab', lab_focus_tab: 'Show QingTing tab' },
+    ja: { lab: 'ラボ', lab_focus_tab: 'QingTingタブを表示' },
+    ko: { lab: '실험실', lab_focus_tab: 'QingTing 탭 표시' },
+    es: { lab: 'Laboratorio', lab_focus_tab: 'Mostrar pestaña QingTing' },
+    fr: { lab: 'Laboratoire', lab_focus_tab: 'Afficher l’onglet QingTing' },
+    de: { lab: 'Labor', lab_focus_tab: 'QingTing-Tab anzeigen' },
+    ru: { lab: 'Лаборатория', lab_focus_tab: 'Показать вкладку QingTing' },
+  };
+  for (const k in DICT) Object.assign(DICT[k], LAB[k] || {});
 
   // 待办行的“更多操作”菜单文案
   const MENU = {
@@ -904,6 +917,59 @@
   for (const k in DICT) Object.assign(DICT[k], FOCUS[k] || {});
 
   for (const k in DICT) Object.assign(DICT[k], TRANSLATE[k] || {});
+
+  // 防休眠
+  const KEEP = {
+    'zh-CN': {
+      keepawake: '防休眠',
+      keepawake_enable: '启用防休眠',
+      keepawake_enable_hint: '开启后电脑不会进入休眠',
+      keepawake_duration_label: '防休眠生效时长',
+    },
+    en: {
+      keepawake: 'Keep Awake',
+      keepawake_enable: 'Enable keep awake',
+      keepawake_enable_hint: 'Computer will not sleep while enabled',
+      keepawake_duration_label: 'Active duration',
+    },
+    ja: {
+      keepawake: 'スリープ防止',
+      keepawake_enable: 'スリープ防止を有効化',
+      keepawake_enable_hint: '有効にするとコンピュータがスリープしません',
+      keepawake_duration_label: 'スリープ防止の有効時間',
+    },
+    ko: {
+      keepawake: '슬립 방지',
+      keepawake_enable: '슬립 방지 사용',
+      keepawake_enable_hint: '켜면 컴퓨터가 절전되지 않습니다',
+      keepawake_duration_label: '슬립 방지 지속 시간',
+    },
+    es: {
+      keepawake: 'Evitar suspensión',
+      keepawake_enable: 'Activar evitar suspensión',
+      keepawake_enable_hint: 'El equipo no se suspenderá mientras esté activo',
+      keepawake_duration_label: 'Duración activa',
+    },
+    fr: {
+      keepawake: 'Empêcher la veille',
+      keepawake_enable: 'Activer la veille empêchée',
+      keepawake_enable_hint: 'L’ordinateur ne s’endort pas tant que c’est actif',
+      keepawake_duration_label: 'Durée active',
+    },
+    de: {
+      keepawake: 'Schlaf verhindern',
+      keepawake_enable: 'Schlaf verhindern aktivieren',
+      keepawake_enable_hint: 'Der Rechner schläft nicht, solange aktiv',
+      keepawake_duration_label: 'Aktive Dauer',
+    },
+    ru: {
+      keepawake: 'Не засыпать',
+      keepawake_enable: 'Включить «Не засыпать»',
+      keepawake_enable_hint: 'Компьютер не будет спать, пока включено',
+      keepawake_duration_label: 'Активная длительность',
+    },
+  };
+  for (const k in DICT) Object.assign(DICT[k], KEEP[k] || {});
 
   window.I18N = { DICT, SUPPORTED, normalizeLang, setLang, getLang, t, applyI18n, dataLabel };
 })();
