@@ -22,7 +22,7 @@ body {
 .arrow-up {
   width: 14px;
   height: 14px;
-  background-color: #fdfdfd;
+  background-color: var(--bg);
   position: absolute;
   top: 3px;
   left: 50%;
@@ -35,15 +35,13 @@ body {
 }
 
 .todo-container {
-  background-color: #fdfdfd;
+  background-color: var(--bg);
   border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  /* 窗口容器不再使用边框，仅保留圆角与外阴影 */
   /* 柔和的环境光阴影 + 更集中的底部阴影 */
-  box-shadow:
-    0 8px 30px rgba(0, 0, 0, 0.12),
-    0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 15px;
-  /* 将外边距/留白调整为 15px */
+  box-shadow: 0 4px 16px var(--shadow);
+  padding: 15px 0;
+  /* 将外边距/留白调整为上下15px，左右无边距 */
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -72,7 +70,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #fdfdfd;
+  background-color: var(--bg);
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -237,14 +235,14 @@ body {
 
 .metric-card.completed {
   flex: unset;
-  background: #f4f5f7;
-  border: 1px solid #e4e7ed;
-  border-bottom: 3px solid #e4e7ed;
-  color: #909399;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-bottom: 3px solid var(--border);
+  color: var(--text-sub);
 }
 
 .metric-card.completed .metric-value {
-  color: #a8abb2;
+  color: var(--text-sub);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -264,34 +262,34 @@ body {
   left: -2px;
   right: -2px;
   height: 3px;
-  background-color: #a8abb2;
+  background-color: var(--text-sub);
   transform: translateY(-50%);
   border-radius: 2px;
 }
 
 .metric-card.completed .metric-label {
-  color: #a8abb2;
+  color: var(--text-sub);
 }
 
 .metric-card.pending {
   flex: unset;
-  background: #fdfdfd;
-  border: 1px solid #e1ecf8;
-  border-bottom: 3px solid #cccccc;
-  color: #000;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: 3px solid var(--border-strong);
+  color: var(--text);
   position: relative;
   box-shadow: 0 2px 8px rgba(64, 158, 255, 0.08);
 }
 
 .metric-card.pending .metric-value {
-  color: #000;
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .metric-card.pending .metric-label {
-  color: #606266;
+  color: var(--text-sub);
 }
 
 .metric-value {
@@ -376,14 +374,12 @@ body {
 
 /* 任务分组外层包裹容器 */
 .todo-group {
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: 8px;
   margin-bottom: 12px;
-  background-color: #fafafa;
+  background-color: var(--surface-2);
   padding: 0;
   /* 移除 overflow: hidden 允许输入框高度自适应展开时不受限制 */
   overflow: visible;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  box-shadow: none;
   transition: all 0.3s ease;
 }
 
@@ -392,10 +388,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid #f0f2f5;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  padding: 12px 12px;
+  /* 与 todo-item 的 8px 左边距保持接近但不完全一致，分组标题可稍宽 */
+  border-bottom: 1px solid var(--border);
 }
 
 .group-title {
@@ -458,29 +453,20 @@ body {
 .todo-item {
   display: flex;
   align-items: center;
-  padding: 0 14px;
-  /* 移除上下 padding，让内部元素去撑开高度 */
+  padding: 0 8px;
+  /* 极小左右边距（8px），视觉效果几乎贴边但保留微量呼吸空间 */
   margin: 0;
-  border-bottom: 1px solid #f0f2f5;
   transition: background-color 0.2s ease, opacity 0.2s ease;
   opacity: 1;
   position: relative;
-  border-radius: 0;
   /* 为内部的绝对定位元素提供参考系（position:relative 即可；
      不要在这里加 transform——transform 会让本行成为 position:fixed 的包含块，
      导致“更多操作”下拉菜单的 fixed 定位错位） */
 }
 
-/* 组内最后一个元素不需要底部虚线，让它紧贴底部 */
-.todo-item:last-child {
-  border-bottom: none;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-
 .todo-item:hover {
-  background: rgba(0, 0, 0, 0.02);
-  /* 轻微的透明度背景，形成“呼吸的条带” */
+  background: var(--surface-3);
+  /* 轻微的背景变化，形成"呼吸的条带" */
 }
 
 .todo-item.completing {
@@ -509,19 +495,20 @@ body {
 
 .todo-item textarea.text {
   display: block;
-  width: calc(100% + 15px - 4px);
+  width: calc(100% + 8px);
+  /* 向右扩展抵消 .todo-item 的 padding-left: 8px，让输入框视觉上撑满 */
   height: 44px;
   /* 撑满整个任务条高度 */
   min-height: 44px;
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
   font-size: 14px;
   font-weight: 400;
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
   color: #303133;
   outline: none;
-  padding: 10px 86px 10px 14px;
-  /* 让文字在 44px 高度中垂直居中，并移除左右内边距 */
+  padding: 10px 86px 10px 16px;
+  /* 左侧 16px 文字缩进（比原来略大，因为整体更靠左了），右侧 86px 避开按钮 */
   box-sizing: border-box;
   resize: none;
   overflow: hidden;
@@ -532,8 +519,8 @@ body {
   line-height: 20px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   z-index: 1;
-  border-radius: 6px;
-  margin-left: -13px;
+  margin-left: -8px;
+  /* 向左偏移 8px，抵消 .todo-item 的 padding-left，让输入区左边缘与项左边缘对齐 */
 }
 
 .todo-item textarea.text:disabled {
@@ -562,19 +549,19 @@ body {
 .todo-item textarea.text:focus {
   position: absolute;
   top: 0;
-  left: 0;
+  left: -8px;
+  /* 向左偏移到 .todo-item 的左边缘（抵消 item 的 padding-left: 8px） */
   white-space: normal;
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
+  background: var(--surface-3);
+  /* box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2), 0 0px 2px rgba(0, 0, 0, 0.08); */
+  /* box-shadow: 0 2px 0 0 rgba(64, 158, 255, 0.2), 0 2px 2px rgba(0, 0, 0, 0.08); */
   z-index: 999;
-  border: 1px solid #409eff;
-  padding: 10px 86px 10px 14px;
-  /* 聚焦时左侧给 14px 间距，右侧留出 86px 空间防止遮挡悬浮标签 */
-  margin-left: -13px;
-  /* 向左偏移补偿左侧 padding (14px) 和 border (1px)，保持文字视觉原位 */
-  width: calc(100% + 15px + 74px);
-  /* 补偿左侧外扩宽度，并占用隐藏的右侧按钮原本的空间（包含边距） */
+  /* 聚焦态仅用 box-shadow 蓝色光晕作焦点提示，不再使用边框 */
+  padding: 10px 0px 10px 15px;
+  /* 聚焦时左右各 16px 文字缩进，按钮已隐藏无需预留 86px */
+  margin-left: 0;
+  width: calc(100% + 70px);
+  /* 撑满整行：100% (text-wrapper) + 8px (左侧) + ~108px (右侧按钮区) */
   overflow-y: hidden;
   /* 隐藏滚动条，高度由JS动态计算 */
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
@@ -590,7 +577,7 @@ body {
 
 /* Custom Selects as Badges */
 .custom-select {
-  border: 1px solid #dcdfe6;
+  border: none;
   border-radius: 6px;
   padding: 1px 6px;
   margin: 0 4px;
@@ -637,13 +624,13 @@ body {
   top: 100%;
   right: 0;
   margin-top: 6px;
-  background: white;
+  background: var(--surface);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--shadow);
   min-width: 120px;
   padding: 6px 0;
   z-index: 200;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border);
 }
 
 .dropdown-menu.hidden {
@@ -653,7 +640,7 @@ body {
 .dropdown-item {
   padding: 10px 16px;
   font-size: 13px;
-  color: #606266;
+  color: var(--text);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -663,14 +650,15 @@ body {
 }
 
 .dropdown-item:hover {
-  background-color: #f5f7fa;
-  color: #409eff;
+  background-color: var(--surface-2);
+  color: var(--accent);
 }
 
 /* 顶部标题栏：水平布局，左侧标题+排序，右侧成就按钮 */
 .app-header {
   flex-shrink: 0;
   margin-bottom: 10px;
+  padding: 0 15px;
   -webkit-app-region: no-drag;
   display: flex;
   align-items: center;
@@ -705,7 +693,7 @@ body {
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0.4px;
-  color: #2c3e50;
+  color: var(--text);
   cursor: pointer;
   -webkit-app-region: no-drag;
   transition: color 0.2s;
@@ -1018,7 +1006,7 @@ body {
 }
 
 .close-btn {
-  background: #f0f2f5;
+  background: var(--surface-2);
   border: none;
   width: 28px;
   height: 28px;
@@ -1200,10 +1188,6 @@ body {
   }
 
   /* Todo List & Items */
-  .todo-item {
-    border-bottom-color: rgba(255, 255, 255, 0.05);
-  }
-
   .todo-item:hover {
     background: rgba(255, 255, 255, 0.05);
   }
