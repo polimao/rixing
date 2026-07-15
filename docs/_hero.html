@@ -10,78 +10,103 @@
       width: 1280px;
       height: 720px;
       background:
-        radial-gradient(1200px 600px at 80% -10%, rgba(255, 255, 255, .25), transparent 60%),
-        linear-gradient(135deg, #4f46e5 0%, #7c3aed 52%, #9333ea 100%);
-      font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+        radial-gradient(1100px 680px at 78% 6%, rgba(74, 163, 255, .22), transparent 55%),
+        radial-gradient(900px 620px at 8% 102%, rgba(64, 158, 255, .10), transparent 60%),
+        linear-gradient(155deg, #232529 0%, #1a1b1e 56%, #141519 100%);
+      font-family: -apple-system, "PingFang SC", "Helvetica Neue", "Segoe UI", sans-serif;
       overflow: hidden;
       position: relative;
-    }
-
-    .menubar {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 30px;
-      background: rgba(0, 0, 0, .22);
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 16px;
-      padding: 0 18px;
       color: #fff;
+    }
+
+    /* ---------- macOS-style menu bar (signals "menu-bar app") ---------- */
+    .menubar {
+      position: absolute; top: 0; left: 0; right: 0; height: 30px;
+      background: rgba(255, 255, 255, .05);
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      backdrop-filter: blur(14px);
+      display: flex; align-items: center;
+      padding: 0 16px;
       font-size: 13px;
-      font-weight: 600;
-      backdrop-filter: blur(10px);
     }
-
-    .menubar .chip { background: rgba(255, 255, 255, .16); padding: 3px 9px; border-radius: 7px; }
-    .menubar .dim { opacity: .8; font-weight: 500; }
-
-    .title { position: absolute; left: 84px; top: 92px; color: #fff; }
-    .title .brand { display: flex; align-items: center; gap: 14px; }
-    .title .logo {
-      width: 52px; height: 52px; border-radius: 14px;
-      background: rgba(255, 255, 255, .16);
+    .menubar .appname { font-weight: 700; margin-right: 18px; letter-spacing: .2px; }
+    .menubar .menu { color: rgba(255, 255, 255, .6); margin-right: 15px; font-weight: 500; }
+    .menubar .right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .menubar .tray {
+      width: 20px; height: 20px; border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 28px; box-shadow: 0 6px 20px rgba(0, 0, 0, .25);
+      font-size: 11px; font-weight: 700;
     }
-    .title h1 { font-size: 46px; font-weight: 800; letter-spacing: -1.5px; }
-    .title p { font-size: 19px; opacity: .92; margin-top: 14px; max-width: 460px; line-height: 1.5; font-weight: 400; }
-    .badges { margin-top: 20px; display: flex; gap: 10px; }
-    .badge { background: rgba(255, 255, 255, .14); color: #fff; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 20px; }
+    .menubar .tray.brand { background: linear-gradient(145deg, #4aa3ff, #409eff); color: #fff; }
+    .menubar .tray.cal { background: rgba(255, 255, 255, .14); color: #fff; font-size: 12px; }
+    .menubar .clock { color: rgba(255, 255, 255, .72); font-weight: 600; font-variant-numeric: tabular-nums; }
 
-    img { position: absolute; }
-    .todos { width: 366px; left: 76px; top: 286px; }
-    .cal { width: 312px; right: 104px; top: 130px; }
-    .settings { width: 218px; right: 150px; top: 360px; }
+    /* ---------- Brand block (left) ---------- */
+    .brand { position: absolute; left: 84px; top: 138px; max-width: 540px; }
+    .brand .logo {
+      width: 62px; height: 62px; border-radius: 17px;
+      background: linear-gradient(145deg, #4aa3ff 0%, #409eff 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; font-weight: 700; color: #fff;
+      box-shadow: 0 12px 34px rgba(74, 163, 255, .45);
+    }
+    .brand h1 { font-size: 46px; font-weight: 800; letter-spacing: -1.6px; margin-top: 22px; }
+    .brand h1 .en { color: rgba(255, 255, 255, .62); font-weight: 600; }
+    .brand .tag-zh { font-size: 21px; color: rgba(255, 255, 255, .88); margin-top: 16px; font-weight: 500; }
+    .brand .tag-en { font-size: 15px; color: rgba(255, 255, 255, .5); margin-top: 8px; line-height: 1.5; max-width: 430px; }
+
+    .badges { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .badge {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(74, 163, 255, .14);
+      border: 1px solid rgba(74, 163, 255, .34);
+      color: #d4e8ff; font-size: 13px; font-weight: 600;
+      padding: 7px 13px; border-radius: 21px;
+    }
+
+    /* ---------- Floating app windows (right, fanned) ---------- */
+    img {
+      position: absolute;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, .10);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, .55);
+    }
+    .settings { width: 226px; left: 790px; top: 340px; transform: rotate(-3deg);  z-index: 1; }
+    .cal     { width: 300px; left: 852px; top: 196px; transform: rotate(3deg);   z-index: 2; }
+    .todos   { width: 360px; left: 700px; top: 228px; transform: rotate(-1.4deg); z-index: 3; }
   </style>
 </head>
 
 <body>
   <div class="menubar">
-    <span class="chip">待办 3</span>
-    <span class="chip">7月15日</span>
-    <span class="dim">100%</span>
-    <span class="dim">11:25</span>
+    <span class="appname">日行</span>
+    <span class="menu">文件</span>
+    <span class="menu">编辑</span>
+    <span class="menu">视图</span>
+    <span class="menu">窗口</span>
+    <span class="menu">帮助</span>
+    <span class="right">
+      <span class="tray brand">日</span>
+      <span class="tray cal">📅</span>
+      <span class="clock">11:25</span>
+    </span>
   </div>
 
-  <div class="title">
-    <div class="brand">
-      <div class="logo">📋</div>
-      <h1>待办 · Todos</h1>
-    </div>
-    <p>A minimalist menu-bar to-do &amp; calendar for macOS. Fast, private, always one click away.</p>
+  <div class="brand">
+    <div class="logo">日</div>
+    <h1>日行 <span class="en">· RiXing</span></h1>
+    <div class="tag-zh">菜单栏里的随身效率台</div>
+    <div class="tag-en">Tasks, focus, a lunar calendar, and on-device AI — all in one tiny, private app.</div>
     <div class="badges">
-      <span class="badge">⌘⇧U Global hotkey</span>
-      <span class="badge">8 languages</span>
-      <span class="badge">Light / Dark</span>
+      <span class="badge">🎵 本地 AI 音乐</span>
+      <span class="badge">🌐 本地翻译</span>
+      <span class="badge">🔒 隐私优先</span>
     </div>
   </div>
 
-  <div class="stage">
-    <img class="cal" src="images/calendar-light.png">
-    <img class="todos" src="images/todos-light.png">
-    <img class="settings" src="images/settings-dark.png">
-  </div>
+  <img class="settings" src="images/settings-dark.png">
+  <img class="cal" src="images/calendar-dark.png">
+  <img class="todos" src="images/todos-dark.png">
 </body>
 
 </html>
