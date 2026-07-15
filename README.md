@@ -1,13 +1,16 @@
 <div align="center">
 
-<img src="docs/images/hero.png" alt="日行 · RiXing — a minimalist menu-bar to-do & calendar for macOS" width="100%">
+<img src="docs/images/hero.png" alt="日行 · RiXing — a macOS menu-bar productivity companion with on-device AI" width="100%">
 
 # 日行 · RiXing
 
-**A menu-bar to-do list & calendar for macOS — fast, private, always one click away.**
+**Your macOS menu bar, supercharged — tasks, focus, a lunar calendar, on-device AI music, and local translation, all in one tiny private app.**
 
 [![Platform](https://img.shields.io/badge/platform-macOS%2010.15%2B-000000?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri%20v2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
+[![Backend](https://img.shields.io/badge/backend-Rust-DEA584?logo=rust&logoColor=black)](https://www.rust-lang.org/)
+[![.dmg size](https://img.shields.io/badge/.dmg-~5.3_MB-3FB950)](https://tauri.app/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-4C8EDA)](LICENSE)
 
 [English](README.md) · [简体中文](README.zh-CN.md)
 
@@ -15,23 +18,29 @@
 
 ---
 
-**日行 · RiXing** lives in your macOS menu bar. Left-click the tray icon and your to-do list pops up right below it; the second tray icon shows today's date and opens a calendar with Chinese lunar dates. No Dock icon, no window clutter — one click or a global hotkey brings it up from anywhere.
+**日行 · RiXing** lives in your macOS menu bar and quietly handles the small, daily things — your tasks, a focus timer, today's date with the Chinese lunar calendar, and ambient AI that helps you stay in flow. No Dock icon, no window clutter, no cloud. One click or a global hotkey brings it up from anywhere; everything else runs on your Mac.
+
+## 💡 Why RiXing
+
+- 🔒 **Private by default** — your to-dos and settings live as plain JSON in *your* iCloud Drive, and the AI runs **on your Mac**. No accounts, no telemetry, no servers. Ever.
+- 🤖 **Real AI, no API keys** — generative focus music (Magenta RealTime 2) and 8-language translation run **entirely on-device** via Apple Silicon. Zero subscriptions, zero usage fees.
+- 🪶 **Tiny & native** — under 6 MB, sits in the menu bar, and feels like part of macOS. Built with Tauri v2 + Rust, not a browser in a box.
+- 🧩 **One app, many jobs** — tasks, pomodoro, calendar, anniversaries, split-screen, and keep-awake. Stop juggling a dozen single-purpose utilities.
 
 ## ✨ Features
 
-- 🧷 **Menu-bar native** — two tray icons (to-do + calendar). Left-click pops the window directly under the icon; right-click opens the menu. No Dock icon (accessory app).
+- 🎵 **On-device AI music — 轻听 (QingTing)** — real-time generative focus music powered by Magenta RealTime 2 (MRT2) running locally via MLX on Apple Silicon. Pick a preset (vibe / genre / instrument) or write your own prompt, toggle drums, set the volume — the music streams endlessly and switches style on the fly. First launch auto-installs the Python env + model (from HuggingFace, with an `hf-mirror.com` fallback so downloads are fast in China).
+- 🌐 **On-device translation** — a local HY-MT model (~1.1 GB gguf, runs via `llama.cpp`) translates between 8 languages without leaving the app. `⌘⇧Y` pops the translate panel; everything runs on your CPU/GPU, no cloud.
 - ✅ **Frictionless to-dos** — group by category / priority / time, inline editing, one-tap status, and an *Achievements* view with a completion trend chart.
 - 🍅 **Built-in Pomodoro** — turn any task into a focus session; the capsule timer floats above full-screen apps.
-- 📅 **Calendar with Chinese lunar dates** — solar + lunar days, public holidays and 休/班 (rest/work) badges, today highlighted.
-- 🎵 **QingTing — on-device AI music** — real-time generative music for focus, powered by Magenta RealTime 2 (MRT2) running locally via MLX on Apple Silicon. Pick a preset (vibe / genre / instrument) or write your own prompt, toggle drums, set volume — the music streams endlessly and switches style on the fly. First launch auto-installs the Python env + model (from HuggingFace, with an `hf-mirror.com` fallback so downloads are fast in China).
-- 🌐 **On-device translation** — a local HY-MT model (~1.1 GB gguf, runs via `llama.cpp`) translates between 8 languages without leaving the app. `⌘⇧Y` pops the translate panel; everything runs on your CPU/GPU, no cloud.
-- ⌨️ **Customizable global hotkeys** — set your own shortcut for the to-do window (`⌘⇧U` default) and the snap shortcuts in Settings.
+- 📅 **Lunar calendar with anniversary countdowns** — solar + lunar days, public holidays and 休/班 (rest/work) badges, today highlighted, plus a 倒计时 (countdown) panel that counts down to the important dates you set (birthdays, deadlines…) and flags the soon ones in red.
+- 🧷 **Menu-bar native** — two tray icons (to-do + calendar). Left-click pops the window directly under the icon; right-click opens the menu. No Dock icon (accessory app).
 - 🪟 **Split screen** — snap the **active window of any app** to the left/right half, maximize, or restore it — with **customizable** hotkeys (default `⌘⌃ + arrows`) and an adjustable gap. Requires macOS Accessibility permission.
 - 🛡️ **Keep Awake** — prevent your Mac from sleeping or dimming the screen with a timer; auto-restores when the time is up.
+- ⌨️ **Customizable global hotkeys** — set your own shortcut for the to-do window (`⌘⇧U` default) and the snap shortcuts in Settings.
 - 🌗 **Light / dark / follow-system** theme, synced across every window.
 - 🌍 **8 languages** — 简体中文, English, 日本語, 한국어, Español, Français, Deutsch, Русский. Tray labels and menus switch too.
 - 🚀 **Launch at login** — enable from Settings.
-- ☁️ **Private by design** — to-dos and settings are plain JSON in *your* iCloud Drive. No account, no telemetry, no servers.
 
 ## 📸 Screenshots
 
@@ -64,6 +73,10 @@ cargo tauri build --config src-tauri/tauri.international.conf.json
 
 # both → src-tauri/target/release/bundle/{dmg,macos}/
 ```
+
+### Why so small?
+
+RiXing is built with Tauri v2 (a Rust backend + a thin native webview) instead of bundling a full browser engine, so the `.dmg` is ~5.3 MB and the app uses a fraction of the memory of an Electron app. The AI models are downloaded on first use and cached locally — they're never counted in the app size.
 
 ### Split-screen shortcuts (default)
 

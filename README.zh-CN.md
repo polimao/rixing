@@ -1,15 +1,15 @@
 <div align="center">
 
-<img src="docs/images/hero.png" alt="日行 · RiXing —— macOS 极简菜单栏待办与日历" width="100%">
+<img src="docs/images/hero.png" alt="日行 · RiXing —— macOS 菜单栏效率台，内置本地 AI" width="100%">
 
 # 日行 · RiXing
 
-**一款常驻 macOS 菜单栏的待办与日历 —— 轻快、私密、随手可达。**
+**菜单栏里的效率台：待办、番茄钟、农历日历、本地 AI 音乐与翻译，一个轻巧私密的 App 全包了。**
 
 [![Platform](https://img.shields.io/badge/platform-macOS%2010.15%2B-000000?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri%20v2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
 [![Rust](https://img.shields.io/badge/backend-Rust-DEA584?logo=rust&logoColor=black)](https://www.rust-lang.org/)
-[![.dmg size](https://img.shields.io/badge/.dmg-~5.3_MB-3FB950)](#-why-tauri)
+[![.dmg size](https://img.shields.io/badge/.dmg-~5.3_MB-3FB950)](https://tauri.app/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-4C8EDA)](LICENSE)
 
 [English](README.md) · 简体中文
@@ -18,23 +18,29 @@
 
 ---
 
-**日行 · RiXing** 常驻在 macOS 菜单栏：左键点击托盘图标，待办清单就在图标正下方弹出；第二个托盘图标显示今天日期，点开是带农历的日历。没有 Dock 图标、不占窗口，需要时一键唤出，全局快捷键随处可用。
+**日行 · RiXing** 常驻在 macOS 菜单栏，悄悄把那些「每天都要做的小事」打理好——待办、专注计时、带农历的今日日期，还有帮你保持心流的本地 AI。没有 Dock 图标、不占窗口、不连云。需要时一键唤出，全局快捷键随处可用；其余时间它就在那儿安静待命。
+
+## 💡 为什么选日行
+
+- 🔒 **隐私优先** —— 待办与设置是存在你自己 iCloud Drive 里的纯 JSON，而 AI 也**跑在你的 Mac 上**。无账号、无遥测、无服务器，永不。
+- 🤖 **真 AI，免密钥** —— 生成式专注音乐（Magenta RealTime 2）与 8 语种翻译**完全本地运行**于 Apple Silicon。零订阅、零调用费。
+- 🪶 **轻巧原生** —— 不到 6 MB，常驻菜单栏，像 macOS 自带的一部分。基于 Tauri v2 + Rust，而不是「套壳浏览器」。
+- 🧩 **一个 App，多面手** —— 待办、番茄钟、日历、纪念日、窗口分屏、防休眠，一次齐全。不必再装一堆单功能小工具。
 
 ## ✨ 功能特性
 
-- 🧷 **菜单栏原生** —— 两个托盘图标（待办 + 日历）。左键在图标正下方弹窗，右键打开菜单；不在 Dock 显示（accessory 应用）。
+- 🎵 **本地 AI 音乐 · 轻听** —— 基于 Magenta RealTime 2（MRT2），通过 MLX 在 Apple Silicon 本地实时生成专注音乐。选一个预设（场景氛围 / 音乐风格 / 乐器主导）或自己写提示词，可关鼓点、调音量，音乐源源不断地流式播放，还能随时切换风格。首次启动自动装好 Python 环境和模型（从 HuggingFace 下载，境内自动回退 `hf-mirror.com` 镜像加速）。
+- 🌐 **本地翻译** —— HY-MT 模型（~1.1 GB gguf，经 `llama.cpp` 推理）在 8 种语言间互译，全程不出 App。`⌘⇧Y` 唤出翻译面板；纯 CPU/GPU 本地推理，不碰云。
 - ✅ **顺手的待办** —— 按分类 / 优先级 / 时间分组，行内编辑，一键切换状态，并有带完成趋势图的「成就」视图。
 - 🍅 **内置番茄钟** —— 把任意任务变成专注计时；胶囊计时器可悬浮在全屏 App 之上。
-- 📅 **带农历的日历** —— 公历 + 农历、法定节假日与「休 / 班」角标，高亮今天。
-- 🎵 **轻听 · 本地 AI 音乐** —— 基于 Magenta RealTime 2（MRT2），通过 MLX 在 Apple Silicon 本地实时生成专注音乐。选一个预设（场景氛围 / 音乐风格 / 乐器主导）或自己写提示词，可关鼓点、调音量，音乐源源不断地流式播放，还能随时切换风格。首次启动自动装好 Python 环境和模型（从 HuggingFace 下载，境内自动回退 `hf-mirror.com` 镜像加速）。
-- 🌐 **本地翻译** —— HY-MT 模型（~1.1 GB gguf，经 `llama.cpp` 推理）在 8 种语言间互译，全程不出 App。`⌘⇧Y` 唤出翻译面板；纯 CPU/GPU 本地推理，不碰云。
-- ⌨️ **可自定义全局快捷键** —— 唤出待办窗口（默认 `⌘⇧U`）和分屏快捷键都能在设置里自改。
+- 📅 **带农历的日历 · 纪念日倒计时** —— 公历 + 农历、法定节假日与「休 / 班」角标，高亮今天；另设「倒计时」面板，对你设定的重要日期（生日、截止日……）自动倒数，临近的用红色标出。
+- 🧷 **菜单栏原生** —— 两个托盘图标（待办 + 日历）。左键在图标正下方弹窗，右键打开菜单；不在 Dock 显示（accessory 应用）。
 - 🪟 **窗口分屏** —— 把**任意 App 的当前活跃窗口**分到左半屏 / 右半屏 / 铺满，或一键复原；快捷键**可自定义**（默认 `⌘⌃ + 方向键`），边距可调。需要 macOS「辅助功能」权限。
+- 🛡️ **防休眠** —— 一键阻止 macOS 自动休眠/息屏，可设时长，到点自动恢复。
+- ⌨️ **可自定义全局快捷键** —— 唤出待办窗口（默认 `⌘⇧U`）和分屏快捷键都能在设置里自改。
 - 🌗 **亮色 / 暗色 / 随系统** —— 主题即时切换，所有窗口同步。
 - 🌍 **8 种语言** —— 简体中文、English、日本語、한국어、Español、Français、Deutsch、Русский。托盘文字和菜单也随语言切换。
 - 🚀 **开机自启动** —— 设置中一键开启。
-- 🛡️ **防休眠** —— 一键阻止 macOS 自动休眠/息屏，可设时长，到点自动恢复。
-- ☁️ **隐私优先** —— 待办与设置是存在你自己 iCloud Drive 里的纯 JSON，无账号、无遥测、无服务器。
 
 ## 📸 界面预览
 
@@ -67,6 +73,10 @@ cargo tauri build --config src-tauri/tauri.international.conf.json
 
 # 两者产物都在 src-tauri/target/release/bundle/{dmg,macos}/
 ```
+
+### 为什么这么小？
+
+日行基于 Tauri v2（Rust 后端 + 轻量原生 WebView）构建，而非打包整套浏览器内核，因此 `.dmg` 仅约 5.3 MB，内存占用也只有 Electron 类应用的一小部分。所有 AI 模型均在首次使用时下载并缓存到本地，不计入安装体积。
 
 ### 窗口分屏快捷键（默认）
 
