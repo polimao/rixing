@@ -45,18 +45,42 @@ const toastContainer = document.getElementById('toast-container');
 const toastMessage = document.getElementById('toast-message');
 const toastUndoBtn = document.getElementById('toast-undo-btn');
 
-function showToast(message, undoCallback) {
+function showToast(message, undoCallback, anchorRect) {
   if (toastTimeout) {
     clearTimeout(toastTimeout);
   }
-  toastMessage.textContent = message;
-  toastContainer.classList.remove('hidden');
+  toastMessage.textContent = message || '';
+  // 无文案时只显示操作按钮（如「撤销」），隐藏文案占位
+  toastMessage.style.display = message ? '' : 'none';
 
   toastUndoBtn.onclick = () => {
     if (undoCallback) undoCallback();
     toastContainer.classList.add('hidden');
     clearTimeout(toastTimeout);
   };
+
+  // 定位：传入锚点矩形则贴在触发元素附近，否则底部居中
+  // 先定位（此时仍 hidden，可测量尺寸且不产生位移动画），再显示
+  if (anchorRect) {
+    toastContainer.classList.add('toast-anchored');
+    const tw = toastContainer.getBoundingClientRect();
+    let left = anchorRect.left + anchorRect.width / 2 - tw.width / 2;
+    let top = anchorRect.bottom + 8;
+    const maxLeft = window.innerWidth - tw.width - 8;
+    const maxTop = window.innerHeight - tw.height - 8;
+    left = Math.min(Math.max(8, left), Math.max(8, maxLeft));
+    top = Math.min(Math.max(8, top), Math.max(8, maxTop));
+    toastContainer.style.left = left + 'px';
+    toastContainer.style.top = top + 'px';
+    toastContainer.style.bottom = 'auto';
+  } else {
+    toastContainer.classList.remove('toast-anchored');
+    toastContainer.style.left = '';
+    toastContainer.style.top = '';
+    toastContainer.style.bottom = '';
+  }
+
+  toastContainer.classList.remove('hidden');
 
   toastTimeout = setTimeout(() => {
     toastContainer.classList.add('hidden');
@@ -517,35 +541,53 @@ function createTodoElement(todo, index, isCompletedView) {
   innerTags.appendChild(priSel);
   textWrapper.appendChild(innerTags);
 
-  const statSel = createSelect(['待办', '完成'], todo.completed ? '完成' : '待办', 'select-status', (e) => {
-    const val = e.target.value;
-    if (val === '完成' && !todo.completed) {
-      item.classList.add('completing');
-      setTimeout(() => {
-        todo.completed = true;
-        todo.completedAt = Date.now();
-        todo.status = '完成';
-        saveTodos();
-        render();
-        showToast(tr('toast_completed'), () => {
-          todo.completed = false;
-          delete todo.completedAt;
-          todo.status = '待办';
-          saveTodos();
-          render();
-        });
-      }, 300);
-    } else if (val === '待办' && todo.completed) {
+  // 状态圆圈按钮（替代原 select 下拉）
+  const checkBtn = document.createElement('div');
+  checkBtn.className = 'status-circle';
+  checkBtn.setAttribute('role', 'checkbox');
+  checkBtn.setAttribute('aria-checked', String(todo.completed));
+  if (todo.completed) checkBtn.classList.add('checked');
+  checkBtn.setAttribute('tabindex', '0');
+  checkBtn.innerHTML = '<svg class="status-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+  checkBtn.addEventListener('click', () => {
+    if (todo.completed) {
+      // 已完成 → 恢复待办（直接操作，无动画）
       todo.completed = false;
       delete todo.completedAt;
       todo.status = '待办';
       saveTodos();
       render();
+      return;
+    }
+    // 待办 → 完成（带动画和撤销 Toast）
+    // 先记录圆圈位置（render 后会移除该节点），让撤销提示出现在原处
+    const rect = checkBtn.getBoundingClientRect();
+    item.classList.add('completing');
+    setTimeout(() => {
+      todo.completed = true;
+      todo.completedAt = Date.now();
+      todo.status = '完成';
+      saveTodos();
+      render();
+      showToast('', () => {
+        todo.completed = false;
+        delete todo.completedAt;
+        todo.status = '待办';
+        saveTodos();
+        render();
+      }, rect);
+    }, 300);
+  });
+
+  checkBtn.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      checkBtn.click();
     }
   });
 
-  // 状态（待办）按钮直接放在右侧外部
-  item.appendChild(statSel);
+  item.appendChild(checkBtn);
 
   // 右侧“更多操作”按钮：点开一个原生 macOS 菜单（专注 / 删除）。
   // 用系统原生菜单而非自绘下拉——它自带「点击别处自动消失」和正确定位，

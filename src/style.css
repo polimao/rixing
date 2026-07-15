@@ -835,6 +835,57 @@ body {
   filter: none;
 }
 
+/* ===== 状态圆圈按钮（替代原 select-status 下拉）===== */
+.status-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #B4B2A9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  background: transparent;
+  overflow: visible;
+}
+
+.status-circle .status-check {
+  width: 18px;
+  height: 18px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: #639922;
+}
+
+/* hover: 显示半透明对勾预览 */
+.status-circle:hover .status-check {
+  opacity: 0.4;
+}
+
+/* 点击弹跳 */
+.status-circle:active {
+  transform: scale(1.15);
+}
+
+/* 完成态：绿色圆环 + 白色中心 + 绿色对勾 */
+.status-circle.checked {
+  background: #ffffff;
+  border: 2px solid #639922;
+}
+.status-circle.checked .status-check {
+  opacity: 1;
+  color: #639922;
+}
+
+/* 完成时待办文字划线 + 变淡 */
+.todo-item.completing .text-wrapper {
+  text-decoration: line-through;
+  color: #888780;
+  transition: all 0.3s ease;
+}
+
 .right-hover-btn {
   background: transparent;
   border: none;
@@ -1089,6 +1140,14 @@ body {
   visibility: hidden;
 }
 
+/* 锚定到触发元素（如状态圆圈）附近时，用内联 left/top 定位 */
+.toast-container.toast-anchored {
+  transform: none;
+}
+.toast-container.toast-anchored.hidden {
+  transform: translateY(20px);
+}
+
 .toast-undo-btn {
   background: transparent;
   border: none;
@@ -1223,6 +1282,18 @@ body {
 
   .custom-select:hover {
     filter: brightness(1.2);
+  }
+
+  /* 状态圆圈暗色适配 */
+  .status-circle {
+    border-color: #6b6b6b;
+  }
+  .status-circle .status-check {
+    color: #8BC34A;
+  }
+  .status-circle.checked {
+    background: #e5eaf3;
+    border: 2px solid #639922;
   }
 
   /* Dropdown Menus */
