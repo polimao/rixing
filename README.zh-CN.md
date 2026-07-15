@@ -9,7 +9,7 @@
 [![Platform](https://img.shields.io/badge/platform-macOS%2010.15%2B-000000?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri%20v2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
 [![Rust](https://img.shields.io/badge/backend-Rust-DEA584?logo=rust&logoColor=black)](https://www.rust-lang.org/)
-[![.dmg size](https://img.shields.io/badge/.dmg-~1.8_MB-3FB950)](#-why-tauri)
+[![.dmg size](https://img.shields.io/badge/.dmg-~5.3_MB-3FB950)](#-why-tauri)
 [![License: MIT](https://img.shields.io/badge/license-MIT-4C8EDA)](LICENSE)
 
 [English](README.md) · 简体中文
@@ -33,6 +33,7 @@
 - 🌗 **亮色 / 暗色 / 随系统** —— 主题即时切换，所有窗口同步。
 - 🌍 **8 种语言** —— 简体中文、English、日本語、한국어、Español、Français、Deutsch、Русский。托盘文字和菜单也随语言切换。
 - 🚀 **开机自启动** —— 设置中一键开启。
+- 🛡️ **防休眠** —— 一键阻止 macOS 自动休眠/息屏，可设时长，到点自动恢复。
 - ☁️ **隐私优先** —— 待办与设置是存在你自己 iCloud Drive 里的纯 JSON，无账号、无遥测、无服务器。
 
 ## 📸 界面预览

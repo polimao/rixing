@@ -27,8 +27,10 @@
 - 🌐 **On-device translation** — a local HY-MT model (~1.1 GB gguf, runs via `llama.cpp`) translates between 8 languages without leaving the app. `⌘⇧Y` pops the translate panel; everything runs on your CPU/GPU, no cloud.
 - ⌨️ **Customizable global hotkeys** — set your own shortcut for the to-do window (`⌘⇧U` default) and the snap shortcuts in Settings.
 - 🪟 **Split screen** — snap the **active window of any app** to the left/right half, maximize, or restore it — with **customizable** hotkeys (default `⌘⌃ + arrows`) and an adjustable gap. Requires macOS Accessibility permission.
+- 🛡️ **Keep Awake** — prevent your Mac from sleeping or dimming the screen with a timer; auto-restores when the time is up.
 - 🌗 **Light / dark / follow-system** theme, synced across every window.
 - 🌍 **8 languages** — 简体中文, English, 日本語, 한국어, Español, Français, Deutsch, Русский. Tray labels and menus switch too.
+- 🚀 **Launch at login** — enable from Settings.
 - ☁️ **Private by design** — to-dos and settings are plain JSON in *your* iCloud Drive. No account, no telemetry, no servers.
 
 ## 📸 Screenshots
