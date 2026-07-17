@@ -26,10 +26,12 @@
     }
 
     .wrap {
-      padding: 0 18px 16px;
+      padding: 0 0px 0px 0px;
       display: flex;
       flex-direction: column;
       --title-h: 34px;
+      height: 550px;
+      min-height: 550px;
     }
 
     /* 窗口顶部可拖拽条：高度 = 标题高度，横跨整个窗口宽度，并在其中显示当前面板标题作为视觉标识 */
@@ -38,8 +40,13 @@
       flex: 0 0 var(--title-h);
       display: flex;
       align-items: center;
-      padding-left: 150px; /* 避让 macOS 红黄绿按钮 */
       cursor: default;
+    }
+
+    .window-drag-bar::before {
+      content: '';
+      flex: 0 0 96px;
+      /* 避让左侧边栏（tabs 132px + gap 16px ≈ 148px） */
     }
 
     .window-drag-bar .drag-title {
@@ -48,7 +55,10 @@
       color: var(--text);
       line-height: 1.2;
       user-select: none;
-      pointer-events: none; /* 让整条都可拖拽，不被文字拦截 */
+      pointer-events: none;
+      flex: 1;
+      text-align: center;
+      /* 让整条都可拖拽，不被文字拦截 */
     }
 
     /* 拖拽条下方的内容行：左侧 tab 栏 + 右侧面板 */
@@ -56,22 +66,35 @@
       display: flex;
       flex-direction: row;
       align-items: flex-start;
-      gap: 16px;
+      /* gap: 16px; */
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
     }
 
     /* 左侧竖向标签分页（整列作为侧边栏，与内容区左右分栏） */
     .tabs {
       display: flex;
       flex-direction: column;
-      flex: 0 0 132px;
+      flex: 0 0 103px;
       gap: 4px;
       margin-bottom: 0;
       position: sticky;
       top: 0;
       padding-top: 0;
-      background: var(--bg);
-      border-right: 1px solid var(--border);
-      padding-right: 10px;
+      /* background: var(--sidebar-bg); */
+      /* background: radial-gradient(ellipse var(--sidebar-bg), #fff, ); */
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+      background: radial-gradient(circle at center,
+          /* 圆心位置：center 也可写 50% 50% */
+          var(--sidebar-bg)30%,
+          /* 圆心颜色 */
+          var(--sidebar-bg) 5%,
+          /* 40%半径处过渡 */
+          var(--bg) 100%
+          /* 边缘颜色 */
+        );
+      padding: 0 10px;
     }
 
     /* 面板标题已移至顶部拖拽条（#window-title），此处不再单独渲染 */
@@ -83,11 +106,13 @@
       align-items: center;
       justify-content: flex-start;
       gap: 8px;
-      padding: 9px 10px;
-      background: transparent; /* 与侧边栏背景融为一体，不再有卡片感 */
-      border: none;          /* 去掉卡片边框 / tab 之间的分割线 */
+      padding: 9px 0px 9px 9px;
+      background: transparent;
+      /* 与侧边栏背景融为一体，不再有卡片感 */
+      border: none;
+      /* 去掉卡片边框 / tab 之间的分割线 */
       border-radius: 8px;
-      color: var(--text-sub);
+      color: var(--text);
       cursor: pointer;
       font-size: 12px;
       font-weight: 500;
@@ -101,7 +126,7 @@
     }
 
     .tab.active {
-      background: var(--active-tab, #2962d9);
+      background: var(--active-tab);
       color: #fff;
     }
 
@@ -163,6 +188,7 @@
     }
 
     .tab-panel {
+      padding: 15px;
       display: none;
     }
 
@@ -177,45 +203,11 @@
       margin-top: 0;
     }
 
-    /* 简明教程：通用页顶部的轻量提示块（一个整体，无内部分割线） */
-    .guide-card {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 13px 14px;
-      margin-bottom: 8px;
-    }
-
-    .guide-line {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-sub);
-    }
-
-    .guide-line svg {
-      flex-shrink: 0;
-      width: 16px;
-      height: 16px;
-      color: var(--accent);
-    }
-
-    .guide-line b {
-      font-weight: 400;
-    }
-
-    .guide-line .sep {
-      margin: 0 6px;
-      opacity: .5;
-    }
-
     .section-title {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
-      color: var(--text-sub);
+      color: var(--text);
+      border: #34c759;
       letter-spacing: .5px;
       margin: 4px 2px 8px;
     }
@@ -314,12 +306,13 @@
 
     .kbd {
       min-width: 76px;
+      height: 30px;
       text-align: center;
       background: var(--surface-2);
       color: var(--text);
       border: 1px solid var(--border-strong);
       border-radius: 6px;
-      padding: 5px 10px;
+      padding: 0 10px;
       font-size: 13px;
       font-variant-numeric: tabular-nums;
       cursor: pointer;
@@ -364,11 +357,14 @@
     /* 主题：图标分段选择 */
     .seg {
       display: inline-flex;
+      align-items: center;
       gap: 2px;
       background: var(--surface-2);
       border: 1px solid var(--border);
       border-radius: 9px;
       padding: 3px;
+      height: 30px;
+      box-sizing: border-box;
     }
 
     .seg-btn {
@@ -376,7 +372,7 @@
       align-items: center;
       justify-content: center;
       width: 36px;
-      height: 26px;
+      height: 24px;
       border: none;
       background: transparent;
       color: var(--text-sub);
@@ -403,7 +399,7 @@
     /* 分组卡片：同一分区的若干设置合成一张卡，行间用细分隔线 */
     .group {
       background: var(--surface);
-      border: 1px solid var(--border);
+      /* border: 1px solid var(--border); */
       border-radius: 10px;
       overflow: hidden;
       margin-bottom: 8px;
@@ -414,7 +410,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 12px 14px;
+      padding: 12px 0px;
     }
 
     .grow+.grow {
@@ -434,9 +430,10 @@
 
     /* 语言下拉选择 */
     #language-select {
-      padding: 5px 8px;
-      height: 32px;
-      width: 120px; /* 与「主题」分段按钮（.seg）等宽，视觉对齐 */
+      padding: 0 8px;
+      height: 30px;
+      width: 120px;
+      /* 与「主题」分段按钮（.seg）等宽，视觉对齐 */
       border-radius: 8px;
       border: 1px solid var(--border-strong);
       background: var(--surface-2);
@@ -528,6 +525,183 @@
       color-scheme: light dark;
     }
 
+    /* 自定义日期选择器（替代原生 date，便于快速跳年份） */
+    .ann-date-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .ann-date-trigger {
+      font-family: inherit;
+      width: 152px;
+      padding: 0 10px;
+      transition: border-color .15s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .ann-date-trigger:hover {
+      border-color: var(--accent);
+    }
+
+    .ann-date-trigger:focus-visible {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .ann-date-pop {
+      position: fixed;
+      z-index: 9999;
+      width: 172px;
+      padding: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+      -webkit-user-select: none;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    .ann-date-pop.hidden {
+      display: none !important;
+    }
+
+    .ann-dp-head {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .ann-dp-navrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ann-dp-nav {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      border-radius: 6px;
+      font-size: 15px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .ann-dp-nav:hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .ann-dp-selects {
+      display: flex;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .ann-dp-selects select {
+      flex: 1;
+      min-width: 0;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      padding: 3px 4px;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .ann-dp-selects select:focus {
+      border-color: var(--accent);
+    }
+
+    .ann-dp-weekdays,
+    .ann-dp-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+    }
+
+    .ann-dp-weekdays {
+      margin-bottom: 4px;
+    }
+
+    .ann-dp-weekdays div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--text-sub);
+      padding: 2px 0;
+    }
+
+    .ann-dp-cell {
+      /* aspect-ratio: 1 / 1; */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .ann-dp-cell:hover {
+      background: var(--surface-2);
+    }
+
+    .ann-dp-cell.muted {
+      visibility: hidden;
+      cursor: default;
+    }
+
+    .ann-dp-cell.today {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .ann-dp-cell.selected {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .ann-dp-cell.selected:hover {
+      background: var(--accent);
+    }
+
+    .ann-dp-foot {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .ann-dp-foot button {
+      flex: 1;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      border-radius: 6px;
+      font-size: 12px;
+      padding: 5px 0;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .ann-dp-foot button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     @keyframes ann-shake {
 
       0%,
@@ -601,35 +775,33 @@
     .tr-wrap {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
+      height: 100%;
     }
 
-    .lang-row {
+    .tr-card {
+      position: relative;
       display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-    }
-
-    .lang-row select {
-      padding: 3px 6px;
-      border-radius: 6px;
-      border: 1px solid var(--border-strong);
+      flex: 1;
+      min-height: 380px;
       background: var(--surface);
-      color: var(--text);
-      font-size: 12px;
-      font-family: inherit;
-      cursor: pointer;
+      border-radius: 14px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 10px 28px rgba(0, 0, 0, .06);
+      overflow: hidden;
     }
 
-    .lang-arrow {
-      color: var(--text-sub);
-      font-weight: 600;
+    .tr-col {
+      position: relative;
+      flex: 1 1 0;
+      display: flex;
+      min-width: 0;
+      min-height: 0;
     }
 
-    .tgt-lang-label {
-      font-weight: 600;
-      color: var(--accent);
+    .tr-divider {
+      flex: 0 0 1px;
+      align-self: stretch;
+      background: var(--border-strong);
     }
 
     textarea.tr-source,
@@ -637,15 +809,15 @@
       -webkit-user-select: text;
       user-select: text;
       flex: 1;
-      min-height: 100px;
+      min-height: 0;
       resize: none;
-      background: var(--surface-2);
+      border: none;
+      outline: none;
+      background: transparent;
       color: var(--text);
-      border: 1px solid var(--border-strong);
-      border-radius: 8px;
-      padding: 10px;
+      padding: 52px 16px 16px;
       font-size: 14px;
-      line-height: 1.55;
+      line-height: 1.62;
       font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
       transition: border-color .15s;
     }
@@ -653,11 +825,9 @@
     textarea.tr-source:focus,
     textarea.tr-result:focus {
       outline: none;
-      border-color: var(--accent);
     }
 
     textarea.tr-result {
-      background: var(--surface);
       cursor: text;
     }
 
@@ -665,10 +835,85 @@
       opacity: 0.7;
     }
 
+    /* floating copy button (top-right of result column) */
+    .tr-copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 4;
+      border: none;
+      background: var(--surface-2);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .12s, color .12s, box-shadow .12s;
+      white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+    }
+
+    .tr-copy-btn:hover:not(:disabled) {
+      background: var(--surface-3);
+    }
+
+    .tr-copy-btn:disabled {
+      color: var(--text-sub);
+      background: transparent;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* translate FAB on the divider, top */
+    .tr-fab {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 6;
+    }
+
+    .tr-card .btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--tr-accent-2));
+      border-color: transparent;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 3px 12px rgba(64, 158, 255, .35);
+    }
+
+    .tr-card .btn.primary:hover:not(:disabled) {
+      filter: brightness(1.06);
+      box-shadow: 0 5px 18px rgba(64, 158, 255, .45);
+    }
+
+    .tr-hidden {
+      display: none !important;
+    }
+
     .tr-actions {
       display: flex;
       gap: 8px;
       align-items: center;
+    }
+
+    .tr-actions .spacer {
+      flex: 1;
+    }
+
+    /* 翻译主按钮渐变（仅作用于翻译面板，不影响其他面板） */
+    .tr-actions .btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--tr-accent-2));
+      border-color: transparent;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 3px 12px rgba(64, 158, 255, .35);
+    }
+
+    .tr-actions .btn.primary:hover:not(:disabled) {
+      filter: brightness(1.06);
+      box-shadow: 0 5px 18px rgba(64, 158, 255, .45);
     }
 
     .btn {
@@ -698,6 +943,15 @@
       border-color: var(--accent);
       color: #fff;
       font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn.primary svg {
+      width: 15px;
+      height: 15px;
+      display: block;
     }
 
     .btn.primary:hover {
@@ -805,22 +1059,13 @@
     }
 
     .model-status-tag.loaded {
-      background: rgba(41, 98, 217, 0.12);
-      color: #2962d9;
+      background: rgba(7, 193, 96, 0.12);
+      color: var(--accent);
     }
 
     .model-status-tag.none {
       background: var(--surface-2);
       color: var(--text-sub);
-    }
-
-    .char-limit {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    .char-limit.warn {
-      color: #ff9500;
     }
 
     /* ============================================================
@@ -1180,401 +1425,412 @@
       <span class="drag-title" id="window-title"></span>
     </div>
     <div class="content-row">
-    <div class="tabs" id="tabs">
-      <button class="tab" type="button" data-tab="translate">
-        <svg class="icon-line" viewBox="0 0 1024 1024" fill="none" stroke="currentColor"
-          stroke-width="80" stroke-linejoin="round" stroke-linecap="round">
-          <path d="M128 64c-35.345655 0-64 28.654345-64 64v768c0 35.345655 28.654345 64 64 64h768c35.345655 0 64-28.654345 64-64v-768c0-35.345655-28.654345-64-64-64h-768z m0-64h768C966.692487 0 1024 57.307513 1024 128v768C1024 966.692487 966.692487 1024 896 1024h-768C57.307513 1024 0 966.692487 0 896v-768C0 57.307513 57.307513 0 128 0z m329.143025 251.428487h301.715127v68.571513c-18.020046 27.895172-58.368 67.967706-96.000589 96.000589 24.064 8.704 69.777949 13.274336 137.143026 13.71336l-13.714538 68.57269c-63.360883-7.297471-123.483807-31.818152-164.572102-54.858152-43.775411 21.120294-101.211218 41.41668-164.570924 54.856975l-27.429076-68.571513c56.378851-8.492138 100.279025-12.452782 137.143026-27.427898-28.031706-24.960883-54.747513-45.038345-68.571513-82.286051h-41.142437v-68.571513z m114.85749 68.571513c12.288 25.728294 22.271411 41.183632 47.998529 60.000515 31.873471-19.969177 45.072478-35.424515 60.048772-60.000515h-108.047301zM512 512h68.571513v-41.142437h68.556211V512h68.586814v68.571513h-68.586814v41.142436h109.729251v68.57269h-109.729251v109.712772H580.57269v-109.713949h-109.71395v-68.571513h109.71395V580.57269H512V512zM306.285462 223.999411c34.286345 22.113692 81.117278 54.858152 109.713949 82.286051l-54.856974 68.57269c-21.504-26.113177-54.527411-65.665471-95.999412-96.000589l41.142437-54.856974z m137.157149 397.714538v54.856975c-56.437701 53.431614-97.586023 90.002538-123.442611 109.715127l-36.000074-58.28561c10.752-9.600883 22.285536-25.042097 22.285536-37.714979V470.857563h-82.284873v-68.572689h150.857563V662.857563c28.631982-9.103007 51.494253-22.817545 68.584459-41.143614z"></path>
-        </svg>
-        <svg class="icon-filled" viewBox="0 0 1024 1024">
-          <path d="M128 64c-35.345655 0-64 28.654345-64 64v768c0 35.345655 28.654345 64 64 64h768c35.345655 0 64-28.654345 64-64v-768c0-35.345655-28.654345-64-64-64h-768z m0-64h768C966.692487 0 1024 57.307513 1024 128v768C1024 966.692487 966.692487 1024 896 1024h-768C57.307513 1024 0 966.692487 0 896v-768C0 57.307513 57.307513 0 128 0z m329.143025 251.428487h301.715127v68.571513c-18.020046 27.895172-58.368 67.967706-96.000589 96.000589 24.064 8.704 69.777949 13.274336 137.143026 13.71336l-13.714538 68.57269c-63.360883-7.297471-123.483807-31.818152-164.572102-54.858152-43.775411 21.120294-101.211218 41.41668-164.570924 54.856975l-27.429076-68.571513c56.378851-8.492138 100.279025-12.452782 137.143026-27.427898-28.031706-24.960883-54.747513-45.038345-68.571513-82.286051h-41.142437v-68.571513z m114.85749 68.571513c12.288 25.728294 22.271411 41.183632 47.998529 60.000515 31.873471-19.969177 45.072478-35.424515 60.048772-60.000515h-108.047301zM512 512h68.571513v-41.142437h68.556211V512h68.586814v68.571513h-68.586814v41.142436h109.729251v68.57269h-109.729251v109.712772H580.57269v-109.713949h-109.71395v-68.571513h109.71395V580.57269H512V512zM306.285462 223.999411c34.286345 22.113692 81.117278 54.858152 109.713949 82.286051l-54.856974 68.57269c-21.504-26.113177-54.527411-65.665471-95.999412-96.000589l41.142437-54.856974z m137.157149 397.714538v54.856975c-56.437701 53.431614-97.586023 90.002538-123.442611 109.715127l-36.000074-58.28561c10.752-9.600883 22.285536-25.042097 22.285536-37.714979V470.857563h-82.284873v-68.572689h150.857563V662.857563c28.631982-9.103007 51.494253-22.817545 68.584459-41.143614z" fill="currentColor"></path>
-        </svg>
-        <span data-i18n="tab_translate">翻译</span>
-      </button>
-      <button class="tab" type="button" data-tab="focus">
-        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 18V5l12-2v13"></path>
-          <circle cx="6" cy="18" r="3"></circle>
-          <circle cx="18" cy="16" r="3"></circle>
-        </svg>
-        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"></path>
-        </svg>
-        <span data-i18n="tab_focus">轻听</span>
-      </button>
-
-      <button class="tab" type="button" data-tab="ann">
-        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 10c0 6-8 11-8 11s-8-5-8-11a8 8 0 0 1 16 0z"></path>
-          <circle cx="12" cy="10" r="3"></circle>
-        </svg>
-        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <path
-            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z">
-          </path>
-        </svg>
-        <span data-i18n="ann_section">倒计时</span>
-      </button>
-      <button class="tab" type="button" data-tab="tidy">
-        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="18" rx="1"></rect>
-          <rect x="14" y="3" width="7" height="8" rx="1"></rect>
-          <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-        </svg>
-        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <rect x="3" y="3" width="7" height="18" rx="1"></rect>
-          <rect x="14" y="3" width="7" height="8" rx="1"></rect>
-          <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-        </svg>
-        <span data-i18n="tidy">分屏</span>
-      </button>
-      <button class="tab" type="button" data-tab="keepawake">
-        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-          <line x1="6" y1="2" x2="6" y2="5"></line>
-          <line x1="10" y1="2" x2="10" y2="5"></line>
-          <line x1="14" y1="2" x2="14" y2="5"></line>
-        </svg>
-        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"></path>
-        </svg>
-        <span data-i18n="keepawake">防休眠</span>
-      </button>
-      <button class="tab active" type="button" data-tab="general">
-        <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <line x1="21" y1="4" x2="14" y2="4"></line>
-          <line x1="10" y1="4" x2="3" y2="4"></line>
-          <line x1="21" y1="12" x2="12" y2="12"></line>
-          <line x1="8" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="20" x2="16" y2="20"></line>
-          <line x1="12" y1="20" x2="3" y2="20"></line>
-          <line x1="14" y1="2" x2="14" y2="6"></line>
-          <line x1="8" y1="10" x2="8" y2="14"></line>
-          <line x1="16" y1="18" x2="16" y2="22"></line>
-        </svg>
-        <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="3" y="3.4" width="18" height="1.8" rx="0.9"></rect>
-          <rect x="3" y="11" width="18" height="1.8" rx="0.9"></rect>
-          <rect x="3" y="18.6" width="18" height="1.8" rx="0.9"></rect>
-          <circle cx="15" cy="4.3" r="2.6"></circle>
-          <circle cx="9" cy="11.9" r="2.6"></circle>
-          <circle cx="16" cy="19.5" r="2.6"></circle>
-        </svg>
-        <span data-i18n="general">通用</span>
-      </button>
-    </div>
-
-    <div class="tab-panel active" data-panel="general" data-title-key="general">
-      <div class="section-title" data-i18n="guide">操作指南</div>
-      <div class="guide-card">
-        <div class="guide-line">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <rect x="6" y="2" width="12" height="20" rx="6"></rect>
-            <path d="M12 2v9"></path>
-            <path d="M12 2.2A5.8 5.8 0 0 0 6.2 8V11H12Z" fill="currentColor" stroke="none"></path>
+      <div class="tabs" id="tabs">
+        <button class="tab" type="button" data-tab="translate">
+          <svg class="icon-line" viewBox="0 0 1024 1024" fill="none" stroke="currentColor" stroke-width="80"
+            stroke-linejoin="round" stroke-linecap="round">
+            <path
+              d="M128 64c-35.345655 0-64 28.654345-64 64v768c0 35.345655 28.654345 64 64 64h768c35.345655 0 64-28.654345 64-64v-768c0-35.345655-28.654345-64-64-64h-768z m0-64h768C966.692487 0 1024 57.307513 1024 128v768C1024 966.692487 966.692487 1024 896 1024h-768C57.307513 1024 0 966.692487 0 896v-768C0 57.307513 57.307513 0 128 0z m329.143025 251.428487h301.715127v68.571513c-18.020046 27.895172-58.368 67.967706-96.000589 96.000589 24.064 8.704 69.777949 13.274336 137.143026 13.71336l-13.714538 68.57269c-63.360883-7.297471-123.483807-31.818152-164.572102-54.858152-43.775411 21.120294-101.211218 41.41668-164.570924 54.856975l-27.429076-68.571513c56.378851-8.492138 100.279025-12.452782 137.143026-27.427898-28.031706-24.960883-54.747513-45.038345-68.571513-82.286051h-41.142437v-68.571513z m114.85749 68.571513c12.288 25.728294 22.271411 41.183632 47.998529 60.000515 31.873471-19.969177 45.072478-35.424515 60.048772-60.000515h-108.047301zM512 512h68.571513v-41.142437h68.556211V512h68.586814v68.571513h-68.586814v41.142436h109.729251v68.57269h-109.729251v109.712772H580.57269v-109.713949h-109.71395v-68.571513h109.71395V580.57269H512V512zM306.285462 223.999411c34.286345 22.113692 81.117278 54.858152 109.713949 82.286051l-54.856974 68.57269c-21.504-26.113177-54.527411-65.665471-95.999412-96.000589l41.142437-54.856974z m137.157149 397.714538v54.856975c-56.437701 53.431614-97.586023 90.002538-123.442611 109.715127l-36.000074-58.28561c10.752-9.600883 22.285536-25.042097 22.285536-37.714979V470.857563h-82.284873v-68.572689h150.857563V662.857563c28.631982-9.103007 51.494253-22.817545 68.584459-41.143614z">
+            </path>
           </svg>
-          <span><b data-i18n="welcome_left_t">左键点击</b> <span data-i18n="welcome_todo_tray">「待办」托盘图标</span><span
-              class="sep">→</span><span data-i18n="welcome_todo_d">弹出待办列表</span></span>
-        </div>
-        <div class="guide-line">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <rect x="6" y="2" width="12" height="20" rx="6"></rect>
-            <path d="M12 2v9"></path>
-            <path d="M12 2.2A5.8 5.8 0 0 0 6.2 8V11H12Z" fill="currentColor" stroke="none"></path>
+          <!-- <svg class="icon-filled" viewBox="0 0 1024 1024"> -->
+          <svg t="1784257807685" class="icon-filled" viewBox="0 0 1024 1024" version="1.1"
+            style="background-color: #fff !important;" xmlns="http://www.w3.org/2000/svg" p-id="6159">
+            <path
+              d="M938.666667 981.333333c-17.066667 0-29.866667-8.533333-38.4-25.6l-59.733334-119.466666h-277.333333l-59.733333 119.466666c-8.533333 21.333333-34.133333 29.866667-55.466667 17.066667-25.6-8.533333-34.133333-34.133333-21.333333-51.2l72.533333-140.8 145.066667-290.133333c12.8-21.333333 34.133333-38.4 59.733333-38.4s46.933333 12.8 59.733333 38.4l145.066667 290.133333 72.533333 140.8c8.533333 21.333333 0 46.933333-17.066666 55.466667-12.8 4.266667-17.066667 4.266667-25.6 4.266666z m-332.8-226.133333h192l-98.133334-192-93.866666 192zM85.333333 844.8c-17.066667 0-29.866667-8.533333-38.4-25.6-8.533333-21.333333 0-46.933333 21.333334-55.466667 93.866667-46.933333 179.2-110.933333 247.466666-187.733333-46.933333-64-85.333333-128-110.933333-192-8.533333-21.333333 4.266667-46.933333 25.6-55.466667 21.333333-8.533333 46.933333 4.266667 55.466667 25.6 21.333333 51.2 46.933333 102.4 81.066666 149.333334 59.733333-85.333333 102.4-179.2 128-281.6H85.333333c-25.6 0-42.666667-17.066667-42.666666-42.666667s17.066667-42.666667 42.666666-42.666667h243.2V85.333333c0-25.6 17.066667-42.666667 42.666667-42.666666s42.666667 17.066667 42.666667 42.666666v51.2h238.933333c25.6 0 42.666667 17.066667 42.666667 42.666667s-17.066667 42.666667-42.666667 42.666667h-68.266667c-25.6 128-85.333333 247.466667-162.133333 349.866666l25.6 25.6c17.066667 17.066667 17.066667 42.666667 0 59.733334-17.066667 17.066667-42.666667 17.066667-59.733333 0l-17.066667-17.066667c-72.533333 81.066667-162.133333 149.333333-264.533333 200.533333-8.533333 0-17.066667 4.266667-21.333334 4.266667z"
+              fill="#06ad56" p-id="7250"></path>
+
           </svg>
-          <span><b data-i18n="welcome_left_t">左键点击</b> <span data-i18n="welcome_cal_tray">「日期」托盘图标</span><span
-              class="sep">→</span><span data-i18n="welcome_cal_d">弹出农历日历</span></span>
-        </div>
-        <div class="guide-line">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <rect x="6" y="2" width="12" height="20" rx="6"></rect>
-            <path d="M12 2v9"></path>
-            <path d="M12 2.2A5.8 5.8 0 0 1 17.8 8V11H12Z" fill="currentColor" stroke="none"></path>
+
+          <!-- </svg> -->
+          <span data-i18n="tab_translate">翻译</span>
+        </button>
+        <button class="tab" type="button" data-tab="focus">
+          <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
           </svg>
-          <span><b data-i18n="welcome_right_t">右键点击</b> <span data-i18n="welcome_right_d">任意托盘图标</span><span
-              class="sep">→</span><span data-i18n="welcome_right_menu">设置 / 其他功能 / 退出</span></span>
-        </div>
+          <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"></path>
+          </svg>
+          <span data-i18n="tab_focus">轻听</span>
+        </button>
+
+        <button class="tab" type="button" data-tab="ann">
+          <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 10c0 6-8 11-8 11s-8-5-8-11a8 8 0 0 1 16 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <path
+              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z">
+            </path>
+          </svg>
+          <span data-i18n="ann_section">倒计时</span>
+        </button>
+        <button class="tab" type="button" data-tab="tidy">
+          <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="18" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="8" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+          <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <rect x="3" y="3" width="7" height="18" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="8" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+          <span data-i18n="tidy">分屏</span>
+        </button>
+        <button class="tab" type="button" data-tab="keepawake">
+          <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+            <line x1="6" y1="2" x2="6" y2="5"></line>
+            <line x1="10" y1="2" x2="10" y2="5"></line>
+            <line x1="14" y1="2" x2="14" y2="5"></line>
+          </svg>
+          <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <path
+              d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z">
+            </path>
+          </svg>
+          <span data-i18n="keepawake">防休眠</span>
+        </button>
+        <button class="tab active" type="button" data-tab="general">
+          <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="21" y1="4" x2="14" y2="4"></line>
+            <line x1="10" y1="4" x2="3" y2="4"></line>
+            <line x1="21" y1="12" x2="12" y2="12"></line>
+            <line x1="8" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="20" x2="16" y2="20"></line>
+            <line x1="12" y1="20" x2="3" y2="20"></line>
+            <line x1="14" y1="2" x2="14" y2="6"></line>
+            <line x1="8" y1="10" x2="8" y2="14"></line>
+            <line x1="16" y1="18" x2="16" y2="22"></line>
+          </svg>
+          <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="3" y="3.4" width="18" height="1.8" rx="0.9"></rect>
+            <rect x="3" y="11" width="18" height="1.8" rx="0.9"></rect>
+            <rect x="3" y="18.6" width="18" height="1.8" rx="0.9"></rect>
+            <circle cx="15" cy="4.3" r="2.6"></circle>
+            <circle cx="9" cy="11.9" r="2.6"></circle>
+            <circle cx="16" cy="19.5" r="2.6"></circle>
+          </svg>
+          <span data-i18n="general">通用</span>
+        </button>
       </div>
 
-      <div class="section-title" data-i18n="general">通用</div>
-      <div class="group">
-        <div class="grow">
-          <span class="label" data-i18n="autostart">开机自启动</span>
-          <label class="switch">
-            <input type="checkbox" id="autostart">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="grow">
-          <span class="label" data-i18n="show_count">显示待办统计</span>
-          <label class="switch">
-            <input type="checkbox" id="show-count">
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>
-
-
-      <div class="section-title" data-i18n="hotkey_section">快捷键</div>
-      <div class="group">
-        <div class="grow">
-          <span class="label" data-i18n="todo_hotkey">待办窗口快捷键</span>
-          <button class="kbd" data-key="todo"></button>
-        </div>
-      </div>
-
-      <div class="section-title" data-i18n="appearance">外观</div>
-      <div class="group">
-        <div class="grow">
-          <span class="label" data-i18n="theme">主题</span>
-          <div class="seg" id="theme-seg">
-            <button class="seg-btn" data-theme="light" data-i18n-title="theme_light" type="button" title="亮色">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
-                <circle cx="12" cy="12" r="4"></circle>
-                <path
-                  d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41">
-                </path>
-              </svg>
-            </button>
-            <button class="seg-btn" data-theme="dark" data-i18n-title="theme_dark" type="button" title="暗色">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-              </svg>
-            </button>
-            <button class="seg-btn" data-theme="system" data-i18n-title="theme_system" type="button" title="随系统">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
-                <path d="M8 21h8M12 17v4"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div class="grow">
-          <span class="label" data-i18n="language">语言</span>
-          <select id="language-select"></select>
-        </div>
-      </div>
-
-      <div class="section-title" data-i18n="lab">实验室</div>
-      <div class="group">
-        <div class="grow">
-          <span class="label" data-i18n="lab_focus_tab">显示轻听标签</span>
-          <label class="switch">
-            <input type="checkbox" id="lab-focus-tab">
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="section-title" data-i18n="about">关于</div>
-      <div class="about-row">
-        <span class="about-name">日行 · RiXing</span>
-        <span class="about-version" id="about-version">v1.1.1</span>
-        <button class="about-link" id="about-github" data-i18n="about_github">GitHub 主页</button>
-      </div>
-    </div>
-
-    <div class="tab-panel" data-panel="ann" data-title-key="ann_section">
-      <div id="ann-list"></div>
-      <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
-        <div style="display:flex;gap:6px;align-items:center">
-          <input id="ann-name" type="text" class="ann-input" style="flex:1;min-width:0"
-            data-i18n-placeholder="ann_name_placeholder" placeholder="如：妈妈生日">
-          <input id="ann-date" type="date" class="ann-input" style="flex-shrink:0">
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="label" style="font-size:12px" data-i18n="ann_repeat">每年重复</span>
+      <div class="tab-panel active" data-panel="general" data-title-key="general">
+        <!-- <div class="section-title" data-i18n="general">通用</div> -->
+        <div class="group">
+          <div class="grow">
+            <span class="label" data-i18n="autostart">开机自启动</span>
             <label class="switch">
-              <input type="checkbox" id="ann-repeat" checked>
+              <input type="checkbox" id="autostart">
               <span class="slider"></span>
             </label>
           </div>
-          <button class="mini-btn" id="ann-add-btn" data-i18n="ann_add">+ 添加</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-panel" data-panel="tidy" data-title-key="tidy">
-      <div class="row">
-        <span class="label" data-i18n="tidy_enable">启用窗口整理</span>
-        <label class="switch">
-          <input type="checkbox" id="tidy-enabled">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div id="tidy-detail">
-        <div class="row perm" id="tidy-perm-row" style="display:none">
-          <span class="label" data-i18n="tidy_perm">需开启「辅助功能」权限</span>
-          <button class="mini-btn" id="tidy-grant" data-i18n="tidy_grant">去授权</button>
-        </div>
-        <div class="row">
-          <span class="label" data-i18n="tidy_gap">窗口边距 (px)</span>
-          <input type="number" id="tidy-gap" class="num" min="0" max="80" step="1">
-        </div>
-        <!-- 快捷键按方向键十字摆放：上=最大化 / 左=左半屏 / 右=右半屏 / 下=复原 -->
-        <div class="tidy-cross">
-          <div class="cross-cell c-max">
-            <span class="cross-label" data-i18n="tidy_max">最大化</span>
-            <button class="kbd" data-key="max"></button>
-          </div>
-          <div class="cross-cell c-left">
-            <span class="cross-label" data-i18n="tidy_left">左半屏</span>
-            <button class="kbd" data-key="left"></button>
-          </div>
-          <div class="cross-cell c-right">
-            <span class="cross-label" data-i18n="tidy_right">右半屏</span>
-            <button class="kbd" data-key="right"></button>
-          </div>
-          <div class="cross-cell c-restore">
-            <span class="cross-label" data-i18n="tidy_restore">复原</span>
-            <button class="kbd" data-key="restore"></button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-panel" data-panel="keepawake" data-title-key="keepawake">
-      <div class="row">
-        <div class="label" style="display:flex;flex-direction:column;gap:2px">
-          <span data-i18n="keepawake_enable">启用防休眠</span>
-          <span style="font-size:11px;color:var(--text-sub)" data-i18n="keepawake_enable_hint">开启后电脑不会进入休眠</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="keepawake-enabled">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div id="keepawake-detail">
-        <div class="group">
-          <div class="grow col">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <span class="label" data-i18n="keepawake_duration_label">防休眠生效时长</span>
-              <span id="keepawake-value" style="font-weight:600;color:var(--accent)">1 小时</span>
-            </div>
-            <input type="range" class="volume-slider" id="keepawake-duration" min="0" max="9" step="1" value="2">
-            <div class="keepawake-ticks" id="keepawake-ticks"></div>
-            <div class="keepawake-countdown" id="keepawake-countdown" style="display:none">
-              <span id="keepawake-remain">剩余 --</span>
-              <button type="button" class="link-btn" id="keepawake-cancel">取消</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-panel" data-panel="translate" data-title-key="tab_translate">
-      <div class="tr-wrap">
-        <div class="lang-row">
-          <span class="lang-arrow">→</span>
-          <span class="tgt-lang-label" id="tgt-lang-label">English</span>
-        </div>
-
-        <textarea class="tr-source" id="source-text" data-i18n-placeholder="translate_placeholder"
-          placeholder="输入或粘贴需要翻译的文字..."></textarea>
-
-        <div class="tr-actions">
-          <button class="btn primary" id="translate-btn" data-i18n="translate_btn">翻译</button>
-          <div id="loading-indicator" class="loading-spinner hidden"></div>
-        </div>
-
-        <div id="progress-section" class="hidden">
-          <div class="progress-bar">
-            <div class="progress-fill animated" id="progress-fill" style="width:0%"></div>
-          </div>
-          <div class="progress-text" id="progress-text">0%</div>
-        </div>
-
-        <textarea class="tr-result" id="result-text" readonly data-i18n-placeholder="translate_result_placeholder"
-          placeholder="翻译结果将显示在这里..."></textarea>
-
-        <div class="tr-actions">
-          <button class="btn" id="copy-btn" data-i18n="translate_copy" disabled>复制结果</button>
-        </div>
-
-        <div class="tr-status-row">
-          <span id="model-status" data-i18n="translate_no_model">
-            <span class="model-status-tag none">模型未加载</span>
-          </span>
-          <span class="char-limit" id="char-count">0 / 3500</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-panel" data-panel="focus" data-title-key="tab_focus">
-      <div class="fm-wrap">
-        <div class="fm-header">
-          <span class="fm-header-icon">🎵</span>
-          <span class="fm-header-title" data-i18n="focus_title">轻听</span>
-          <span class="fm-header-sub" data-i18n="focus_subtitle">AI 实时生成</span>
-          <span style="flex:1"></span>
-        </div>
-
-        <div class="fm-transport">
-          <button class="play-btn" id="play-btn" title="播放 / 暂停">▶</button>
-          <span class="now-playing" id="now-playing">
-            <span data-i18n="focus_ready">就绪</span>
-          </span>
-        </div>
-
-        <div class="setup-banner" id="setup-banner">
-          <p data-i18n="focus_setup_desc">需要 Python 环境和 MRT2 模型才能使用。首次使用请先安装依赖。</p>
-          <button class="btn primary" id="setup-btn" data-i18n="focus_check_setup">检查并启动</button>
-          <button class="btn" id="open-docs-btn" style="margin-left:6px;" data-i18n="focus_setup_guide">安装指南</button>
-        </div>
-
-        <div id="main-ui" class="hidden" style="display:flex;flex-direction:column;gap:12px;">
-          <span class="fm-section-label" data-i18n="focus_vibe">场景氛围</span>
-          <div class="preset-grid" id="preset-vibe"></div>
-
-          <span class="fm-section-label" data-i18n="focus_genre">音乐风格</span>
-          <div class="preset-grid" id="preset-genre"></div>
-
-          <span class="fm-section-label" data-i18n="focus_instrument">乐器主导</span>
-          <div class="preset-grid" id="preset-instrument"></div>
-
-          <span class="fm-section-label" data-i18n="focus_custom">自定义提示词</span>
-          <div class="prompt-row">
-            <input class="prompt-input" id="custom-prompt" data-i18n-placeholder="focus_custom_placeholder"
-              placeholder="描述你想要的音乐...">
-            <button class="btn primary" id="apply-prompt-btn" data-i18n="focus_apply">应用</button>
-          </div>
-
-          <div class="fm-controls">
-            <label class="toggle-row" id="drums-toggle">
-              <input type="checkbox" id="drums-check" checked>
-              <span class="toggle-track on" id="drums-track">
-                <span class="toggle-knob"></span>
-              </span>
-              <span data-i18n="focus_drums">鼓点 / 节奏</span>
+          <div class="grow">
+            <span class="label" data-i18n="show_count">显示待办统计</span>
+            <label class="switch">
+              <input type="checkbox" id="show-count">
+              <span class="slider"></span>
             </label>
+          </div>
+          <div class="grow">
+            <span class="label" data-i18n="theme">主题</span>
+            <div class="seg" id="theme-seg">
+              <button class="seg-btn" data-theme="light" data-i18n-title="theme_light" type="button" title="亮色">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <path
+                    d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41">
+                  </path>
+                </svg>
+              </button>
+              <button class="seg-btn" data-theme="dark" data-i18n-title="theme_dark" type="button" title="暗色">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              </button>
+              <button class="seg-btn" data-theme="system" data-i18n-title="theme_system" type="button" title="随系统">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                  <path d="M8 21h8M12 17v4"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="grow">
+            <span class="label" data-i18n="language">语言</span>
+            <select id="language-select"></select>
+          </div>
+        </div>
+
+
+        <!-- <div class="section-title" data-i18n="hotkey_section">快捷键</div> -->
+        <div class="group">
+          <div class="grow">
+            <span class="label" data-i18n="todo_hotkey">待办快捷键</span>
+            <button class="kbd" data-key="todo"></button>
+          </div>
+
+          <div class="grow">
+            <span class="label" data-i18n="translate_hotkey">翻译快捷键</span>
+            <button class="kbd" data-key="translate"></button>
+          </div>
+        </div>
+
+        <!-- <div class="section-title" data-i18n="appearance">外观</div> -->
+        <!-- <div class="group">
+        
+        </div> -->
+
+        <!-- <div class="section-title" data-i18n="lab">实验室</div> -->
+        <div class="group">
+          <div class="grow">
+            <span class="label" data-i18n="lab_focus_tab">显示轻听标签</span>
+            <label class="switch">
+              <input type="checkbox" id="lab-focus-tab">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="grow">
+            <span class="label">关于日行</span>
+            <button class="about-link" id="about-github" data-i18n="about_github">GitHub 主页</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tab-panel" data-panel="ann" data-title-key="ann_section">
+        <div id="ann-list"></div>
+        <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="ann-name" type="text" class="ann-input" style="flex:1;min-width:0"
+              data-i18n-placeholder="ann_name_placeholder" placeholder="如：妈妈生日">
+            <div class="ann-date-wrap">
+              <button type="button" id="ann-date-btn" class="ann-input ann-date-trigger is-empty"
+                style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;width:152px;font-family:inherit">
+                <span id="ann-date-text" data-i18n="ann_date_placeholder"
+                  style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-sub)">MM-DD 或
+                  YYYY-MM-DD</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.55">
+                  <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </button>
+              <input type="hidden" id="ann-date" value="">
+              <div id="ann-date-pop" class="ann-date-pop hidden"></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="label" style="font-size:12px" data-i18n="ann_repeat">每年重复</span>
+              <label class="switch">
+                <input type="checkbox" id="ann-repeat" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <button class="mini-btn" id="ann-add-btn" data-i18n="ann_add">+ 添加</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="tidy" data-title-key="tidy">
+        <div class="row">
+          <span class="label" data-i18n="tidy_enable">启用窗口整理</span>
+          <label class="switch">
+            <input type="checkbox" id="tidy-enabled">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div id="tidy-detail">
+          <div class="row perm" id="tidy-perm-row" style="display:none">
+            <span class="label" data-i18n="tidy_perm">需开启「辅助功能」权限</span>
+            <button class="mini-btn" id="tidy-grant" data-i18n="tidy_grant">去授权</button>
+          </div>
+          <div class="row">
+            <span class="label" data-i18n="tidy_gap">窗口边距 (px)</span>
+            <input type="number" id="tidy-gap" class="num" min="0" max="80" step="1">
+          </div>
+          <!-- 快捷键按方向键十字摆放：上=最大化 / 左=左半屏 / 右=右半屏 / 下=复原 -->
+          <div class="tidy-cross">
+            <div class="cross-cell c-max">
+              <span class="cross-label" data-i18n="tidy_max">最大化</span>
+              <button class="kbd" data-key="max"></button>
+            </div>
+            <div class="cross-cell c-left">
+              <span class="cross-label" data-i18n="tidy_left">左半屏</span>
+              <button class="kbd" data-key="left"></button>
+            </div>
+            <div class="cross-cell c-right">
+              <span class="cross-label" data-i18n="tidy_right">右半屏</span>
+              <button class="kbd" data-key="right"></button>
+            </div>
+            <div class="cross-cell c-restore">
+              <span class="cross-label" data-i18n="tidy_restore">复原</span>
+              <button class="kbd" data-key="restore"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="keepawake" data-title-key="keepawake">
+        <div class="row">
+          <div class="label" style="display:flex;flex-direction:column;gap:2px">
+            <span data-i18n="keepawake_enable">启用防休眠</span>
+            <span style="font-size:11px;color:var(--text-sub)" data-i18n="keepawake_enable_hint">开启后电脑不会进入休眠</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="keepawake-enabled">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div id="keepawake-detail">
+          <div class="group">
+            <div class="grow col">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span class="label" data-i18n="keepawake_duration_label">防休眠生效时长</span>
+                <span id="keepawake-value" style="font-weight:600;color:var(--accent)">1 小时</span>
+              </div>
+              <input type="range" class="volume-slider" id="keepawake-duration" min="0" max="9" step="1" value="2">
+              <div class="keepawake-ticks" id="keepawake-ticks"></div>
+              <div class="keepawake-countdown" id="keepawake-countdown" style="display:none">
+                <span id="keepawake-remain">剩余 --</span>
+                <button type="button" class="link-btn" id="keepawake-cancel">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="translate" data-title-key="tab_translate">
+        <div class="tr-wrap">
+          <div class="tr-card">
+            <div class="tr-col src">
+              <textarea class="tr-source" id="source-text" data-i18n-placeholder="translate_placeholder"
+                placeholder="输入..."></textarea>
+            </div>
+
+            <div class="tr-divider"></div>
+
+            <div class="tr-col tgt">
+              <button class="tr-copy-btn" id="copy-btn" data-i18n="translate_copy" disabled>复制结果</button>
+              <textarea class="tr-result" id="result-text" readonly data-i18n-placeholder="translate_result_placeholder"
+                placeholder="结果..."></textarea>
+            </div>
+
+            <button class="btn primary tr-fab" id="translate-btn">
+              <span class="tr-btn-icon"></span>
+              <span class="tr-btn-text" data-i18n="translate_btn">翻译</span>
+            </button>
+
+            <!-- 隐藏元素：JS 仍需引用，仅不显示 -->
+            <span id="tgt-lang-label" class="tr-hidden">English</span>
+            <span id="char-count" class="tr-hidden">0 / 30000</span>
+          </div>
+
+          <div class="tr-actions">
+            <button class="btn primary" id="translate-btn-legacy" style="display:none" aria-hidden="true">
+              <span class="tr-btn-icon"></span>
+              <span class="tr-btn-text" data-i18n="translate_btn">翻译</span>
+            </button>
+            <div id="loading-indicator" class="loading-spinner hidden"></div>
+          </div>
+
+          <div id="progress-section" class="hidden">
+            <div class="progress-bar">
+              <div class="progress-fill animated" id="progress-fill" style="width:0%"></div>
+            </div>
+            <div class="progress-text" id="progress-text">0%</div>
+          </div>
+
+          <div class="tr-status-row" style="display:none;">
+            <span id="model-status" data-i18n="translate_no_model">
+              <span class="model-status-tag none">模型未加载</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="focus" data-title-key="tab_focus">
+        <div class="fm-wrap">
+          <div class="fm-header">
+            <span class="fm-header-icon">🎵</span>
+            <span class="fm-header-title" data-i18n="focus_title">轻听</span>
+            <span class="fm-header-sub" data-i18n="focus_subtitle">AI 实时生成</span>
             <span style="flex:1"></span>
           </div>
 
-          <div class="volume-row">
-            <span class="volume-icon">🔊</span>
-            <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="80">
+          <div class="fm-transport">
+            <button class="play-btn" id="play-btn" title="播放 / 暂停">▶</button>
+            <span class="now-playing" id="now-playing">
+              <span data-i18n="focus_ready">就绪</span>
+            </span>
+          </div>
+
+          <div class="setup-banner" id="setup-banner">
+            <p data-i18n="focus_setup_desc">需要 Python 环境和 MRT2 模型才能使用。首次使用请先安装依赖。</p>
+            <button class="btn primary" id="setup-btn" data-i18n="focus_check_setup">检查并启动</button>
+            <button class="btn" id="open-docs-btn" style="margin-left:6px;" data-i18n="focus_setup_guide">安装指南</button>
+          </div>
+
+          <div id="main-ui" class="hidden" style="display:flex;flex-direction:column;gap:12px;">
+            <span class="fm-section-label" data-i18n="focus_vibe">场景氛围</span>
+            <div class="preset-grid" id="preset-vibe"></div>
+
+            <span class="fm-section-label" data-i18n="focus_genre">音乐风格</span>
+            <div class="preset-grid" id="preset-genre"></div>
+
+            <span class="fm-section-label" data-i18n="focus_instrument">乐器主导</span>
+            <div class="preset-grid" id="preset-instrument"></div>
+
+            <span class="fm-section-label" data-i18n="focus_custom">自定义提示词</span>
+            <div class="prompt-row">
+              <input class="prompt-input" id="custom-prompt" data-i18n-placeholder="focus_custom_placeholder"
+                placeholder="描述你想要的音乐...">
+              <button class="btn primary" id="apply-prompt-btn" data-i18n="focus_apply">应用</button>
+            </div>
+
+            <div class="fm-controls">
+              <label class="toggle-row" id="drums-toggle">
+                <input type="checkbox" id="drums-check" checked>
+                <span class="toggle-track on" id="drums-track">
+                  <span class="toggle-knob"></span>
+                </span>
+                <span data-i18n="focus_drums">鼓点 / 节奏</span>
+              </label>
+              <span style="flex:1"></span>
+            </div>
+
+            <div class="volume-row">
+              <span class="volume-icon">🔊</span>
+              <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="80">
+            </div>
+          </div>
+
+          <div class="fm-status-row" id="fm-status-row">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text" data-i18n="focus_status_init">未启动</span>
           </div>
         </div>
-
-        <div class="fm-status-row" id="fm-status-row">
-          <span class="status-dot" id="status-dot"></span>
-          <span id="status-text" data-i18n="focus_status_init">未启动</span>
-        </div>
       </div>
-    </div>
     </div>
   </div>
 

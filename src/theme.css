@@ -10,7 +10,10 @@
   --text-sub: #909399;
   --border: #ebeef5;
   --border-strong: #dcdfe6;
-  --accent: #409eff;
+  --accent: #07c160;          /* 主色调：微信绿 */
+  --active-tab: #07c160;      /* 侧边栏选中项主色 */
+  --sidebar-bg: #ecf8f1;      /* 侧边栏底色（淡绿） */
+  --tr-accent-2: #06ad56;     /* 翻译渐变次色 */
   --shadow: rgba(0, 0, 0, 0.12);
   /* 设置面板 tab 图标色 */
   --tab-general: #8e8e93;
@@ -30,7 +33,10 @@
   --text-sub: #9aa0a6;
   --border: #3a3d42;
   --border-strong: #4a4d52;
-  --accent: #4aa3ff;
+  --accent: #07c160;
+  --active-tab: #07c160;
+  --sidebar-bg: #20271f;
+  --tr-accent-2: #06ad56;
   --shadow: rgba(0, 0, 0, 0.45);
   /* 暗色下 tab 图标色稍微提亮 */
   --tab-general: #98989d;

@@ -113,12 +113,12 @@ function setupTabs() {
 }
 
 // 让设置窗口高度自适应内容，从而不出现滚动条（宽度保持不变）
+const FIXED_SETTINGS_HEIGHT = 550; // 设置页固定高度（px）
+
 function resizeToContent() {
   requestAnimationFrame(() => {
-    const wrap = document.querySelector('.wrap');
-    if (!wrap) return;
-    const h = Math.ceil(wrap.getBoundingClientRect().height) + 40; // 额外留 40px
-    invoke('resize_settings', { height: h }).catch(() => { });
+    // 设置页高度固定为 FIXED_SETTINGS_HEIGHT，不再随内容伸缩
+    invoke('resize_settings', { height: FIXED_SETTINGS_HEIGHT }).catch(() => { });
   });
 }
 
@@ -136,8 +136,10 @@ async function init() {
   updateWindowTitle();
   await initTiling();
   await initTodoHotkey();
+  await initTranslateHotkey();
   await initKeepAwake();
   renderAnnList();
+  annSetDate(''); // 初始化空状态文案（本地化占位符）
   resizeToContent();
   // 字体/emoji 布局稳定后再校准一次
   setTimeout(resizeToContent, 120);
@@ -218,8 +220,9 @@ const elTidyDetail = document.getElementById('tidy-detail');
 const elTidyGap = document.getElementById('tidy-gap');
 const elPermRow = document.getElementById('tidy-perm-row');
 const elGrant = document.getElementById('tidy-grant');
-const kbdBtns = Array.from(document.querySelectorAll('.kbd[data-key]:not([data-key="todo"])'));
+const kbdBtns = Array.from(document.querySelectorAll('.kbd[data-key]:not([data-key="todo"]):not([data-key="translate"])'));
 const todoKbdBtn = document.querySelector('.kbd[data-key="todo"]');
+const translateKbdBtn = document.querySelector('.kbd[data-key="translate"]');
 
 const SYM = {
   super: '⌘', control: '⌃', alt: '⌥', shift: '⇧',
@@ -311,6 +314,11 @@ async function endRecording() {
     todoKbdBtn.classList.remove('recording');
     todoKbdBtn.textContent = fmtTodoAccel(settings.todoShortcut);
     try { await invoke('apply_todo_shortcut_settings'); } catch (e) { /* ignore */ }
+  } else if (recordingBtn === translateKbdBtn) {
+    recordingBtn = null;
+    translateKbdBtn.classList.remove('recording');
+    translateKbdBtn.textContent = fmtTodoAccel(settings.translateShortcut);
+    try { await invoke('apply_translate_shortcut_settings'); } catch (e) { /* ignore */ }
   } else {
     const btn = recordingBtn;
     recordingBtn = null;
@@ -324,8 +332,8 @@ kbdBtns.forEach((btn) => {
   btn.addEventListener('click', () => {
     if (recordingBtn === btn) { endRecording(); return; }
     if (recordingBtn) {
-      // 如果之前在录制待办快捷键，先结束它（恢复待办热键）
-      if (recordingBtn === todoKbdBtn) { endRecording(); }
+      // 如果之前在录制待办/翻译快捷键，先结束它（恢复对应热键）
+      if (recordingBtn === todoKbdBtn || recordingBtn === translateKbdBtn) { endRecording(); }
       else {
         // 切换到另一个分屏快捷键：保持挂起状态，只改目标
         recordingBtn.classList.remove('recording');
@@ -360,6 +368,28 @@ window.addEventListener('keydown', async (e) => {
     todoKbdBtn.classList.remove('recording');
     todoKbdBtn.textContent = fmtTodoAccel(accel);
     try { await invoke('apply_todo_shortcut_settings'); } catch (e2) { console.error(e2); }
+    return;
+  }
+
+  // 翻译快捷键录制（与待办快捷键同模式）
+  if (recordingBtn === translateKbdBtn) {
+    e.preventDefault();
+    if (e.key === 'Escape') { endRecording(); return; }
+    if (['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
+    const mods = [];
+    if (e.metaKey) mods.push('super');
+    if (e.ctrlKey) mods.push('control');
+    if (e.altKey) mods.push('alt');
+    if (e.shiftKey) mods.push('shift');
+    if (mods.length === 0) return;
+    const accel = [...mods, e.code].join('+');
+
+    settings.translateShortcut = accel;
+    await saveSettings();
+    recordingBtn = null;
+    translateKbdBtn.classList.remove('recording');
+    translateKbdBtn.textContent = fmtTodoAccel(accel);
+    try { await invoke('apply_translate_shortcut_settings'); } catch (e2) { console.error(e2); }
     return;
   }
 
@@ -435,8 +465,33 @@ todoKbdBtn && todoKbdBtn.addEventListener('click', async () => {
   todoKbdBtn.classList.add('recording');
   todoKbdBtn.classList.remove('warn');
   todoKbdBtn.textContent = window.I18N.t('todo_hotkey_record');
-    try { await invoke('suspend_todo_shortcut'); } catch (e) { /* ignore */ }
+  try { await invoke('suspend_todo_shortcut'); } catch (e) { /* ignore */ }
 });
+
+// 翻译快捷键：与待办快捷键同模式（录制 / 挂起 / 重注册）
+translateKbdBtn && translateKbdBtn.addEventListener('click', async () => {
+  if (recordingBtn === translateKbdBtn) { endRecording(); return; }
+  if (recordingBtn) {
+    // 切换到翻译快捷键录制：先结束当前的，再开始新的
+    endRecording();
+  }
+  recordingBtn = translateKbdBtn;
+  translateKbdBtn.classList.add('recording');
+  translateKbdBtn.classList.remove('warn');
+  translateKbdBtn.textContent = window.I18N.t('todo_hotkey_record');
+  try { await invoke('suspend_translate_shortcut'); } catch (e) { /* ignore */ }
+});
+
+async function initTranslateHotkey() {
+  if (!translateKbdBtn) return;
+  try {
+    const res = await invoke('get_translate_shortcut');
+    settings.translateShortcut = (res && res.shortcut) || 'super+shift+KeyY';
+  } catch (e) {
+    settings.translateShortcut = 'super+shift+KeyY';
+  }
+  translateKbdBtn.textContent = fmtTodoAccel(settings.translateShortcut);
+}
 
 // ---------------------------------------------------------------------------
 // 防休眠
@@ -693,15 +748,16 @@ function shakeEl(el) {
 
 async function addAnn() {
   const nameEl = document.getElementById('ann-name');
-  const dateEl = document.getElementById('ann-date');
+  const dateEl = document.getElementById('ann-date');       // 隐藏域，存 YYYY-MM-DD
+  const dateBtn = document.getElementById('ann-date-btn');   // 可见触发按钮
   const repeatEl = document.getElementById('ann-repeat');
 
   const name = nameEl.value.trim();
   const repeat = repeatEl.checked;
-  const dateStr = dateEl.value; // 原生日期选择器保证合法（不会出现 2 月 31 日）；格式为 YYYY-MM-DD 或空
+  const dateStr = dateEl.value; // 自定义选择器保证合法（不会出现 2 月 31 日）；格式为 YYYY-MM-DD 或空
 
   if (!name) { shakeEl(nameEl); nameEl.focus(); return; }
-  if (!dateStr) { shakeEl(dateEl); dateEl.focus(); return; }
+  if (!dateStr) { shakeEl(dateBtn); dateBtn.focus(); return; }
 
   // 每年重复只存月日（MM-DD）；一次性保留完整年月日（YYYY-MM-DD）
   const dateVal = repeat ? dateStr.slice(5) : dateStr;
@@ -712,13 +768,201 @@ async function addAnn() {
   if (appEvent) appEvent.emit('settings-updated');
 
   nameEl.value = '';
-  dateEl.value = '';
+  annSetDate('');        // 重置日期选择 UI
   repeatEl.checked = true;
   renderAnnList();
 }
 
 document.getElementById('ann-add-btn').addEventListener('click', addAnn);
 document.getElementById('ann-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') addAnn(); });
+
+// ---------------------------------------------------------------------------
+// 自定义日期选择器（替代原生 input[type=date]，解决 macOS 年份选择困难）
+// ---------------------------------------------------------------------------
+let annDpBuilt = false;
+let annDpState = { year: 0, month: 0 };
+
+function fmtDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// 设置 / 清空选择，并同步触发按钮上的文案
+function annSetDate(value) {
+  const hidden = document.getElementById('ann-date');
+  const text = document.getElementById('ann-date-text');
+  const btn = document.getElementById('ann-date-btn');
+  hidden.value = value || '';
+  if (value) {
+    const [y, m, d] = value.split('-');
+    text.textContent = `${y}-${m}-${d}`;
+    text.style.color = 'var(--text)';
+    btn.classList.remove('is-empty');
+  } else {
+    text.textContent = window.I18N ? window.I18N.t('ann_date_placeholder') : 'MM-DD 或 YYYY-MM-DD';
+    text.style.color = 'var(--text-sub)';
+    btn.classList.add('is-empty');
+  }
+}
+
+function annDpEl() { return document.getElementById('ann-date-pop'); }
+
+function annDpBuild() {
+  if (annDpBuilt) return;
+  const pop = annDpEl();
+  const t = (k, fb) => (window.I18N ? window.I18N.t(k) : fb);
+  pop.innerHTML = `
+    <div class="ann-dp-head">
+      <div class="ann-dp-navrow">
+        <button type="button" class="ann-dp-nav" data-act="prev-year" title="上一年">«</button>
+        <button type="button" class="ann-dp-nav" data-act="prev-month" title="上个月">‹</button>
+        <button type="button" class="ann-dp-nav" data-act="next-month" title="下个月">›</button>
+        <button type="button" class="ann-dp-nav" data-act="next-year" title="下一年">»</button>
+      </div>
+      <div class="ann-dp-selects">
+        <select class="ann-dp-year" aria-label="year"></select>
+        <select class="ann-dp-month" aria-label="month"></select>
+      </div>
+    </div>
+    <div class="ann-dp-weekdays"></div>
+    <div class="ann-dp-grid"></div>
+    <div class="ann-dp-foot">
+      <button type="button" data-act="today">${t('ann_pick_today', '今天')}</button>
+      <button type="button" data-act="clear">${t('ann_clear', '清除')}</button>
+    </div>
+  `;
+
+  const cy = new Date().getFullYear();
+  const yearSel = pop.querySelector('.ann-dp-year');
+  for (let y = cy - 100; y <= cy + 20; y++) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    yearSel.appendChild(o);
+  }
+
+  const locale = (window.I18N && window.I18N.getLang && window.I18N.getLang()) || 'zh-CN';
+  const monthSel = pop.querySelector('.ann-dp-month');
+  for (let m = 0; m < 12; m++) {
+    const o = document.createElement('option');
+    o.value = m;
+    o.textContent = new Intl.DateTimeFormat(locale, { month: 'short' }).format(new Date(2000, m, 1));
+    monthSel.appendChild(o);
+  }
+
+  const week = (window.I18N && window.I18N.t('week')) || ['日', '一', '二', '三', '四', '五', '六'];
+  const mondayFirst = [1, 2, 3, 4, 5, 6, 0]; // 周一起始
+  pop.querySelector('.ann-dp-weekdays').innerHTML = mondayFirst.map((i) => `<div>${week[i]}</div>`).join('');
+
+  pop.addEventListener('click', (e) => {
+    const actEl = e.target.closest('[data-act]');
+    const act = actEl && actEl.dataset.act;
+    if (act === 'prev-year') { annDpState.year--; annDpRender(); }
+    else if (act === 'next-year') { annDpState.year++; annDpRender(); }
+    else if (act === 'prev-month') { annDpStepMonth(-1); }
+    else if (act === 'next-month') { annDpStepMonth(1); }
+    else if (act === 'today') { annDpSelect(new Date()); }
+    else if (act === 'clear') { annSetDate(''); annDpClose(); }
+    else {
+      const cell = e.target.closest('.ann-dp-cell');
+      if (cell && cell.dataset.val) {
+        const [yy, mm, dd] = cell.dataset.val.split('-').map(Number);
+        annDpSelect(new Date(yy, mm - 1, dd)); // 按本地年月日构造，避免 UTC 解析差一天
+      }
+    }
+  });
+  yearSel.addEventListener('change', () => { annDpState.year = +yearSel.value; annDpRender(); });
+  monthSel.addEventListener('change', () => { annDpState.month = +monthSel.value; annDpRender(); });
+
+  annDpBuilt = true;
+}
+
+function annDpStepMonth(delta) {
+  let m = annDpState.month + delta;
+  let y = annDpState.year;
+  if (m < 0) { m = 11; y--; } else if (m > 11) { m = 0; y++; }
+  annDpState.month = m; annDpState.year = y; annDpRender();
+}
+
+function annDpRender() {
+  const pop = annDpEl();
+  pop.querySelector('.ann-dp-year').value = annDpState.year;
+  pop.querySelector('.ann-dp-month').value = annDpState.month;
+
+  const grid = pop.querySelector('.ann-dp-grid');
+  const first = new Date(annDpState.year, annDpState.month, 1);
+  const startDay = (first.getDay() + 6) % 7; // 周一 = 0
+  const daysInMonth = new Date(annDpState.year, annDpState.month + 1, 0).getDate();
+  const selVal = document.getElementById('ann-date').value;
+  const todayStr = fmtDate(new Date());
+
+  let html = '';
+  for (let i = 0; i < startDay; i++) html += '<div class="ann-dp-cell muted"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const val = `${annDpState.year}-${String(annDpState.month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const cls = ['ann-dp-cell'];
+    if (val === todayStr) cls.push('today');
+    if (val === selVal) cls.push('selected');
+    html += `<button type="button" class="${cls.join(' ')}" data-val="${annDpState.year}-${String(annDpState.month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}">${d}</button>`;
+  }
+  grid.innerHTML = html;
+}
+
+function annDpSelect(d) {
+  annSetDate(fmtDate(d));
+  annDpClose();
+}
+
+function annDpOpen() {
+  annDpBuild();
+  const cur = document.getElementById('ann-date').value;
+  let base;
+  if (cur) {
+    const [yy, mm, dd] = cur.split('-').map(Number);
+    base = new Date(yy, mm - 1, dd); // 本地构造，避免 UTC 解析差一天
+  } else {
+    base = new Date();
+  }
+  annDpState.year = base.getFullYear();
+  annDpState.month = base.getMonth();
+  annDpRender();
+
+  const pop = annDpEl();
+  const btn = document.getElementById('ann-date-btn');
+  pop.classList.remove('hidden');
+
+  const r = btn.getBoundingClientRect();
+  const popH = pop.offsetHeight || 290;
+  const popW = pop.offsetWidth || 248;
+  let top = r.bottom + 6;
+  if (top + popH > window.innerHeight && r.top - popH - 6 > 0) top = r.top - popH - 6;
+  let left = r.left;
+  if (left + popW > window.innerWidth) left = Math.max(4, window.innerWidth - popW - 4);
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+}
+
+function annDpClose() {
+  const pop = annDpEl();
+  if (pop) pop.classList.add('hidden');
+}
+
+function annDpToggle() {
+  const pop = annDpEl();
+  if (pop && !pop.classList.contains('hidden')) annDpClose();
+  else annDpOpen();
+}
+
+document.getElementById('ann-date-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  annDpToggle();
+});
+document.addEventListener('click', (e) => {
+  const pop = annDpEl();
+  if (!pop || pop.classList.contains('hidden')) return;
+  const btn = document.getElementById('ann-date-btn');
+  if (pop.contains(e.target) || btn.contains(e.target)) return;
+  annDpClose();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') annDpClose(); });
 
 // ---------------------------------------------------------------------------
 // 关于
@@ -743,7 +987,7 @@ let trIsTranslating = false;
 let trIsDownloading = false;
 let trIsUnloading = false;
 let trCurrentTargetLang = 'English';
-const TR_MAX_CHARS = 3500;
+const TR_MAX_CHARS = 30000;
 
 function trUpdateButtonStates() {
   const elTranslateBtn = document.getElementById('translate-btn');
@@ -754,12 +998,13 @@ function trUpdateButtonStates() {
 
   const busy = trIsTranslating || trIsDownloading || trIsUnloading;
   elTranslateBtn.disabled = busy;
+  const elTrBtnText = elTranslateBtn.querySelector('.tr-btn-text');
   if (trIsTranslating) {
-    elTranslateBtn.textContent = window.I18N ? window.I18N.t('translate_loading') : '翻译中...';
+    elTrBtnText.textContent = window.I18N ? window.I18N.t('translate_loading') : '翻译中...';
   } else if (trIsDownloading) {
-    elTranslateBtn.textContent = window.I18N ? window.I18N.t('translate_downloading') : '下载中...';
+    elTrBtnText.textContent = window.I18N ? window.I18N.t('translate_downloading') : '下载中...';
   } else {
-    elTranslateBtn.textContent = window.I18N ? window.I18N.t('translate_btn') : '翻译';
+    elTrBtnText.textContent = window.I18N ? window.I18N.t('translate_btn') : '翻译';
   }
   elSourceText.disabled = busy;
   if (elCopyBtn) elCopyBtn.disabled = !elResultText.value.trim();
@@ -919,7 +1164,7 @@ async function trCopyResult() {
     await navigator.clipboard.writeText(text);
     elCopyBtn.textContent = window.I18N ? window.I18N.t('translate_copied') : '已复制';
     setTimeout(() => {
-      elCopyBtn.textContent = window.I18N ? window.I18N.t('translate_copy') : '复制结果';
+      elCopyBtn.textContent = window.I18N ? window.I18N.t('translate_copy') : '复制';
     }, 2000);
   } catch (e) {
     elResultText.select();

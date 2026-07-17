@@ -89,7 +89,7 @@ body {
   width: 30px;
   height: 30px;
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #409eff;
+  border-top: 3px solid var(--accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -143,7 +143,7 @@ body {
 }
 
 .nav-btn.active {
-  color: #409eff;
+  color: var(--accent);
   background-color: #ecf5ff;
 }
 
@@ -407,7 +407,7 @@ body {
 }
 
 .group-badge.category-badge[data-val="工作"] {
-  color: #409eff;
+  color: var(--accent);
   background: #ecf5ff;
 }
 
@@ -446,7 +446,7 @@ body {
 }
 
 .group-add-btn:hover {
-  color: #409eff;
+  color: var(--accent);
   background-color: #f5f7fa;
 }
 
@@ -553,7 +553,7 @@ body {
   /* 向左偏移到 .todo-item 的左边缘（抵消 item 的 padding-left: 8px） */
   white-space: normal;
   background: #ecf5ff;
-  border: 2px solid #409eff;
+  border: 2px solid var(--accent);
   border-radius: 5px;
   /* box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2), 0 0px 2px rgba(0, 0, 0, 0.08); */
   /* box-shadow: 0 2px 0 0 rgba(64, 158, 255, 0.2), 0 2px 2px rgba(0, 0, 0, 0.08); */
@@ -562,7 +562,7 @@ body {
   padding: 10px 0px 10px 15px;
   /* 聚焦时左右各 16px 文字缩进，按钮已隐藏无需预留 86px */
   margin-left: 0;
-  width: calc(100% + 80px);
+  width: calc(100% + 57px);
   /* 撑满整行：100% (text-wrapper) + 8px (左侧) + ~108px (右侧按钮区) */
   overflow-y: hidden;
   /* 隐藏滚动条，高度由JS动态计算 */
@@ -616,7 +616,7 @@ body {
 .text-wrapper:focus-within .inner-tags {
   opacity: 1;
   pointer-events: auto;
-  right: -72px;
+  right: -42px;
   /* 输入框放大后，将标签向右移动，放置在输入框的新右边缘内 */
 }
 
@@ -703,7 +703,7 @@ body {
 }
 
 .app-title:hover {
-  color: #409eff;
+  color: var(--accent);
 }
 
 /* 标题右下角的向下三角，表示这是个下拉按钮 */
@@ -718,7 +718,7 @@ body {
 }
 
 .app-title:hover .title-caret {
-  border-top-color: #409eff;
+  border-top-color: var(--accent);
 }
 
 /* 标题中的待办总数徽标 */
@@ -732,7 +732,7 @@ body {
   font-size: 18px;
   font-weight: 700;
   /* color: #fff;
-  background: #409eff; */
+  background: var(--accent); */
   border-radius: 10px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -759,8 +759,8 @@ body {
 
 .achievement-btn:hover {
   background: #ecf5ff;
-  border-color: #409eff;
-  color: #409eff;
+  border-color: var(--accent);
+  color: var(--accent);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
 }
@@ -783,7 +783,7 @@ body {
 
 /* 分类 */
 .custom-select[data-val="工作"] {
-  color: #409eff;
+  color: var(--accent);
   background: #ecf5ff;
   border-color: transparent;
 }
@@ -874,6 +874,7 @@ body {
   background: #ffffff;
   border: 2px solid #639922;
 }
+
 .status-circle.checked .status-check {
   opacity: 1;
   color: #639922;
@@ -892,7 +893,7 @@ body {
   padding: 3px;
   margin-left: 4px;
   cursor: pointer;
-  color: #409eff;
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -967,7 +968,7 @@ body {
 
 .more-actions-item:hover {
   background-color: #f5f7fa;
-  color: #409eff;
+  color: var(--accent);
 }
 
 .sort-select {
@@ -1144,6 +1145,7 @@ body {
 .toast-container.toast-anchored {
   transform: none;
 }
+
 .toast-container.toast-anchored.hidden {
   transform: translateY(20px);
 }
@@ -1151,7 +1153,7 @@ body {
 .toast-undo-btn {
   background: transparent;
   border: none;
-  color: #409eff;
+  color: var(--accent);
   cursor: pointer;
   font-size: 11px;
   font-weight: bold;
@@ -1160,7 +1162,7 @@ body {
 }
 
 .toast-undo-btn:hover {
-  color: #66b1ff;
+  color: var(--accent);
 }
 
 /* =========================================
@@ -1215,7 +1217,7 @@ body {
   }
 
   .title-count {
-    /* background: #409eff;
+    /* background: var(--accent);
     color: #fff; */
   }
 
@@ -1227,8 +1229,8 @@ body {
 
   .achievement-btn:hover {
     background: #2b2d30;
-    border-color: #409eff;
-    color: #409eff;
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   .title-caret {
@@ -1268,7 +1270,7 @@ body {
 
   .todo-item textarea.text:focus {
     background: #2b2d30;
-    border-color: #409eff;
+    border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.5);
     color: #e5eaf3;
   }
@@ -1288,9 +1290,11 @@ body {
   .status-circle {
     border-color: #6b6b6b;
   }
+
   .status-circle .status-check {
     color: #8BC34A;
   }
+
   .status-circle.checked {
     background: #e5eaf3;
     border: 2px solid #639922;
@@ -1313,7 +1317,7 @@ body {
 
   /* Action Buttons */
   .right-hover-btn {
-    color: #409eff;
+    color: var(--accent);
   }
 
   .right-hover-btn:hover {

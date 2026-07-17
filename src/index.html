@@ -82,10 +82,10 @@
         style="font-size: 12px; font-weight: 600; color: #909399; white-space: nowrap; flex-shrink: 0;">倒计时</span>
 
       <div id="countdown-display" data-tauri-drag-region
-        style="flex: 1; font-size: 16px; font-weight: 800; color: #409eff; font-variant-numeric: tabular-nums; text-align: center; cursor: pointer; user-select: none;">
+        style="flex: 1; font-size: 16px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; text-align: center; cursor: pointer; user-select: none;">
         25:00</div>
       <input id="countdown-input" type="text"
-        style="display: none; flex: 1; font-size: 16px; font-weight: 800; color: #409eff; border: none; background: transparent; text-align: center; font-variant-numeric: tabular-nums; outline: none; border-bottom: 1.5px solid #409eff; min-width: 60px; max-width: 80px;" />
+        style="display: none; flex: 1; font-size: 16px; font-weight: 800; color: var(--accent); border: none; background: transparent; text-align: center; font-variant-numeric: tabular-nums; outline: none; border-bottom: 1.5px solid var(--accent); min-width: 60px; max-width: 80px;" />
 
       <div style="display: flex; gap: 6px; flex-shrink: 0;">
         <button id="countdown-toggle-btn" class="nav-btn icon-only"
@@ -125,7 +125,7 @@
       <!-- 倒计时与控制按钮区域 -->
       <div style="display: flex; align-items: center; gap: 12px;">
         <div id="pomodoro-timer"
-          style="font-size: 16px; font-weight: 800; color: #409eff; font-variant-numeric: tabular-nums;">
+          style="font-size: 16px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums;">
           25:00</div>
 
         <div style="display: flex; gap: 8px;">

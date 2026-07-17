@@ -122,8 +122,8 @@ function updateSortOptionsHighlight() {
   if (!sortDropdown) return;
   sortDropdown.querySelectorAll('.dropdown-item').forEach(btn => {
     if (btn.dataset.sort === currentSortRule) {
-      btn.style.color = '#409eff';
-      btn.style.backgroundColor = '#ecf5ff';
+      btn.style.color = 'var(--accent)';
+      btn.style.backgroundColor = 'rgba(7, 193, 96, 0.1)';
       btn.style.fontWeight = 'bold';
     } else {
       btn.style.color = '';
@@ -828,8 +828,8 @@ function updatePomodoroToggleBtn() {
     pomodoroPlayIcon.classList.add('hidden');
     pomodoroPauseIcon.classList.remove('hidden');
     // 运行状态：浅蓝色
-    pomodoroToggleBtn.style.background = '#ecf5ff';
-    pomodoroToggleBtn.style.color = '#409eff';
+    pomodoroToggleBtn.style.background = 'rgba(7, 193, 96, 0.1)';
+    pomodoroToggleBtn.style.color = 'var(--accent)';
   } else {
     pomodoroPlayIcon.classList.remove('hidden');
     pomodoroPauseIcon.classList.add('hidden');
@@ -926,8 +926,8 @@ function updateCountdownToggleBtn() {
   if (isCountdownRunning) {
     countdownPlayIcon.classList.add('hidden');
     countdownPauseIcon.classList.remove('hidden');
-    countdownToggleBtn.style.background = '#ecf5ff';
-    countdownToggleBtn.style.color = '#409eff';
+    countdownToggleBtn.style.background = 'rgba(7, 193, 96, 0.1)';
+    countdownToggleBtn.style.color = 'var(--accent)';
   } else {
     countdownPlayIcon.classList.remove('hidden');
     countdownPauseIcon.classList.add('hidden');

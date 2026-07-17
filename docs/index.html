@@ -311,11 +311,79 @@
       text-align: left;
     }
 
-    .note b {
-      color: var(--ink);
-    }
+      .note b {
+        color: var(--ink);
+      }
 
-    footer {
+      /* local-AI highlight band */
+      .ai-band {
+        background: linear-gradient(180deg, #fff7ef 0%, #fbfbfd 100%);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .ai-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-top: 8px;
+      }
+
+      .ai-card {
+        background: var(--card);
+        border: 1px solid #ffe2c9;
+        border-radius: var(--radius);
+        padding: 22px;
+        text-align: center;
+        transition: transform .12s ease, box-shadow .12s ease;
+      }
+
+      .ai-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 30px rgba(242, 90, 40, .12);
+      }
+
+      .ai-card .emo {
+        font-size: 30px;
+      }
+
+      .ai-card h3 {
+        font-size: 17px;
+        margin: 10px 0 6px;
+      }
+
+      .ai-card p {
+        font-size: 14px;
+        color: var(--sub);
+      }
+
+      /* FAQ */
+      .faq-list {
+        max-width: 760px;
+        margin: 0 auto;
+        display: grid;
+        gap: 14px;
+      }
+
+      .faq-item {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px 22px;
+        text-align: left;
+      }
+
+      .faq-item h4 {
+        font-size: 16px;
+        margin-bottom: 6px;
+      }
+
+      .faq-item p {
+        font-size: 14px;
+        color: var(--sub);
+      }
+
+      footer {
       text-align: center;
       color: var(--sub);
       font-size: 13px;
@@ -330,7 +398,8 @@
     @media (max-width: 720px) {
 
       .features,
-      .shots {
+      .shots,
+      .ai-grid {
         grid-template-columns: 1fr;
       }
 
@@ -374,9 +443,33 @@
       <div class="meta" data-i18n="hero_meta">macOS 11+ · Apple Silicon · 安装包仅 ~4 MB · MIT 开源</div>
       <div class="hero-shot"><img src="images/hero.png" data-brand-alt alt="日行 预览" /></div>
     </div>
-  </header>
+    </header>
 
-  <section id="features">
+    <section id="ai" class="ai-band">
+      <div class="wrap">
+        <h2 class="sec-title" data-i18n="ai_title">真 AI，免密钥、零订阅</h2>
+        <p class="sec-sub" data-i18n="ai_sub">生成式音乐与翻译，100% 跑在你的 Mac 上——不登录、不上云、不收费。</p>
+        <div class="ai-grid">
+          <div class="ai-card">
+            <div class="emo">🎵</div>
+            <h3 data-i18n="ai1_h">本地 AI 音乐 · 轻听</h3>
+            <p data-i18n="ai1_p">Magenta RealTime 2 在 Apple Silicon 实时生成专注音乐，选预设或写提示词，音乐源源不断。</p>
+          </div>
+          <div class="ai-card">
+            <div class="emo">🌐</div>
+            <h3 data-i18n="ai2_h">本地翻译</h3>
+            <p data-i18n="ai2_p">HY-MT 模型在 8 种语言间互译，快捷键 ⌘⇧Y 唤出，纯本地推理，全程不出 App。</p>
+          </div>
+          <div class="ai-card">
+            <div class="emo">🔒</div>
+            <h3 data-i18n="ai3_h">隐私优先</h3>
+            <p data-i18n="ai3_p">无账号、无遥测、无服务器；AI 模型首次使用后完全离线，你的数据只在自己电脑。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
     <div class="wrap">
       <h2 class="sec-title" data-i18n="feat_title">为什么选日行</h2>
       <p class="sec-sub" data-i18n="feat_sub">把高频效率工具收进菜单栏，少占地方，多干正事。</p>
@@ -409,13 +502,23 @@
         <div class="feature">
           <div class="emo">🔒</div>
           <h3 data-i18n="f6_h">隐私优先</h3>
-          <p data-i18n="f6_p">数据是你 iCloud Drive 里的纯 JSON，无账号、无遥测、无服务器。8 语言、明暗主题。</p>
-        </div>
+        <p data-i18n="f6_p">数据是你 iCloud Drive 里的纯 JSON，无账号、无遥测、无服务器。8 语言、明暗主题。</p>
+      </div>
+      <div class="feature">
+        <div class="emo">🎵</div>
+        <h3 data-i18n="f7_h">本地 AI 音乐</h3>
+        <p data-i18n="f7_p">基于 Magenta RealTime 2，在 Apple Silicon 上实时生成专注音乐，零订阅、零调用费。</p>
+      </div>
+      <div class="feature">
+        <div class="emo">🌐</div>
+        <h3 data-i18n="f8_h">本地翻译</h3>
+        <p data-i18n="f8_p">HY-MT 模型在 8 种语言间互译，全程本地推理，不碰云、不传数据。</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section id="shots">
+<section id="shots">
     <div class="wrap">
       <h2 class="sec-title" data-i18n="shots_title">界面预览</h2>
       <p class="sec-sub" data-i18n="shots_sub">干净、克制、贴合 macOS。</p>
@@ -425,15 +528,39 @@
         <img src="images/settings-dark.png" alt="设置" />
       </div>
     </div>
-  </section>
+    </section>
 
-  <section>
-    <div class="wrap">
-      <div id="download" class="download">
+    <section id="faq">
+      <div class="wrap">
+        <h2 class="sec-title" data-i18n="faq_title">常见问题</h2>
+        <div class="faq-list">
+          <div class="faq-item">
+            <h4 data-i18n="faq1_q">日行收费吗？</h4>
+            <p data-i18n="faq1_a">完全免费、开源（MIT）。AI 模型在你的 Mac 本地运行，没有任何订阅或调用费。</p>
+          </div>
+          <div class="faq-item">
+            <h4 data-i18n="faq2_q">支持 Intel 芯片的 Mac 吗？</h4>
+            <p data-i18n="faq2_a">当前提供 Apple Silicon（M 系列）版本。Intel 机型可先从源码自行构建，后续会补发通用版。</p>
+          </div>
+          <div class="faq-item">
+            <h4 data-i18n="faq3_q">我的数据存在哪？</h4>
+            <p data-i18n="faq3_a">待办与设置是 iCloud Drive 里的纯 JSON；开启 iCloud 时多台 Mac 自动同步，否则存本地 App Support。</p>
+          </div>
+          <div class="faq-item">
+            <h4 data-i18n="faq4_q">第一次打不开怎么办？</h4>
+            <p data-i18n="faq4_a">应用暂未做苹果公证：第一次请右键 App →「打开」，或到「系统设置 → 隐私与安全性」点「仍要打开」。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div id="download" class="download">
         <h2 data-i18n="dl_h">立即开始</h2>
         <p data-i18n="dl_p">下载后拖入「应用程序」即可。免费、开源。</p>
         <a class="btn lg" data-download data-i18n="dl_btn"
-          href="https://github.com/polimao/rixing/releases/latest/download/RiXing_macOS_arm64.dmg">
+          href="https://github.com/polimao/rixing/releases/latest">
           ↓ 下载 日行 for macOS（Apple Silicon）
         </a>
         <div class="req" data-i18n="dl_req">macOS 11 Big Sur 或更高 · Apple Silicon (M 系列)</div>

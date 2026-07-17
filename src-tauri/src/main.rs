@@ -437,20 +437,71 @@ fn suspend_todo_shortcut(app: AppHandle) {
 }
 
 // ===========================================================================
-// 翻译快捷键（固定 Cmd+Shift+Y，不走设置，不可自定义）
-// 打开设置面板的翻译标签页，而非独立窗口。
+// 翻译快捷键（可自定义，默认 Cmd+Shift+Y）
+// 按下后打开设置面板的翻译标签页，而非独立窗口。
 // ===========================================================================
+const TRANSLATE_DEFAULT_SHORTCUT: &str = "super+shift+KeyY";
+
+fn registered_translate_shortcut() -> &'static Mutex<Option<Shortcut>> {
+    static S: OnceLock<Mutex<Option<Shortcut>>> = OnceLock::new();
+    S.get_or_init(|| Mutex::new(None))
+}
+
+fn translate_shortcut() -> String {
+    settings_path()
+        .and_then(|p| read_json(&p))
+        .and_then(|v| v.get("translateShortcut").and_then(|x| x.as_str()).map(String::from))
+        .unwrap_or_else(|| TRANSLATE_DEFAULT_SHORTCUT.to_string())
+}
+
 fn apply_translate_shortcut(app: &AppHandle) {
     let gs = app.global_shortcut();
-    let sc: Shortcut = "super+shift+KeyY"
-        .parse()
-        .expect("translate shortcut 'super+shift+KeyY' should be valid");
+    let mut reg = match registered_translate_shortcut().lock() {
+        Ok(g) => g,
+        Err(_) => return,
+    };
+    // 先注销旧快捷键
+    if let Some(old) = reg.take() {
+        let _ = gs.unregister(old);
+    }
+    let sc: Shortcut = match translate_shortcut().parse() {
+        Ok(s) => s,
+        Err(_) => return,
+    };
     let app_clone = app.clone();
-    let _ = gs.on_shortcut(sc, move |_app, _scut, event| {
-        if event.state() == ShortcutState::Pressed {
-            show_settings_tab(&app_clone, "translate");
+    let ok = gs
+        .on_shortcut(sc, move |_app, _scut, event| {
+            if event.state() == ShortcutState::Pressed {
+                show_settings_tab(&app_clone, "translate");
+            }
+        })
+        .is_ok();
+    if ok {
+        *reg = Some(sc);
+    }
+}
+
+/// 读取当前翻译快捷键（返回给设置面板展示）。
+#[tauri::command]
+fn get_translate_shortcut() -> Value {
+    serde_json::json!({ "shortcut": translate_shortcut() })
+}
+
+/// 保存后由前端调用，按最新设置重注册翻译快捷键。
+#[tauri::command]
+fn apply_translate_shortcut_settings(app: AppHandle) {
+    apply_translate_shortcut(&app);
+}
+
+/// 录制期间临时注销翻译快捷键，避免被系统吞掉。
+#[tauri::command]
+fn suspend_translate_shortcut(app: AppHandle) {
+    let gs = app.global_shortcut();
+    if let Ok(mut reg) = registered_translate_shortcut().lock() {
+        if let Some(old) = reg.take() {
+            let _ = gs.unregister(old);
         }
-    });
+    }
 }
 
 // ===========================================================================
@@ -1271,6 +1322,9 @@ fn main() {
             get_todo_shortcut,
             apply_todo_shortcut_settings,
             suspend_todo_shortcut,
+            get_translate_shortcut,
+            apply_translate_shortcut_settings,
+            suspend_translate_shortcut,
             check_model_status,
             download_model,
             load_translate_model,

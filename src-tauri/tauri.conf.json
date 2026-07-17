@@ -43,7 +43,7 @@
         "label": "settings",
         "title": "",
         "width": 600,
-        "height": 700,
+        "height": 550,
         "resizable": false,
         "decorations": true,
         "titleBarStyle": "Overlay",
