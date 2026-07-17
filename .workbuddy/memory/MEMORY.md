@@ -25,10 +25,16 @@
 - 颜色统一走 CSS 变量（`--bg/--surface/--border/--text/--accent` 等），项目只有亮/暗两套主题，无独立"紫色主题"变量（之前看到的紫色是窗口外框系统着色）。
 
 ## 翻译页 UI 约定
-- **架构已厘清（2026-07-17 核查）**：翻译 UI 实际只有一份在运行——`settings.html` 的 translate 标签页（由 settings.js `initTranslate` 驱动）。`translate.html` + `translate.js` 是**孤儿文件**：tauri.conf.json 仅声明 3 窗（main→index.html、calendar→calendar.html、settings→settings.html），翻译快捷键也只 `show_settings_tab(app,"translate")` 打开 settings 标签；translate.html 无任何窗口加载，仅被 Tauri 当静态资源打包，且 translate.js 仅被 translate.html 引用。可安全删除两者；delete 前注意 translate.html 比 settings 标签功能更全（含源语言选择、可工作交换按钮、更完整模型管理），若想保留这些特性需先移植进 settings 标签。
-- 视觉为 DeepL 风格左右双栏分屏：顶栏(品牌+模型状态胶囊)、语言栏(源 select+圆形交换按钮+目标 label)、双栏卡片(面板头语言名+悬浮工具/复制、textarea、面板脚字符数)、渐变主按钮、精致进度条。沿用 theme.css 变量，亮/暗双主题。
-- 改翻译页的硬约束：所有交互 id 必须保留；`translate-btn/copy-btn/model-btn` 被 JS 用 `textContent` 重写，内部只能放纯文字(不能放 SVG 图标)；`model-status` 在 settings 中必须存在于 DOM(JS 写 innerHTML，可 display:none)。
-- 交换按钮目前是纯视觉装饰(hover 旋转 180°)，未接实际语言交换。
+- **架构（2026-07-17 重构）**：翻译功能已从 `settings.html`/`settings.js` 拆到 **`src/translate/`** 目录，仍作为「设置」窗口的 translate 标签页（用户选"保留为 tab，代码拆目录"方案，非独立窗口）。
+  - `translate/translate.css`：翻译专属样式（原内联在 settings.html 的 `.tr-*`/`.progress-*`/`.model-status-tag` 等），与共享的 `.btn`/`.hidden`/`.loading-spinner` 分离。
+  - `translate/translate.js`：标记模板 `TR_TRANSLATE_PANEL_HTML` + `injectTranslatePanel()`（脚本加载时把标记注入 settings.html 的 `#translate-mount` 并 `applyI18n(mount)`）+ 全部 `tr*` 逻辑 + `initTranslate()`。
+  - `settings.html`：翻译面板只剩 `<div id="translate-mount">` 挂载点；`<head>` 引 `translate/translate.css`；`<body>` 末尾脚本顺序 `i18n.js → ui-common.js → translate/translate.js → settings.js`。
+  - `initTranslateHotkey()` **留在 settings.js**（它耦合快捷键录制系统：`translateKbdBtn`/`fmtTodoAccel`/`recordingBtn` 均在 settings.js）；`initTranslate()` 调用保留在 settings.js 末尾，定义来自 translate.js（全局函数）。
+- 孤儿 `translate.html`/`translate.js` 已确认不存在（无需清理）；彩色 SVG 图标当年只接在孤儿文件里，settings 版本本就无图标赋值（`tr-btn-icon` 是空 span），本次抽取零回归。
+- 视觉为极简三段式上下布局（2026-07-17 重构）：上方源文输入区 + 中央悬浮翻译按钮(`.tr-fab`，胶囊形绿色渐变) + 下方结果区，无分割线。状态反馈全部融入按钮(文字变化 + `.is-loading` 脉冲动画)，无独立 spinner/进度条/模型状态标签。模型下载/加载对用户完全透明(按钮显示"准备中...")。沿用 theme.css 变量，亮/暗双主题。
+- 硬约束：所有交互 id 必须保留；`translate-btn/copy-btn` 被 JS 用 `textContent` 重写，内部只能放纯文字(不能放 SVG 图标)；`model-status`/`tgt-lang-label`/`char-count`/`progress-section`/`progress-fill`/`progress-text`/`loading-indicator` 在 DOM 中必须存在(JS 会访问)，均用 `.tr-hidden` 永久隐藏。
+- 交换按钮已移除（上下结构无需语言交换）。
+- box-shadow 必须用绿色 `rgba(7,193,96,...)`，不可用蓝色 `rgba(64,158,255,...)`（主色是微信绿 `#07c160`）。
 
 ## 全局快捷键架构（可配置快捷键的标准做法）
 - 后端 (`src-tauri/src/main.rs`)：每个可配置快捷键遵循同一模式——

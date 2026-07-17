@@ -10,10 +10,15 @@
   --text-sub: #909399;
   --border: #ebeef5;
   --border-strong: #dcdfe6;
-  --accent: #07c160;          /* 主色调：微信绿 */
-  --active-tab: #07c160;      /* 侧边栏选中项主色 */
-  --sidebar-bg: #ecf8f1;      /* 侧边栏底色（淡绿） */
-  --tr-accent-2: #06ad56;     /* 翻译渐变次色 */
+  --border-light: #f5f5f5;
+  --accent: #07c160;
+  /* 主色调：微信绿 */
+  --active-tab: #07c160;
+  /* 侧边栏选中项主色 */
+  --sidebar-bg: #ecf8f1;
+  /* 侧边栏底色（淡绿） */
+  --tr-accent-2: #06ad56;
+  /* 翻译渐变次色 */
   --shadow: rgba(0, 0, 0, 0.12);
   /* 设置面板 tab 图标色 */
   --tab-general: #8e8e93;
@@ -33,6 +38,7 @@
   --text-sub: #9aa0a6;
   --border: #3a3d42;
   --border-strong: #4a4d52;
+  --border-light: #0a0a0a;
   --accent: #07c160;
   --active-tab: #07c160;
   --sidebar-bg: #20271f;
@@ -48,7 +54,9 @@
 }
 
 /* ===================== 待办 / 日历窗口的暗色覆盖 ===================== */
-[data-theme="dark"] body { color: var(--text); }
+[data-theme="dark"] body {
+  color: var(--text);
+}
 
 [data-theme="dark"] .todo-container,
 [data-theme="dark"] .arrow-up,
@@ -56,6 +64,7 @@
   background-color: var(--bg) !important;
   color: var(--text);
 }
+
 [data-theme="dark"] .todo-container {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
@@ -78,17 +87,30 @@
   color: var(--text);
 }
 
-[data-theme="dark"] .metric-card.pending { background: var(--surface-2) !important; }
-[data-theme="dark"] .metric-card.completed { background: var(--surface-2) !important; }
+[data-theme="dark"] .metric-card.pending {
+  background: var(--surface-2) !important;
+}
 
-[data-theme="dark"] .dropdown-item { color: var(--text); }
-[data-theme="dark"] .dropdown-item:hover { background: var(--surface-2); }
+[data-theme="dark"] .metric-card.completed {
+  background: var(--surface-2) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--text);
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background: var(--surface-2);
+}
 
 [data-theme="dark"] .todo-item {
   background: var(--surface) !important;
   border-color: var(--border) !important;
 }
-[data-theme="dark"] .todo-item:hover { background: var(--surface-2) !important; }
+
+[data-theme="dark"] .todo-item:hover {
+  background: var(--surface-2) !important;
+}
 
 [data-theme="dark"] .todo-item textarea.text,
 [data-theme="dark"] textarea,
@@ -96,6 +118,7 @@
   background: transparent !important;
   color: var(--text) !important;
 }
+
 [data-theme="dark"] .todo-item textarea.text:hover:not(:focus) {
   background: var(--surface-2) !important;
 }
@@ -107,11 +130,21 @@
   color: var(--text-sub) !important;
 }
 
-[data-theme="dark"] .modal { background: rgba(0, 0, 0, 0.45) !important; }
-[data-theme="dark"] .modal-header { border-bottom-color: var(--border) !important; }
+[data-theme="dark"] .modal {
+  background: rgba(0, 0, 0, 0.45) !important;
+}
 
-[data-theme="dark"] .nav-btn { color: var(--text); }
-[data-theme="dark"] .nav-btn:hover { background-color: var(--surface-2); }
+[data-theme="dark"] .modal-header {
+  border-bottom-color: var(--border) !important;
+}
+
+[data-theme="dark"] .nav-btn {
+  color: var(--text);
+}
+
+[data-theme="dark"] .nav-btn:hover {
+  background-color: var(--surface-2);
+}
 
 [data-theme="dark"] .toast-container {
   background: #34363b !important;
@@ -128,5 +161,11 @@
   color: var(--text) !important;
   border-color: var(--border) !important;
 }
-[data-theme="dark"] .cal-weekday { color: var(--text-sub) !important; }
-[data-theme="dark"] .cal-cell.other-month { color: #5a5d63 !important; }
+
+[data-theme="dark"] .cal-weekday {
+  color: var(--text-sub) !important;
+}
+
+[data-theme="dark"] .cal-cell.other-month {
+  color: #5a5d63 !important;
+}

@@ -8,7 +8,7 @@
       settings: '设置',
       general: '通用',
       appearance: '外观',
-      autostart: '开机自启动',
+      autostart: '随开机启动',
       language: '语言',
       theme: '主题',
       theme_light: '亮色',
@@ -207,7 +207,7 @@
 
   // 通用：显示待办统计数字
   const COUNT = {
-    'zh-CN': { show_count: '菜单栏待办统计' },
+    'zh-CN': { show_count: '显示待办总数' },
     en: { show_count: 'Show task count' },
     ja: { show_count: 'タスク数を表示' },
     ko: { show_count: '작업 수 표시' },

@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <title>设置</title>
   <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="translate/translate.css">
   <style>
     * {
       box-sizing: border-box;
@@ -238,7 +239,7 @@
       appearance: none;
       background: var(--surface-2);
       color: var(--text);
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border);
       border-radius: 6px;
       padding: 5px 26px 5px 10px;
       font-size: 13px;
@@ -266,7 +267,7 @@
     .slider {
       position: absolute;
       inset: 0;
-      background: var(--border-strong);
+      background: var(--border);
       border-radius: 22px;
       transition: background .2s;
       cursor: pointer;
@@ -298,7 +299,7 @@
       text-align: right;
       background: var(--surface-2);
       color: var(--text);
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border);
       border-radius: 6px;
       padding: 5px 8px;
       font-size: 13px;
@@ -310,7 +311,7 @@
       text-align: center;
       background: var(--surface-2);
       color: var(--text);
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border);
       border-radius: 6px;
       padding: 0 10px;
       font-size: 13px;
@@ -410,11 +411,11 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 12px 0px;
+      padding: 12px 10px;
     }
 
     .grow+.grow {
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--border-light);
     }
 
     .grow.col {
@@ -435,7 +436,7 @@
       width: 120px;
       /* 与「主题」分段按钮（.seg）等宽，视觉对齐 */
       border-radius: 8px;
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border);
       background: var(--surface-2);
       color: var(--text);
       font-size: 12px;
@@ -502,7 +503,7 @@
     .ann-input {
       background: var(--surface-2);
       color: var(--text);
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border);
       border-radius: 6px;
       padding: 5px 10px;
       height: 30px;
@@ -555,7 +556,7 @@
       width: 172px;
       padding: 8px;
       background: var(--bg);
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border);
       border-radius: 10px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
       -webkit-user-select: none;
@@ -769,157 +770,18 @@
       text-decoration: underline;
     }
 
-    /* ============================================================
-       翻译面板样式
-       ============================================================ */
-    .tr-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      height: 100%;
-    }
-
-    .tr-card {
-      position: relative;
-      display: flex;
-      flex: 1;
-      min-height: 380px;
-      background: var(--surface);
-      border-radius: 14px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 10px 28px rgba(0, 0, 0, .06);
-      overflow: hidden;
-    }
-
-    .tr-col {
-      position: relative;
-      flex: 1 1 0;
-      display: flex;
-      min-width: 0;
-      min-height: 0;
-    }
-
-    .tr-divider {
-      flex: 0 0 1px;
-      align-self: stretch;
-      background: var(--border-strong);
-    }
-
-    textarea.tr-source,
-    textarea.tr-result {
-      -webkit-user-select: text;
-      user-select: text;
-      flex: 1;
-      min-height: 0;
-      resize: none;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      padding: 52px 16px 16px;
-      font-size: 14px;
-      line-height: 1.62;
-      font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-      transition: border-color .15s;
-    }
-
-    textarea.tr-source:focus,
-    textarea.tr-result:focus {
-      outline: none;
-    }
-
-    textarea.tr-result {
-      cursor: text;
-    }
 
     textarea:disabled {
       opacity: 0.7;
     }
 
     /* floating copy button (top-right of result column) */
-    .tr-copy-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 4;
-      border: none;
-      background: var(--surface-2);
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 600;
-      font-family: inherit;
-      padding: 5px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background .12s, color .12s, box-shadow .12s;
-      white-space: nowrap;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
-    }
 
-    .tr-copy-btn:hover:not(:disabled) {
-      background: var(--surface-3);
-    }
-
-    .tr-copy-btn:disabled {
-      color: var(--text-sub);
-      background: transparent;
-      box-shadow: none;
-      cursor: not-allowed;
-    }
-
-    /* translate FAB on the divider, top */
-    .tr-fab {
-      position: absolute;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 6;
-    }
-
-    .tr-card .btn.primary {
-      background: linear-gradient(135deg, var(--accent), var(--tr-accent-2));
-      border-color: transparent;
-      color: #fff;
-      font-weight: 600;
-      box-shadow: 0 3px 12px rgba(64, 158, 255, .35);
-    }
-
-    .tr-card .btn.primary:hover:not(:disabled) {
-      filter: brightness(1.06);
-      box-shadow: 0 5px 18px rgba(64, 158, 255, .45);
-    }
-
-    .tr-hidden {
-      display: none !important;
-    }
-
-    .tr-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .tr-actions .spacer {
-      flex: 1;
-    }
-
-    /* 翻译主按钮渐变（仅作用于翻译面板，不影响其他面板） */
-    .tr-actions .btn.primary {
-      background: linear-gradient(135deg, var(--accent), var(--tr-accent-2));
-      border-color: transparent;
-      color: #fff;
-      font-weight: 600;
-      box-shadow: 0 3px 12px rgba(64, 158, 255, .35);
-    }
-
-    .tr-actions .btn.primary:hover:not(:disabled) {
-      filter: brightness(1.06);
-      box-shadow: 0 5px 18px rgba(64, 158, 255, .45);
-    }
 
     .btn {
       padding: 6px 14px;
       border-radius: 6px;
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border);
       background: var(--surface);
       color: var(--text);
       font-size: 12px;
@@ -967,61 +829,6 @@
       cursor: not-allowed;
     }
 
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: var(--surface-2);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 4px;
-      transition: width .3s;
-    }
-
-    .progress-fill.animated {
-      width: 30% !important;
-      animation: loading-pulse 1.4s ease-in-out infinite;
-    }
-
-    @keyframes loading-pulse {
-      0% {
-        margin-left: 0%;
-        width: 20%;
-      }
-
-      50% {
-        margin-left: 50%;
-        width: 30%;
-      }
-
-      100% {
-        margin-left: 80%;
-        width: 20%;
-      }
-    }
-
-    .progress-text {
-      font-size: 11px;
-      color: var(--text-sub);
-      text-align: center;
-    }
-
-    .tr-status-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    /* 翻译页隐藏目标语言提示、模型状态与字符计数（标题已移至拖拽条） */
-    .tab-panel[data-panel="translate"] .lang-row,
-    .tab-panel[data-panel="translate"] .tr-status-row {
-      display: none;
-    }
 
     .hidden {
       display: none !important;
@@ -1043,30 +850,6 @@
       }
     }
 
-    .model-status-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 500;
-    }
-
-    .model-status-tag.downloaded {
-      background: rgba(52, 199, 89, 0.12);
-      color: #34c759;
-    }
-
-    .model-status-tag.loaded {
-      background: rgba(7, 193, 96, 0.12);
-      color: var(--accent);
-    }
-
-    .model-status-tag.none {
-      background: var(--surface-2);
-      color: var(--text-sub);
-    }
 
     /* ============================================================
        轻听面板样式
@@ -1172,7 +955,7 @@
 
     .preset-card:hover {
       background: var(--surface-2);
-      border-color: var(--border-strong);
+      border-color: var(--border);
     }
 
     .preset-card.active {
@@ -1203,7 +986,7 @@
       flex: 1;
       padding: 6px 10px;
       border-radius: 6px;
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border);
       background: var(--surface);
       color: var(--text);
       font-size: 12px;
@@ -1244,7 +1027,7 @@
       width: 32px;
       height: 18px;
       border-radius: 9px;
-      background: var(--border-strong);
+      background: var(--border);
       position: relative;
       transition: background .15s;
     }
@@ -1287,7 +1070,7 @@
       flex: 1;
       height: 4px;
       border-radius: 2px;
-      background: var(--border-strong);
+      background: var(--border);
       outline: none;
     }
 
@@ -1374,7 +1157,7 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--border-strong);
+      background: var(--border);
       flex-shrink: 0;
     }
 
@@ -1721,52 +1504,7 @@
       </div>
 
       <div class="tab-panel" data-panel="translate" data-title-key="tab_translate">
-        <div class="tr-wrap">
-          <div class="tr-card">
-            <div class="tr-col src">
-              <textarea class="tr-source" id="source-text" data-i18n-placeholder="translate_placeholder"
-                placeholder="输入..."></textarea>
-            </div>
-
-            <div class="tr-divider"></div>
-
-            <div class="tr-col tgt">
-              <button class="tr-copy-btn" id="copy-btn" data-i18n="translate_copy" disabled>复制结果</button>
-              <textarea class="tr-result" id="result-text" readonly data-i18n-placeholder="translate_result_placeholder"
-                placeholder="结果..."></textarea>
-            </div>
-
-            <button class="btn primary tr-fab" id="translate-btn">
-              <span class="tr-btn-icon"></span>
-              <span class="tr-btn-text" data-i18n="translate_btn">翻译</span>
-            </button>
-
-            <!-- 隐藏元素：JS 仍需引用，仅不显示 -->
-            <span id="tgt-lang-label" class="tr-hidden">English</span>
-            <span id="char-count" class="tr-hidden">0 / 30000</span>
-          </div>
-
-          <div class="tr-actions">
-            <button class="btn primary" id="translate-btn-legacy" style="display:none" aria-hidden="true">
-              <span class="tr-btn-icon"></span>
-              <span class="tr-btn-text" data-i18n="translate_btn">翻译</span>
-            </button>
-            <div id="loading-indicator" class="loading-spinner hidden"></div>
-          </div>
-
-          <div id="progress-section" class="hidden">
-            <div class="progress-bar">
-              <div class="progress-fill animated" id="progress-fill" style="width:0%"></div>
-            </div>
-            <div class="progress-text" id="progress-text">0%</div>
-          </div>
-
-          <div class="tr-status-row" style="display:none;">
-            <span id="model-status" data-i18n="translate_no_model">
-              <span class="model-status-tag none">模型未加载</span>
-            </span>
-          </div>
-        </div>
+        <div id="translate-mount"></div>
       </div>
 
       <div class="tab-panel" data-panel="focus" data-title-key="tab_focus">
@@ -1836,6 +1574,7 @@
 
   <script src="i18n.js"></script>
   <script src="ui-common.js"></script>
+  <script src="translate/translate.js"></script>
   <script src="settings.js"></script>
 </body>
 
