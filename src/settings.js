@@ -515,6 +515,22 @@ function keepDurationMs(idx) {
   return minutes * 60 * 1000;
 }
 
+// 完整档位对应的秒数（永久档返回 0），用于开启 / 切换档位时传给后端 -t
+function keepSeconds(idx) {
+  const minutes = KEEP_DURATIONS[idx];
+  if (!minutes || minutes <= 0) return 0;
+  return minutes * 60;
+}
+
+// 结合已保存的 startedAt 计算剩余秒数，用于「恢复 / 中途重启」时与后端保持一致
+function keepRemainingSeconds(idx) {
+  const dur = keepDurationMs(idx);
+  if (!dur) return 0; // 永久档
+  const started = settings.keepAwake.startedAt || Date.now();
+  const rem = dur - (Date.now() - started);
+  return rem > 0 ? Math.floor(rem / 1000) : 0;
+}
+
 function formatRemain(ms) {
   if (ms <= 0) return '0 分钟';
   const totalMin = Math.ceil(ms / 60000);
@@ -558,8 +574,9 @@ function startKeepCountdown(reset = true) {
       elKeepEnabled.checked = false;
       elKeepDetail.classList.add('disabled');
       saveSettings();
-      invoke('set_keep_awake', { enabled: false, index: settings.keepAwake.index })
+      invoke('set_keep_awake', { enabled: false, seconds: 0 })
         .catch((e) => console.error('set_keep_awake failed:', e));
+      invoke('notify_keep_awake_ended').catch(() => {});
       if (elKeepCountdown) elKeepCountdown.style.display = 'none';
       if (elKeepCancel) elKeepCancel.style.display = 'none';
       return;
@@ -595,7 +612,7 @@ function buildKeepTicks() {
       saveSettings();
       if (settings.keepAwake.enabled) {
         // 重新设置档位 → 重新拉起断言并重置倒计时
-        invoke('set_keep_awake', { enabled: true, index: i })
+        invoke('set_keep_awake', { enabled: true, seconds: keepSeconds(i) })
           .catch((e) => console.error('set_keep_awake failed:', e));
         startKeepCountdown(true);
       }
@@ -630,12 +647,12 @@ async function initKeepAwake() {
       if (elKeepCountdown) elKeepCountdown.style.display = 'none';
       if (elKeepCancel) elKeepCancel.style.display = 'none';
       await saveSettings();
-      invoke('set_keep_awake', { enabled: false, index })
+      invoke('set_keep_awake', { enabled: false, seconds: 0 })
         .catch((e) => console.error('set_keep_awake failed:', e));
     } else {
       // 未到期（或永久）：恢复断言并继续 / 开始倒计时
       try {
-        await invoke('set_keep_awake', { enabled: true, index });
+        await invoke('set_keep_awake', { enabled: true, seconds: keepRemainingSeconds(index) });
       } catch (e) {
         console.error('set_keep_awake failed:', e);
       }
@@ -656,7 +673,7 @@ elKeepEnabled.addEventListener('change', async () => {
   await saveSettings();
   elKeepDetail.classList.toggle('disabled', !on);
   try {
-    await invoke('set_keep_awake', { enabled: on, index: settings.keepAwake.index });
+    await invoke('set_keep_awake', { enabled: on, seconds: on ? keepSeconds(settings.keepAwake.index) : 0 });
   } catch (e) {
     console.error('set_keep_awake failed:', e);
   }
@@ -681,7 +698,7 @@ elKeepDuration.addEventListener('change', () => {
   if (settings.keepAwake.enabled) {
     const i = parseInt(elKeepDuration.value, 10);
     // 重新设置档位 → 重新拉起断言并重置倒计时
-    invoke('set_keep_awake', { enabled: true, index: i })
+    invoke('set_keep_awake', { enabled: true, seconds: keepSeconds(i) })
       .catch((e) => console.error('set_keep_awake failed:', e));
     startKeepCountdown(true);
   }

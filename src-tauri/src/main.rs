@@ -14,7 +14,8 @@ use serde_json::Value;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{
-    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, State, WebviewWindow, WindowEvent,
+    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, RunEvent, State, WebviewWindow,
+    WindowEvent,
 };
 use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
@@ -244,30 +245,36 @@ fn keep_awake_child() -> &'static Mutex<Option<std::process::Child>> {
     S.get_or_init(|| Mutex::new(None))
 }
 
-#[tauri::command]
-fn set_keep_awake(enabled: bool, index: u64) -> Result<(), String> {
-    // 先释放上一次的子进程
+/// 杀掉当前 caffeinate 子进程并回收（避免僵尸进程），幂等、可重复调用。
+fn kill_keep_awake_child() {
     if let Ok(mut guard) = keep_awake_child().lock() {
         if let Some(mut child) = guard.take() {
             let _ = child.kill();
+            let _ = child.wait(); // 回收僵尸，避免子进程残留
         }
     }
+}
+
+/// 开启 / 关闭防休眠。
+/// `seconds` 为本次生效的剩余秒数：>0 时传给 `caffeinate -t` 做超时自动释放；
+/// 0 表示「一直保持」，不传 -t，直到关闭开关或退出 App。
+///
+/// 语义（对齐 ToDesk 式需求）：仅阻止「系统空闲休眠」(`-i`)，
+/// 显示器照常可以熄屏、可以锁屏，后台程序（编译 / 下载 / 远程会话等）持续运行；
+/// `-m` 额外覆盖「合盖 (clamshell)」场景；不使用 `-s`（否则仅接电源时生效）
+/// 也不使用 `-d`（否则会阻止显示器休眠，与需求相悖）。
+#[tauri::command]
+fn set_keep_awake(enabled: bool, seconds: u64) -> Result<(), String> {
+    kill_keep_awake_child();
     if !enabled {
         return Ok(());
     }
     #[cfg(target_os = "macos")]
     {
-        let idx = index as usize;
-        let minutes = if idx < KEEP_AWAKE_DURATIONS.len() {
-            KEEP_AWAKE_DURATIONS[idx]
-        } else {
-            KEEP_AWAKE_DURATIONS[2]
-        };
-        // 最后一档（index = 9）为「永久」，不传 -t，由关闭开关 / 退出 App 释放
         let mut cmd = std::process::Command::new("caffeinate");
-        cmd.args(["-i", "-m", "-s"]);
-        if minutes > 0 {
-            cmd.args(["-t", &(minutes.saturating_mul(60)).to_string()]);
+        cmd.args(["-i", "-m"]);
+        if seconds > 0 {
+            cmd.args(["-t", &seconds.to_string()]);
         }
         let child = cmd
             .spawn()
@@ -283,7 +290,23 @@ fn set_keep_awake(enabled: bool, index: u64) -> Result<(), String> {
     }
 }
 
+/// 防休眠到点结束时的轻量通知（Toast）。
+#[tauri::command]
+fn notify_keep_awake_ended() {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = std::process::Command::new("osascript")
+            .args([
+                "-e",
+                "display notification \"电脑已恢复常规休眠策略，后台任务可继续运行\" with title \"日行 · 防休眠\"",
+            ])
+            .spawn();
+    }
+}
+
 /// 应用启动时按保存的设置恢复防休眠状态。
+/// 关键：根据已保存的 startedAt 计算「剩余秒数」传给 caffeinate -t，
+/// 这样中途退出 / 重启 App 后，断言时长与用户看到的倒计时完全一致，不会重新撑满整段。
 fn apply_keep_awake_from_settings(_app: &AppHandle) {
     let settings = match settings_path().and_then(|p| read_json(&p)) {
         Some(v) => v,
@@ -298,27 +321,33 @@ fn apply_keep_awake_from_settings(_app: &AppHandle) {
         return;
     }
     let index = keep.get("index").and_then(|x| x.as_u64()).unwrap_or(2);
-    // 若记录了生效起点(startedAt, 毫秒时间戳)且按所选时长已到期，则视为已结束，
-    // 不再拉起电源断言（前端会在 init 时把开关回弹为关闭），避免 App 关闭期间
-    // 到期仍残留断言。
-    if let Some(started) = keep.get("startedAt").and_then(|x| x.as_i64()) {
-        let minutes = if (index as usize) < KEEP_AWAKE_DURATIONS.len() {
-            KEEP_AWAKE_DURATIONS[index as usize]
-        } else {
-            KEEP_AWAKE_DURATIONS[2]
-        };
-        if minutes > 0 {
-            let now_ms = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_millis() as i64)
-                .unwrap_or(0);
-            if now_ms - started >= (minutes as i64) * 60 * 1000 {
-                return; // 已到期：不拉起
-            }
-        }
-    }
+    let minutes = if (index as usize) < KEEP_AWAKE_DURATIONS.len() {
+        KEEP_AWAKE_DURATIONS[index as usize]
+    } else {
+        KEEP_AWAKE_DURATIONS[2]
+    };
 
-    let _ = set_keep_awake(true, index);
+    // 计算剩余秒数（永久档 minutes == 0 → seconds == 0，不传 -t）
+    let seconds: u64 = if minutes == 0 {
+        0
+    } else {
+        let now_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as i64)
+            .unwrap_or(0);
+        let started = keep
+            .get("startedAt")
+            .and_then(|x| x.as_i64())
+            .unwrap_or(now_ms);
+        let full_ms = (minutes as i64) * 60 * 1000;
+        let rem_ms = full_ms - (now_ms - started);
+        if rem_ms <= 0 {
+            return; // 已到期：不拉起（前端会在 init 时把开关回弹为关闭）
+        }
+        ((rem_ms / 1000) as u64).min((full_ms / 1000) as u64)
+    };
+
+    let _ = set_keep_awake(true, seconds);
 }
 
 /// 语言切换后，按新语言重建两个托盘（菜单文案 / 待办标题 / 日期格式）。
@@ -1311,6 +1340,7 @@ fn main() {
             get_settings_state,
             set_autostart,
             set_keep_awake,
+            notify_keep_awake_ended,
             relocalize_tray,
             refresh_tray_count,
             get_tiling_settings,
@@ -1436,6 +1466,12 @@ fn main() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("运行 Tauri 应用出错");
+        .build(tauri::generate_context!())
+        .expect("构建 Tauri 应用出错")
+        .run(|_app, event| {
+            // 退出时兜底释放电源断言，避免残留导致系统永不休眠
+            if let RunEvent::Exit = event {
+                kill_keep_awake_child();
+            }
+        });
 }

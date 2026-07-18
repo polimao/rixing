@@ -501,6 +501,7 @@ body {
   /* 撑满整个任务条高度 */
   min-height: 44px;
   border: none;
+  background: transparent;
   font-size: 14px;
   font-weight: 400;
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -1161,7 +1162,7 @@ body {
 }
 
 .toast-undo-btn:hover {
-  color: var(--accent);
+  color: #66b1ff;
 }
 
 /* =========================================
