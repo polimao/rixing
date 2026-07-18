@@ -44,13 +44,25 @@
 
 ## 📸 Screenshots
 
-|                       To-dos                        |                       Calendar                         |
-| :-------------------------------------------------: | :----------------------------------------------------: |
-| <img src="docs/images/todos-light.png" width="330"> | <img src="docs/images/calendar-light.png" width="300"> |
+|                         To-dos                        |                         Calendar                        |
+| :----------------------------------------------------: | :------------------------------------------------------: |
+| <img src="docs/images/todos-light.png" width="330">    | <img src="docs/images/calendar-light.png" width="300">   |
 
-|                     Dark mode                      |                       Settings                        |
-| :------------------------------------------------: | :---------------------------------------------------: |
-| <img src="docs/images/todos-dark.png" width="330"> | <img src="docs/images/settings-dark.png" width="300"> |
+|                        Dark mode                       |                    Settings · General                   |
+| :----------------------------------------------------: | :------------------------------------------------------: |
+| <img src="docs/images/todos-dark.png" width="330">     | <img src="docs/images/settings-dark.png" width="300">    |
+
+|                Focus Music · 轻听                    |                    Translation                          |
+| :----------------------------------------------------: | :------------------------------------------------------: |
+| <img src="docs/images/focus-music-light.png" width="300"> | <img src="docs/images/settings-translate.png" width="300"> |
+
+|              Anniversaries · 倒计时                   |              Split Screen · Tiling                      |
+| :----------------------------------------------------: | :------------------------------------------------------: |
+| <img src="docs/images/settings-ann.png" width="300"> | <img src="docs/images/settings-tidy.png" width="300">  |
+
+|                    Keep Awake                        |                      About                              |
+| :----------------------------------------------------: | :------------------------------------------------------: |
+| <img src="docs/images/settings-keepawake.png" width="300"> | <img src="docs/images/settings-about.png" width="300"> |
 
 ## 📦 Install
 
