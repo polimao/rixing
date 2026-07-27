@@ -50,22 +50,19 @@
       flex-direction: column;
     }
 
-    /* 窗内「设置」入口：右上角齿轮，不依赖右键托盘菜单 */
+    /* 窗内「设置」入口：倒计时标题行右侧齿轮 */
     .cal-settings-btn {
-      position: absolute;
-      bottom: 12px;
-      right: 14px;
-      width: 24px;
-      height: 24px;
-      display: flex;
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       background: transparent;
       border: none;
       color: #c0c0c0;
-      border-radius: 7px;
+      border-radius: 5px;
       cursor: pointer;
-      z-index: 11;
+      flex-shrink: 0;
       transition: background-color 0.2s, color 0.2s;
     }
 
@@ -241,11 +238,42 @@
       color: #ffb5b8;
     }
 
-    /* Slightly tweak other month red days to look inactive */
-    .day.holiday.other-month .day-num,
-    .day.holiday.other-month .day-lunar,
+    /* Holiday rest days (休): same red background + white text as today */
+    .day.holiday-rest {
+      background-color: #cc252c;
+      box-shadow: 0 4px 10px 2px rgba(204, 37, 44, 0.4);
+    }
+
+    .day.holiday-rest .day-num,
+    .day.holiday-rest .badge {
+      color: #ffffff;
+    }
+
+    .day.holiday-rest .day-lunar {
+      color: #ffb5b8;
+    }
+
+    /* 同一行连续的「休」日连成一块：外侧圆角、内侧拉平、去掉中间投影 */
+    .day.holiday-rest.rest-mid {
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .day.holiday-rest.rest-first {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .day.holiday-rest.rest-last {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    /* Slightly tweak other month red days to look inactive (but keep 休 days bright) */
+    .day.holiday.other-month:not(.holiday-rest) .day-num,
+    .day.holiday.other-month:not(.holiday-rest) .day-lunar,
     .day.weekend.other-month .day-num,
-    .day.other-month .badge-rest {
+    .day.other-month:not(.holiday-rest) .badge-rest {
       color: #f5b0b0;
     }
 
@@ -361,10 +389,40 @@
       color: #ffb5b8;
     }
 
-    [data-theme="dark"] .day.holiday.other-month .day-num,
-    [data-theme="dark"] .day.holiday.other-month .day-lunar,
+    [data-theme="dark"] .day.holiday-rest {
+      background-color: #d32f2f;
+      box-shadow: 0 4px 10px 2px rgba(211, 47, 47, 0.4);
+    }
+
+    [data-theme="dark"] .day.holiday-rest .day-num,
+    [data-theme="dark"] .day.holiday-rest .badge {
+      color: #ffffff;
+    }
+
+    [data-theme="dark"] .day.holiday-rest .day-lunar {
+      color: #ffb5b8;
+    }
+
+    /* 同一行连续的「休」日连成一块：外侧圆角、内侧拉平、去掉中间投影 */
+    [data-theme="dark"] .day.holiday-rest.rest-mid {
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    [data-theme="dark"] .day.holiday-rest.rest-first {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    [data-theme="dark"] .day.holiday-rest.rest-last {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    [data-theme="dark"] .day.holiday.other-month:not(.holiday-rest) .day-num,
+    [data-theme="dark"] .day.holiday.other-month:not(.holiday-rest) .day-lunar,
     [data-theme="dark"] .day.weekend.other-month .day-num,
-    [data-theme="dark"] .day.other-month .badge-rest {
+    [data-theme="dark"] .day.other-month:not(.holiday-rest) .badge-rest {
       color: #8c3a3a;
     }
 
@@ -392,7 +450,7 @@
       pointer-events: none;
     }
 
-    .day.has-ann:not(.today) {
+    .day.has-ann:not(.today):not(.holiday-rest) {
       box-shadow: inset 0 0 0 1.5px rgba(204, 37, 44, .35);
     }
 
@@ -400,11 +458,12 @@
       color: #f0b6b6;
     }
 
-    .day.has-ann.other-month:not(.today) {
+    .day.has-ann.other-month:not(.today):not(.holiday-rest) {
       box-shadow: inset 0 0 0 1.5px rgba(204, 37, 44, .15);
     }
 
-    .day.today .ann-mark {
+    .day.today .ann-mark,
+    .day.holiday-rest .ann-mark {
       color: #ffffff;
     }
 
@@ -417,11 +476,12 @@
       color: #8c3a3a;
     }
 
-    [data-theme="dark"] .day.today .ann-mark {
+    [data-theme="dark"] .day.today .ann-mark,
+    [data-theme="dark"] .day.holiday-rest .ann-mark {
       color: #ffffff;
     }
 
-    [data-theme="dark"] .day.has-ann:not(.today) {
+    [data-theme="dark"] .day.has-ann:not(.today):not(.holiday-rest) {
       box-shadow: inset 0 0 0 1.5px rgba(255, 107, 107, .4);
     }
 
@@ -431,6 +491,9 @@
     }
 
     #ann-panel .ann-panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       font-size: 10px;
       color: #bbb;
       letter-spacing: .5px;
@@ -450,15 +513,6 @@
 <body>
   <div class="arrow-up"></div>
   <div class="calendar-container">
-    <button id="open-settings-btn" class="cal-settings-btn" title="日行设置">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path
-          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
-        </path>
-      </svg>
-    </button>
     <div class="header">
       <button id="prev-month" class="nav-btn">&#10094;</button>
       <div id="month-year"></div>
@@ -476,7 +530,16 @@
     </div>
     <div class="days" id="days-grid"></div>
     <div id="ann-panel" style="display:none;margin-top:8px;border-top:1px solid #f0f0f0;padding-top:6px">
-      <div class="ann-panel-title" data-i18n="ann_section">倒计时</div>
+      <div class="ann-panel-title">
+        <span data-i18n="ann_section">倒计时</span>
+        <button id="open-settings-btn" class="cal-settings-btn" title="日行设置">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
       <div id="ann-panel-list"></div>
     </div>
 

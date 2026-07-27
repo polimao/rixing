@@ -93,7 +93,7 @@ function monthYearLabel(date) {
   const ym = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }).format(date);
   if (!isExpanded) return ym;
   const next = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-  const m2 = new Intl.DateTimeFormat(locale, { month: 'long' }).format(next);
+  const m2 = new Intl.DateTimeFormat(locale, { month: 'short' }).format(next);
   return `${ym} – ${m2}`;
 }
 
@@ -104,6 +104,36 @@ function renderWeekdays() {
   const week = (window.I18N && window.I18N.t('week')) || ['日', '一', '二', '三', '四', '五', '六'];
   const mondayFirst = [1, 2, 3, 4, 5, 6, 0]; // week 为周日起始，这里重排成周一起始
   container.innerHTML = mondayFirst.map((i) => `<div>${week[i]}</div>`).join('');
+}
+
+// 同一行内连续的「休」假日连成一块：首尾保留外侧圆角，中间格子拉平、去掉内部投影
+function applyRestBlockCorners() {
+  const grid = document.getElementById('days-grid');
+  if (!grid) return;
+  const cells = Array.from(grid.children);
+  const COLS = 7;
+  for (let row = 0; row * COLS < cells.length; row++) {
+    const rowCells = cells.slice(row * COLS, row * COLS + COLS);
+    let i = 0;
+    while (i < rowCells.length) {
+      if (rowCells[i].classList.contains('holiday-rest')) {
+        let j = i;
+        while (j < rowCells.length && rowCells[j].classList.contains('holiday-rest')) j++;
+        for (let k = i; k < j; k++) {
+          const el = rowCells[k];
+          el.classList.remove('rest-first', 'rest-mid', 'rest-last');
+          if (j - i > 1) {
+            if (k === i) el.classList.add('rest-first');
+            else if (k === j - 1) el.classList.add('rest-last');
+            else el.classList.add('rest-mid');
+          }
+        }
+        i = j;
+      } else {
+        i++;
+      }
+    }
+  }
 }
 
 function renderCalendar(date) {
@@ -163,6 +193,9 @@ function renderCalendar(date) {
   for (let i = 1; i <= remainingCells; i++) {
     daysGrid.appendChild(createDayElement(endYear, endMonth + 1, i, true));
   }
+
+  // 同一行内连续的「休」假日连成一块（首尾保留外侧圆角、中间拉平）
+  applyRestBlockCorners();
 
   // 渲染倒计时面板（在高度计算前）
   renderAnniversaryPanel();
@@ -251,6 +284,9 @@ function createDayElement(year, month, day, isOtherMonth, isToday = false) {
 
   if (isHoliday) {
     el.classList.add('holiday');
+    if (badge === '休') {
+      el.classList.add('holiday-rest');
+    }
   } else if (isWeekend) {
     el.classList.add('weekend');
   }
@@ -338,7 +374,7 @@ document.getElementById('next-month').addEventListener('click', () => changeMont
 
 // 窗内「设置」入口：不再依赖右键托盘菜单也能进设置
 document.getElementById('open-settings-btn').addEventListener('click', () => {
-  invoke('open_settings', { tab: 'general' }).catch((e) => console.error('open_settings failed:', e));
+  invoke('open_settings', { tab: 'ann' }).catch((e) => console.error('open_settings failed:', e));
 });
 
 // Return to today when clicking the month-year header
