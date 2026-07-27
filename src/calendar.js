@@ -90,11 +90,18 @@ function currentLocale() {
 // 顶部「年 月」标题：按当前语言本地化（展开时显示「本月 – 次月」）
 function monthYearLabel(date) {
   const locale = currentLocale();
-  const ym = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }).format(date);
-  if (!isExpanded) return ym;
+  if (!isExpanded) {
+    return new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }).format(date);
+  }
+  const y = date.getFullYear();
+  const m1 = date.getMonth() + 1;
   const next = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-  const m2 = new Intl.DateTimeFormat(locale, { month: 'short' }).format(next);
-  return `${ym} – ${m2}`;
+  const y2 = next.getFullYear();
+  const m2 = next.getMonth() + 1;
+  if (y !== y2) {
+    return `${y}年${m1}月 · ${y2}年${m2}月`;
+  }
+  return `${y}年${m1}·${m2}月`;
 }
 
 // 星期表头：从 i18n 的 week 数组取值，按「周一为首列」的网格顺序排列
