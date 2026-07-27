@@ -1,146 +1,85 @@
-/* 翻译面板样式 —— 极简三段式：输入区 / 翻译按钮 / 结果区 */
+/* 翻译面板样式 —— 简约大气：输入框(内嵌按钮) / 复制按钮 / 结果区 */
 
 .tr-wrap {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   height: 100%;
 }
 
-.tr-card {
+/* ===== 输入卡片 —— 翻译按钮嵌入在底部内侧 ===== */
+.tr-input-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 120px;
-  background: var(--surface);
-  border-radius: 14px;
-  border: 1px solid var(--surface-3);
-  background-color: var(--surface-2);
-  border: 1px solid var(--accent);
-
-  /* box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 8px 24px rgba(0, 0, 0, .08); */
-  overflow: hidden;
-}
-
-.tr-card:focus {
-  box-shadow: 0 1px 3px var(--accent), 0 8px 24px var(--accent, .08);
-  border: 2px solid var(--accent);
-}
-
-.tr-card-result {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 300px;
-  background: var(--surface);
-  border-radius: 14px;
-  border: 1px solid var(--surface-3);
-  /* background-color: var(--surface-2); */
-  /* box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 8px 24px rgba(0, 0, 0, .08); */
-  overflow: hidden;
-}
-
-.tr-col {
-  position: relative;
-  flex: 1 1 0;
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-}
-
-textarea.tr-source,
-textarea.tr-result {
-  -webkit-user-select: text;
-  user-select: text;
-  flex: 1;
-  min-height: 0;
-  resize: none;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--text);
-  padding: 16px;
-  font-size: 15px;
-  line-height: 1.7;
-  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-}
-
-textarea:focus,
-textarea.tr-result:focus {
-  outline: none;
-  box-shadow: 0 1px 3px var(--accent), 0 8px 24px var(--accent, .08);
-}
-
-textarea.tr-result {
-  cursor: text;
-  padding: 44px 16px 16px;
-}
-
-/* 浮动复制按钮 —— 结果区右上角 */
-.tr-copy-btn {
-  position: relative;
-  /* top: 10px; */
-  right: 0px;
-  float: right;
-  width: 20%;
-  z-index: 4;
-  border: none;
+  flex: 1 1 auto;
+  min-height: 200px;
   background: var(--surface-2);
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 600;
-  font-family: inherit;
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background .12s, color .12s;
-  white-space: nowrap;
+  border-radius: 10px;
+  border: 1px solid var(--surface-3);
+  overflow: hidden;
 }
 
-.tr-copy-btn:hover:not(:disabled) {
-  background: var(--surface-3);
+/* 输入框获得焦点（光标在内）时边框变绿 */
+.tr-input-card:focus-within {
+  border-color: var(--accent);
 }
 
-.tr-copy-btn:disabled {
-  color: var(--text-sub);
-  background: transparent;
-  cursor: not-allowed;
-}
-
-/* 翻译按钮 —— 绝对定位居中悬浮在上下两区交界处 */
+/* ===== 翻译按钮 —— 绝对定位贴在输入框底部 ===== */
 .tr-fab {
-  /* position: absolute; */
-  /* top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); */
-  z-index: 6;
-  /* padding: 9px 36px; */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 38px;
   border: none;
-  border-radius: 9px;
-  background: linear-gradient(135deg, var(--accent), var(--tr-accent-2));
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(135deg, var(--accent), #05b368);
   color: #fff;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   font-family: inherit;
-  width: 40%;
-  margin-left: 30%;
-  padding: 10px auto;
-  height: 30px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(7, 193, 96, .3);
+  box-shadow: 0 -2px 8px rgba(7, 193, 96, .2);
   transition: filter .15s, box-shadow .15s;
   white-space: nowrap;
+  z-index: 5;
 }
 
 .tr-fab:hover:not(:disabled) {
   filter: brightness(1.06);
-  box-shadow: 0 6px 20px rgba(7, 193, 96, .4);
+  box-shadow: 0 -4px 14px rgba(7, 193, 96, .35);
 }
 
 .tr-fab:disabled {
   cursor: wait;
+}
+
+/* loading spinner（默认隐藏，is-loading 时显示旋转） */
+.tr-spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, .35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: tr-spin .65s linear infinite;
+  flex-shrink: 0;
+}
+
+.tr-fab.is-loading .tr-spinner {
+  display: block;
+}
+
+@keyframes tr-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* loading 态：脉冲动画 */
@@ -156,10 +95,95 @@ textarea.tr-result {
   }
 
   50% {
-    opacity: 0.65;
+    opacity: .72;
   }
 }
 
+/* ===== 复制按钮 —— 嵌入结果卡内底部 ===== */
+.tr-copy-btn {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  border: none;
+  border-top: 1px solid var(--surface-3);
+  background: var(--surface);
+  color: var(--text-sub);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 0 0 10px 10px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+.tr-copy-btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.tr-copy-btn:disabled {
+  color: var(--surface-3);
+  background: var(--surface);
+  cursor: not-allowed;
+}
+
+/* ===== 结果卡片（无结果时隐藏，有结果时显示）===== */
+.tr-result-card {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 250px;
+
+  background: var(--surface-1);
+  border-radius: 10px;
+  border: 1px solid var(--surface-3);
+  overflow: hidden;
+}
+
+.tr-result-card.is-visible {
+  display: flex;
+}
+
+/* ===== 文本域共用样式 ===== */
+textarea.tr-source,
+textarea.tr-result {
+  -webkit-user-select: text;
+  user-select: text;
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.65;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+}
+
+/* 输入框底部留出按钮高度空间 */
+textarea.tr-source {
+  padding-bottom: 46px;
+}
+
+textarea.tr-result {
+  cursor: text;
+  /* 结果框底部留出复制按钮高度空间 */
+  padding-bottom: 44px;
+}
+
+textarea:focus,
+textarea.tr-result:focus {
+  outline: none;
+}
+
+/* ===== 隐藏辅助元素 ===== */
 .tr-hidden {
   display: none !important;
 }

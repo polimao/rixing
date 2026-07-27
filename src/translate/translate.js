@@ -6,20 +6,19 @@
 const TR_TRANSLATE_PANEL_HTML = `
   <div class="tr-wrap">
 
-      <div class="tr-card src">
+      <div class="tr-input-card">
         <textarea class="tr-source" id="source-text" data-i18n-placeholder="translate_placeholder"
           placeholder="输入..."></textarea>
+        <button class="tr-fab" id="translate-btn" aria-label="翻译 ⌘ ⏎">
+          <span class="tr-spinner"></span>
+          <span class="tr-btn-text" data-i18n="translate_btn">翻译 ⌘ ⏎</span>
+        </button>
       </div>
-      <div>
-      <button class="tr-fab" id="translate-btn" aria-label="翻译">
-        <span class="tr-btn-text" data-i18n="translate_btn">翻译</span>
-      </button>
-        <button class="tr-copy-btn" id="copy-btn" data-i18n="translate_copy" disabled>复制结果</button>
-        </div>
-      <div class="tr-card-result tgt">
 
+      <div class="tr-result-card">
         <textarea class="tr-result" id="result-text" readonly data-i18n-placeholder="translate_result_placeholder"
           placeholder="结果..."></textarea>
+        <button class="tr-copy-btn" id="copy-btn" data-i18n="translate_copy" disabled>复制</button>
       </div>
 
 
@@ -79,6 +78,14 @@ function trUpdateButtonStates() {
   }
   elSourceText.disabled = busy;
   if (elCopyBtn) elCopyBtn.disabled = !elResultText.value.trim();
+  trUpdateResultVisibility();
+}
+
+function trUpdateResultVisibility() {
+  const card = document.querySelector('.tr-result-card');
+  const elResultText = document.getElementById('result-text');
+  if (!card || !elResultText) return;
+  card.classList.toggle('is-visible', elResultText.value.trim().length > 0);
 }
 
 function trUpdateModelStatus() {

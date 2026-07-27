@@ -41,14 +41,11 @@
       flex: 0 0 var(--title-h);
       display: flex;
       align-items: center;
+      justify-content: center;
       cursor: default;
     }
 
-    .window-drag-bar::before {
-      content: '';
-      flex: 0 0 96px;
-      /* 避让左侧边栏（tabs 132px + gap 16px ≈ 148px） */
-    }
+    /* 不再需要 ::before 避让，标题直接在整窗宽度上居中 */
 
     .window-drag-bar .drag-title {
       font-size: 16px;
@@ -77,42 +74,35 @@
     .tabs {
       display: flex;
       flex-direction: column;
-      flex: 0 0 103px;
+      flex: 0 0 85px;
       gap: 4px;
       margin-bottom: 0;
       position: sticky;
       top: 0;
-      padding-top: 0;
-      /* background: var(--sidebar-bg); */
-      /* background: radial-gradient(ellipse var(--sidebar-bg), #fff, ); */
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
       background: radial-gradient(circle at center,
-          /* 圆心位置：center 也可写 50% 50% */
-          var(--sidebar-bg)30%,
-          /* 圆心颜色 */
+          var(--sidebar-bg) 30%,
           var(--sidebar-bg) 5%,
-          /* 40%半径处过渡 */
           var(--bg) 100%
-          /* 边缘颜色 */
         );
-      padding: 0 10px;
+      padding: 8px 10px 0;
+      align-items: center;
     }
 
     /* 面板标题已移至顶部拖拽条（#window-title），此处不再单独渲染 */
 
     .tab {
       flex: none;
-      width: 100%;
+      width: 65px;
+      height: 65px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      gap: 8px;
-      padding: 9px 0px 9px 9px;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 4px;
       background: transparent;
-      /* 与侧边栏背景融为一体，不再有卡片感 */
       border: none;
-      /* 去掉卡片边框 / tab 之间的分割线 */
-      border-radius: 8px;
+      border-radius: 10px;
       color: var(--text);
       cursor: pointer;
       font-size: 12px;

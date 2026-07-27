@@ -557,7 +557,7 @@
       translate_src: '源语言',
       translate_auto: '自动检测',
       translate_placeholder: '输入...',
-      translate_btn: '翻译',
+      translate_btn: '翻译 ⌘ ⏎',
       translate_loading: '翻译中...',
       translate_result_placeholder: '',
       translate_copy: '复制',
