@@ -35,27 +35,26 @@
       min-height: 550px;
     }
 
-    /* 窗口顶部可拖拽条：高度 = 标题高度，横跨整个窗口宽度，并在其中显示当前面板标题作为视觉标识 */
+    /* 窗口顶部可拖拽条：高度 = 标题高度，横跨整个窗口宽度，并在左侧显示当前面板标题作为视觉标识 */
     .window-drag-bar {
       height: var(--title-h);
       flex: 0 0 var(--title-h);
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
+      padding-left: 100px;
       cursor: default;
     }
 
-    /* 不再需要 ::before 避让，标题直接在整窗宽度上居中 */
-
     .window-drag-bar .drag-title {
       font-size: 16px;
-      font-weight: 700;
+      font-weight: 400;
       color: var(--text);
       line-height: 1.2;
       user-select: none;
       pointer-events: none;
-      flex: 1;
-      text-align: center;
+      flex: 0 0 auto;
+      text-align: left;
       /* 让整条都可拖拽，不被文字拦截 */
     }
 
