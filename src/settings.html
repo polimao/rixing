@@ -1233,15 +1233,15 @@
         <button class="tab" type="button" data-tab="ann">
           <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 10c0 6-8 11-8 11s-8-5-8-11a8 8 0 0 1 16 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
+            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
           <svg class="icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-            <path
-              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z">
-            </path>
+            <path d="M19 4h-1V3c0-.55-.45-1-1-1s-1 .45-1 1v1H8V3c0-.55-.45-1-1-1s-1 .45-1 1v1H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V8h14v12z"></path>
           </svg>
-          <span data-i18n="ann_section">倒计时</span>
+          <span>日历</span>
         </button>
         <button class="tab" type="button" data-tab="tidy">
           <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1271,7 +1271,7 @@
               d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z">
             </path>
           </svg>
-          <span data-i18n="keepawake">防休眠</span>
+          <span>不休</span>
         </button>
         <button class="tab active" type="button" data-tab="general">
           <svg class="icon-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1387,7 +1387,7 @@
 
       </div>
 
-      <div class="tab-panel" data-panel="ann" data-title-key="ann_section">
+      <div class="tab-panel" data-panel="ann" data-title="日历">
         <div id="ann-list"></div>
         <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
           <div style="display:flex;gap:6px;align-items:center">
@@ -1463,7 +1463,7 @@
         </div>
       </div>
 
-      <div class="tab-panel" data-panel="keepawake" data-title-key="keepawake">
+      <div class="tab-panel" data-panel="keepawake" data-title="不休">
         <div class="row">
           <div class="label" style="display:flex;flex-direction:column;gap:2px">
             <span data-i18n="keepawake_enable">启用防休眠</span>

@@ -89,7 +89,14 @@ function updateWindowTitle() {
   const el = document.getElementById('window-title');
   if (!el) return;
   const activePanel = document.querySelector('.tab-panel.active');
-  const key = activePanel && activePanel.dataset.titleKey;
+  if (!activePanel) return;
+  // 优先使用面板静态标题（data-title），否则回退到 i18n key（data-title-key）
+  const staticTitle = activePanel.dataset.title;
+  if (staticTitle) {
+    el.textContent = staticTitle;
+    return;
+  }
+  const key = activePanel.dataset.titleKey;
   if (!key) return;
   el.textContent = (window.I18N && window.I18N.t(key)) || key;
 }
