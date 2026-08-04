@@ -14,7 +14,7 @@
         "label": "main",
         "title": "日行",
         "width": 440,
-        "height": 200,
+        "height": 320,
         "minWidth": 340,
         "minHeight": 200,
         "resizable": true,

@@ -335,7 +335,7 @@ function render() {
   }
 
   // 更新完 DOM 后动态计算并调整窗口高度
-  setTimeout(updateWindowHeight, 50);
+  setTimeout(updateWindowHeight, 100);
 }
 
 function updateWindowHeight() {
@@ -367,9 +367,9 @@ function updateWindowHeight() {
 
   let targetHeight = arrowHeight + windowPadding + padding + headerHeight + dashboardHeight + listHeight + bottomHeight + 8;
 
-  // 限制最大和最小高度
+  // 最小高度保底（窗口拖到很小时不至于把头挤没）
   if (targetHeight < 200) targetHeight = 200;
-  if (targetHeight > 800) targetHeight = 800; // 最大高度 800px
+  // 不设上限：待办多就让窗口长高，始终让所有内容可见
 
   invoke('resize_window', { height: Math.round(targetHeight) }).catch(() => { });
 }
