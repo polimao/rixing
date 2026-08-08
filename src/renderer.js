@@ -757,10 +757,12 @@ function updateChart() {
 const modal = document.getElementById('completed-modal');
 document.getElementById('view-completed-btn').addEventListener('click', () => {
   modal.classList.remove('hidden');
+  document.body.classList.add('modal-open');
   updateChart(); // 展开弹窗时渲染图表
 });
 document.getElementById('close-modal-btn').addEventListener('click', () => {
   modal.classList.add('hidden');
+  document.body.classList.remove('modal-open');
 });
 
 // 窗内「设置」入口：不再依赖右键托盘菜单也能进设置

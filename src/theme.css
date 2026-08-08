@@ -43,7 +43,7 @@
   --active-tab: #07c160;
   --sidebar-bg: #20271f;
   --tr-accent-2: #06ad56;
-  --shadow: rgba(0, 0, 0, 0.45);
+  --shadow: rgba(0, 0, 0, 0);
   /* 暗色下 tab 图标色稍微提亮 */
   --tab-general: #98989d;
   --tab-ann: #ff5e57;
@@ -131,7 +131,7 @@
 }
 
 [data-theme="dark"] .modal {
-  background: rgba(0, 0, 0, 0.45) !important;
+  background: rgba(0, 0, 0, 0) !important;
 }
 
 [data-theme="dark"] .modal-header {
