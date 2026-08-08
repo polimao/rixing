@@ -4,13 +4,9 @@
 
 # 日行 · RiXing
 
-**菜单栏里的效率台：待办、番茄钟、农历日历、本地 AI 音乐与翻译，一个轻巧私密的 App 全包了。**
+**菜单栏里的效率台：待办、番茄钟、农历日历、本地 AI 音乐与翻译，一个轻巧的 App 就够了。**
 
-[![Platform](https://img.shields.io/badge/platform-macOS%2010.15%2B-000000?logo=apple&logoColor=white)](https://www.apple.com/macos/)
-[![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri%20v2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
-[![Rust](https://img.shields.io/badge/backend-Rust-DEA584?logo=rust&logoColor=black)](https://www.rust-lang.org/)
-[![.dmg size](https://img.shields.io/badge/.dmg-~5.3_MB-3FB950)](https://tauri.app/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-4C8EDA)](LICENSE)
+[![size](https://img.shields.io/badge/.dmg-~5.3_MB-3FB950)](https://tauri.app/)
 
 [English](README.md) · 简体中文
 
@@ -38,31 +34,29 @@
 - 🪟 **窗口分屏** —— 把**任意 App 的当前活跃窗口**分到左半屏 / 右半屏 / 铺满，或一键复原；快捷键**可自定义**（默认 `⌘⌃ + 方向键`），边距可调。需要 macOS「辅助功能」权限。
 - 🛡️ **防休眠** —— 一键阻止 macOS 自动休眠/息屏，可设时长，到点自动恢复。
 - ⌨️ **可自定义全局快捷键** —— 唤出待办窗口（默认 `⌘⇧U`）和分屏快捷键都能在设置里自改。
-- 🌗 **亮色 / 暗色 / 随系统** —— 主题即时切换，所有窗口同步。
 - 🌍 **8 种语言** —— 简体中文、English、日本語、한국어、Español、Français、Deutsch、Русский。托盘文字和菜单也随语言切换。
-- 🚀 **开机自启动** —— 设置中一键开启。
 
 ## 📸 界面预览
 
-|                        待办                         |                         日历                         |
-| :--------------------------------------------------: | :---------------------------------------------------: |
-| <img src="docs/images/todos-light.png" width="330"> | <img src="docs/images/calendar-light.png" width="300"> |
+|                          待办                          |                            日历                            |
+| :-----------------------------------------------------: | :--------------------------------------------------------: |
+| `<img src="docs/images/todos-light.png" width="330">` | `<img src="docs/images/calendar-light.png" width="300">` |
 
-|                       暗色模式                      |                       设置 · 通用                     |
-| :--------------------------------------------------: | :---------------------------------------------------: |
-| <img src="docs/images/todos-dark.png" width="330">  | <img src="docs/images/settings-dark.png" width="300"> |
+|                        暗色模式                        |                       设置 · 通用                       |
+| :----------------------------------------------------: | :-------------------------------------------------------: |
+| `<img src="docs/images/todos-dark.png" width="330">` | `<img src="docs/images/settings-dark.png" width="300">` |
 
-|                    专注音乐 · 轻听                    |                       本地翻译                         |
-| :--------------------------------------------------: | :---------------------------------------------------: |
-| <img src="docs/images/focus-music-light.png" width="300"> | <img src="docs/images/settings-translate.png" width="300"> |
+|                       专注音乐 · 轻听                       |                            本地翻译                            |
+| :-----------------------------------------------------------: | :------------------------------------------------------------: |
+| `<img src="docs/images/focus-music-light.png" width="300">` | `<img src="docs/images/settings-translate.png" width="300">` |
 
-|                   纪念日 · 倒计时                     |                     窗口分屏 · Tiling                   |
-| :--------------------------------------------------: | :---------------------------------------------------: |
-| <img src="docs/images/settings-ann.png" width="300"> | <img src="docs/images/settings-tidy.png" width="300"> |
+|                     纪念日 · 倒计时                     |                    窗口分屏 · Tiling                    |
+| :------------------------------------------------------: | :-------------------------------------------------------: |
+| `<img src="docs/images/settings-ann.png" width="300">` | `<img src="docs/images/settings-tidy.png" width="300">` |
 
-|                       防休眠                          |                       关于                            |
-| :--------------------------------------------------: | :---------------------------------------------------: |
-| <img src="docs/images/settings-keepawake.png" width="300"> | <img src="docs/images/settings-about.png" width="300"> |
+|                             防休眠                             | 关于 |
+| :------------------------------------------------------------: | :--: |
+| `<img src="docs/images/settings-keepawake.png" width="300">` |      |
 
 ## 📦 安装
 
@@ -78,28 +72,9 @@ cargo install tauri-cli --version "^2.0"
 
 git clone https://github.com/polimao/rixing.git
 cd rixing
-cargo tauri build      # 中文版 → 软件名「日行」
-
-# 国际版 → 软件名 "RiXing"
-cargo tauri build --config src-tauri/tauri.international.conf.json
-
-# 两者产物都在 src-tauri/target/release/bundle/{dmg,macos}/
+npm install
+npm dev
 ```
-
-### 为什么这么小？
-
-日行基于 Tauri v2（Rust 后端 + 轻量原生 WebView）构建，而非打包整套浏览器内核，因此 `.dmg` 仅约 5.3 MB，内存占用也只有 Electron 类应用的一小部分。所有 AI 模型均在首次使用时下载并缓存到本地，不计入安装体积。
-
-### 窗口分屏快捷键（默认）
-
-| 快捷键   | 动作                     |
-| -------- | ------------------------ |
-| `⌘ ⌃ ←`  | 移到当前屏幕左半部分     |
-| `⌘ ⌃ →`  | 移到右半部分             |
-| `⌘ ⌃ ↑`  | 最大化（铺满屏幕）       |
-| `⌘ ⌃ ↓`  | 复原到之前的窗口大小     |
-
-四个都可由用户自改。
 
 ## 🛠 开发
 
