@@ -76,7 +76,7 @@ Grab the latest `.dmg` from the [Releases](../../releases) page, open it, and dr
 # Prerequisites: Rust (https://rustup.rs) and the Tauri CLI
 cargo install tauri-cli --version "^2.0"
 
-git clone https://github.com/polimao/rixing.git
+git clone https://github.com/zlimao/rixing.git
 cd rixing
 cargo tauri build      # Chinese edition → product name 「日行」
 
@@ -136,4 +136,4 @@ Both auto-fall back to `hf-mirror.com` when the HuggingFace main site is slow/un
 
 ## 📄 License
 
-[MIT](LICENSE) © Polimao
+[MIT](LICENSE) © zlimao

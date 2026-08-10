@@ -998,7 +998,7 @@ async function initAbout() {
   } catch (e) { /* 保持默认值 */ }
 
   document.getElementById('about-github').addEventListener('click', () => {
-    window.__TAURI__.shell.open('https://github.com/polimao/rixing').catch(() => { });
+    window.__TAURI__.shell.open('https://github.com/zlimao/rixing').catch(() => { });
   });
 }
 

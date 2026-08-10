@@ -70,7 +70,7 @@
 # 前置：Rust (https://rustup.rs) 与 Tauri CLI
 cargo install tauri-cli --version "^2.0"
 
-git clone https://github.com/polimao/rixing.git
+git clone https://github.com/zlimao/rixing.git
 cd rixing
 npm install
 npm dev
@@ -111,4 +111,4 @@ cargo tauri dev        # 运行（Rust 侧热重载）
 
 ## 📄 许可证
 
-[MIT](LICENSE) © Polimao
+[MIT](LICENSE) © zlimao

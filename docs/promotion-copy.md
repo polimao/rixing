@@ -1,8 +1,8 @@
 # 日行 · RiXing 推广文案包
 
 > 适用产品：日行 / RiXing —— macOS 菜单栏隐私效率台（待办 · 番茄钟 · 农历日历 · 本地 AI 音乐 · 本地翻译 · 窗口分屏 · 防休眠）
-> 仓库：https://github.com/polimao/rixing
-> 下载：https://github.com/polimao/rixing/releases
+> 仓库：https://github.com/zlimao/rixing
+> 下载：https://github.com/zlimao/rixing/releases
 >
 > 使用方式：把文中 `{{版本号}}`、`{{dmg下载链接}}` 替换为实际值即可发布。
 > 核心卖点（统一口径）：本地 AI、零订阅、零云端、不到 6MB、隐私优先。
@@ -32,7 +32,7 @@
 >
 > 如果你也受够了"先注册再使用、数据全在别人服务器"的工具，可以试试这种本地优先的思路。
 >
-> 下载：{{dmg下载链接}} ｜ 开源（MIT）：https://github.com/polimao/rixing
+> 下载：{{dmg下载链接}} ｜ 开源（MIT）：https://github.com/zlimao/rixing
 
 **发布建议**：配 2–3 张截图（待办亮/暗、日历、设置），文末加话题 `#效率工具` `#macOS` `#隐私`。
 
@@ -58,7 +58,7 @@
 >
 > 开源（MIT），欢迎试用和提建议：
 > 下载：{{dmg下载链接}}
-> 仓库：https://github.com/polimao/rixing
+> 仓库：https://github.com/zlimao/rixing
 >
 > 目前还没做 Apple 签名公证，首次打开若被拦截，右键"打开"或 `xattr -cr` 即可。后续打算补上。求 star 和反馈 🙏
 
@@ -85,7 +85,7 @@
 
 **Gallery 说明**：首图放"菜单栏唤起待办"的 GIF；次图放暗色模式 + 本地翻译面板。
 
-**评论区首条（置顶）**：`Free & open source (MIT). Download: {{dmg下载链接}} · Source: https://github.com/polimao/rixing`
+**评论区首条（置顶）**：`Free & open source (MIT). Download: {{dmg下载链接}} · Source: https://github.com/zlimao/rixing`
 
 **发布时间建议**：周二或周三 12:01 AM PST（太平洋时间），并提前在 X / 个人主页预告。
 
@@ -102,7 +102,7 @@
 >
 > It's ~6MB, built with Tauri v2 + Rust, MIT-licensed.
 >
-> Repo: https://github.com/polimao/rixing
+> Repo: https://github.com/zlimao/rixing
 > Download: {{dmg下载链接}}
 >
 > I'd love feedback, especially from anyone who cares about local-first / privacy-respecting tooling. (Note: not yet notarized by Apple, so first launch may need a right-click "Open" or `xattr -cr`.)
@@ -116,7 +116,7 @@
 
 - **一句话定位**：菜单栏里的隐私效率台——待办、番茄钟、本地 AI 音乐与翻译，全离线、零订阅。
 - **三组数据钩子**：不到 6MB ／ 零订阅零密钥 ／ 数据只存在你自己的 iCloud Drive。
-- **必带链接**：下载 {{dmg下载链接}} ｜ 仓库 https://github.com/polimao/rixing
+- **必带链接**：下载 {{dmg下载链接}} ｜ 仓库 https://github.com/zlimao/rixing
 - **首图/演示**：优先用"菜单栏一键唤出待办 + 本地翻译面板"的 GIF，最能体现"轻巧 + 隐私 AI"。
 
 ---
