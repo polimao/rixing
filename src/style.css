@@ -51,6 +51,11 @@ body {
   /* 允许拖拽整个窗口背景 */
 }
 
+/* 弹窗打开时隐藏主窗口外部阴影，避免弹窗 content 与 modal 间隙出现黑色半透明 */
+.modal-open .todo-container {
+  box-shadow: none;
+}
+
 .todo-list,
 .dashboard-row,
 .bottom-area,
@@ -538,9 +543,10 @@ body {
   z-index: 10;
 }
 
-/* 当输入框或内部标签处于焦点时，隐藏右侧的状态选择和更多按钮 */
+/* 当输入框或内部标签处于焦点时，隐藏右侧的状态圆圈、状态选择和更多按钮 */
 .text-wrapper:focus-within~.select-status,
-.text-wrapper:focus-within~.more-actions-wrap {
+.text-wrapper:focus-within~.more-actions-wrap,
+.text-wrapper:focus-within~.status-circle {
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
@@ -1041,7 +1047,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
   box-sizing: border-box;
   /* 确保 padding 不会导致溢出 */
 }
